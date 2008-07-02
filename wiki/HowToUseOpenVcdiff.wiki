@@ -1,4 +1,5 @@
 #summary Documentation for the open-vcdiff package
+#labels Featured,Phase-Deploy
            
 = How to use {{{open-vcdiff}}} =
   
