@@ -38,6 +38,10 @@ the format can be enabled if desired:
  * *Adler32 checksum.*  The format can be modified to include an [http://en.wikipedia.org/wiki/Adler-32 Adler32] checksum of the target window data.  If the checksum format is used, then bit 2 (0x04, defined as {{{VCD_CHECKSUM}}}) of the Win_Indicator byte will be set, and the checksum will appear just after the "Length of addresses for COPYs" field and before the "Data section for ADDs and RUNs" section in the encoding.  The decoder will verify the decoded target data against the checksum, if it is present.  This feature is enabled by passing the format flag {{{VCD_FORMAT_CHECKSUM}}} to the C++ encoder interface, or by specifying {{{-checksum}}} on the {{{vcdiff}}} command line.  This checksum format is *not* compatible with the Adler32 checksum used by Xdelta.
  * *Version header byte (Header4).* If either of the two enhancements described above is used, then the resulting format will not conform to the VCDIFF draft standard as described in RFC 3284.  In order to indicate this deviation from the standard, the fourth byte in the encoding (Header4, reserved for the VCDIFF version code) will be set to 0x53 (a capital "S" character in ASCII.)   If neither enhancement is used, the fourth byte may be 0x00 (a null character), the default value described in the standard.
  
+== System requirements ==
+
+The package has been built and tested using the Autoconf/Automake build system on Red Hat Linux, Ubuntu Linux and Cygwin on Windows, using gcc versions 3.2.2, 3.4.4, and 4.0.3.  Other flavors of Unix may require some minor changes.  Solution and project files for Microsoft Visual Studio 2005 are also provided.  Of course, the authors will be delighted to receive submissions of patches that will add support for additional operating systems and compilers.
+
 == Installing the package ==
 
 See the {{{INSTALL}}} file for (generic) installation instructions for C++:
