@@ -1,0 +1,154 @@
+#summary How to contribute to the open-vcdiff project.
+#labels Featured,Phase-Implementation
+
+= open-vcdiff Development Guide =
+
+If you are interested in understanding the internals of the open-vcdiff package,
+building from source, or contributing ideas or modifications to the
+project, then this document is for you.
+
+== Introduction ==
+
+First, let's give you some background of the project.
+
+=== Licensing ===
+
+All open-vcdiff source and pre-built packages are provided under the
+[http://www.apache.org/licenses/LICENSE-2.0 Apache License], Version 2.0.
+
+The fine print: Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+=== The open-vcdiff Community ===
+
+The open-vcdiff community exists primarily through the [http://groups.google.com/group/open-vcdiff discussion group], the
+[http://code.google.com/p/open-vcdiff/issues/list issue tracker] and, to a lesser extent, the [http://code.google.com/p/open-vcdiff/source/checkout source control repository]. You are definitely encouraged to contribute to the
+discussion and you can also help us to keep the effectiveness of the
+group high by following and promoting the guidelines listed here.
+
+open-vcdiff is chiefly intended to support the SDCH protocol, so discussions in the
+[http://groups.google.com/group/SDCH SDCH] Google Group will often be of interest to
+open-vcdiff developers.
+
+==== Please Be Friendly ====
+
+Showing courtesy and respect to others is a vital part of the Google
+culture, and we strongly encourage everyone participating in
+open-vcdiff development to join us in accepting nothing less. Of course,
+being courteous is not the same as failing to constructively disagree
+with each other, but it does mean that we should be respectful of each
+other when enumerating the 42 technical reasons that a particular
+proposal may not be the best choice. There's never a reason to be
+antagonistic or dismissive toward anyone who is sincerely trying to
+contribute to a discussion.
+
+Sure, C++ development is serious business and all that, but it's also
+a lot of fun. Let's keep it that way. Let's strive to be among the
+friendliest communities in all of open source.
+
+==== Where to Discuss open-vcdiff ====
+
+As always, discuss open-vcdiff in the official
+[http://groups.google.com/group/open-vcdiff open-vcdiff discussion group]
+on Google Groups. You don't have to actually submit
+code in order to sign up. Your participation itself is a valuable
+contribution.
+
+== Working with the Code ==
+
+If you want to get your hands dirty with the code inside open-vcdiff,
+this is the section for you.
+
+=== Checking Out the Source from Subversion ===
+
+Checking out the open-vcdiff source is most useful if you plan to
+tweak it yourself.  You check out the source for open-vcdiff using a
+[http://subversion.tigris.org/ Subversion] client as you would for any
+other project hosted on Google Code.  Please see the instruction on
+the [http://code.google.com/p/open-vcdiff/source/checkout source code access page]
+for how to do it.
+
+=== Compiling from Source ===
+
+Once you check out the code, you can find basic instructions on how to compile it
+in the [http://code.google.com/p/open-vcdiff/source/browse/trunk/README README] file.
+More detailed information is available in the on-line document HowToUseOpenVcdiff.
+
+=== Testing ===
+
+We require thorough unit testing of the open-vcdiff package.
+open-vcdiff is a low-level library that may be linked with any number of client and
+server packages, and it is our responsibility as developers to provide reasonable
+assurance that doing so will not break those packages.
+
+Tests should be written for any new code, and changes should be
+verified to not break existing tests before they are submitted for
+review. To perform the tests, follow the instructions in [http://code.google.com/p/open-vcdiff/source/browse/trunk/README README] and
+verify that there are no failures.
+
+== Contributing Code ==
+
+We are excited that open-vcdiff is open source, and hope to get
+great patches from the community. Before you fire up your favorite IDE
+and begin hammering away at that new feature, though, please take the
+time to read this section and understand the process. While it seems
+rigorous, we want to keep a high standard of quality in the code
+base.
+
+=== Contributor License Agreements ===
+
+You must sign a Contributor License Agreement (CLA) before we can
+accept any code.  The CLA protects you and us.
+
+  * If you are an individual writing original source code and you're sure you own the intellectual property, then you'll need to sign an [http://code.google.com/legal/individual-cla-v1.0.html individual CLA].
+  * If you work for a company that wants to allow you to contribute your work to GWT, then you'll need to sign a [http://code.google.com/legal/corporate-cla-v1.0.html corporate CLA].
+
+Follow either of the two links above to access the appropriate CLA and
+instructions for how to sign and return it.
+
+=== Coding Style ===
+
+To keep the source consistent, readable, diffable and easy to merge,
+we use a fairly rigid coding style, as defined by the [http://code.google.com/p/google-styleguide/ google-styleguide] project.  All patches will be expected
+to conform to the style outlined [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml here].
+
+=== Submitting Patches ===
+
+Please do submit code. Here's what you need to do:
+
+  # Decide which code you want to submit. A submission should be a set of changes that addresses one issue in the [http://code.google.com/p/open-vcdiff/issues/list open-vcdiff issue tracker]. Please don't mix more than one logical change per submittal, because it makes the history hard to follow. If you want to make a change that doesn't have a corresponding issue in the issue tracker, please create one.
+  # Also, coordinate with team members that are listed on the issue in question. This ensures that work isn't being duplicated and communicating your plan early also generally leads to better patches.
+  # Ensure that your code adheres to the [#Coding_Style Google source code style].
+  # Ensure that there are unit tests for your code.  (See [#Testing Testing], above.)
+  # Sign a Contributor License Agreement.
+  # Make sure there is an issue in the issue tracker that your change addresses.  If necessary, create a new issue.
+  # Create a patch file using `svn diff`.
+  # We use [http://codereview.appspot.com/ Rietveld] to do web-based code reviews.  You can read about the tool [http://code.google.com/p/rietveld/wiki/CodeReviewHelp here].  When you are ready, upload your patch via Rietveld and notify `open-vcdiff@googlegroups.com` to review it.  There are several ways to upload the patch.  We recommend using the [http://codereview.appspot.com/static/upload.py upload.py] script.
+
+=== open-vcdiff Committers ===
+
+The current members of the open-vcdiff engineering team are the only
+committers at present. To ensure the quality and consistency of this
+package, we require each new open-vcdiff team
+member to earn the right to become a committer by following the
+procedures in this document, writing consistently great code, and
+demonstrating repeatedly that he or she truly gets the zen of
+open-vcdiff.
+
+== Release Process ==
+
+We follow the typical release process for Subversion-based projects:
+
+  # A release branch named `release-X.Y` is created.
+  # Bugs are fixed and features are added in trunk; those individual patches are merged into the release branch until it's stable.
+  # An individual point release (the `Z` in `X.Y.Z`) is made by creating a tag from the branch.
+  # Repeat steps 2 and 3 throughout one release cycle (as determined by features or time).
+  # Go back to step 1 to create another release branch and so on.
+
+----
+Portions of this page are reproduced from the
+[http://code.google.com/p/googletest/wiki/GoogleTestDevGuideGoogle Test Development Guide], created and shared by Google and used according to terms described in the
+[http://creativecommons.org/licenses/by/2.5/ Creative Commons Attribution 2.5 License].
+
+That page, in turn, is based on the [http://code.google.com/webtoolkit/makinggwtbetter.html Making GWT Better] guide from the [http://code.google.com/webtoolkit/ Google Web Toolkit] project.
+
+Except as otherwise [http://code.google.com/policies.html#restrictions noted], the content of this page is licensed under the [http://creativecommons.org/licenses/by/2.5/ Creative Commons Attribution 2.5 License].
