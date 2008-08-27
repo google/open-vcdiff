@@ -45,7 +45,7 @@ The package has been built and tested using the Autoconf/Automake build system o
 On Solaris 10, if you run across a build error
 "{{{libstdc++.la is not a valid libtool archive}}}", please refer to the following
 Sun forum post for a workaround:
-[http://forums.sun.com/thread.jspa?forumID=844&threadID=5073150]
+[http://forums.sun.com/thread.jspa?forumID=844&threadID=5073150 libstdc++.la empty]
 
 == Installing the package ==
 
