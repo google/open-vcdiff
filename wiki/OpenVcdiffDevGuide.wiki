@@ -146,7 +146,7 @@ We follow the typical release process for Subversion-based projects:
 
 ----
 Portions of this page are reproduced from the
-[http://code.google.com/p/googletest/wiki/GoogleTestDevGuideGoogle Test Development Guide], created and shared by Google and used according to terms described in the
+[http://code.google.com/p/googletest/wiki/GoogleTestDevGuide Google Test Development Guide], created and shared by Google and used according to terms described in the
 [http://creativecommons.org/licenses/by/2.5/ Creative Commons Attribution 2.5 License].
 
 That page, in turn, is based on the [http://code.google.com/webtoolkit/makinggwtbetter.html Making GWT Better] guide from the [http://code.google.com/webtoolkit/ Google Web Toolkit] project.
