@@ -117,7 +117,7 @@ Please do submit code. Here's what you need to do:
 
   # Decide which code you want to submit. A submission should be a set of changes that addresses one issue in the [http://code.google.com/p/open-vcdiff/issues/list open-vcdiff issue tracker]. Please don't mix more than one logical change per submittal, because it makes the history hard to follow. If you want to make a change that doesn't have a corresponding issue in the issue tracker, please create one.
   # Also, coordinate with team members that are listed on the issue in question. This ensures that work isn't being duplicated and communicating your plan early also generally leads to better patches.
-  # Ensure that your code adheres to the [#Coding_Style Google source code style].
+  # Ensure that your code adheres to  [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml Google C++ style guidelines].
   # Ensure that there are unit tests for your code.  (See [#Testing Testing], above.)
   # Sign a Contributor License Agreement.
   # Make sure there is an issue in the issue tracker that your change addresses.  If necessary, create a new issue.
