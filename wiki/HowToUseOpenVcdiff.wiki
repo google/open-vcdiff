@@ -8,7 +8,7 @@
 that can write and read the VCDIFF format described in
 [http://www.ietf.org/rfc/rfc3284.txt RFC 3284 : The VCDIFF Generic Differencing and Compression Data Format].
 The encoder uses the
-[http://ieeexplore.ieee.org/iel5/6126/16375/00755678.pdf Bentley/McIlroy technique]
+[http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.11.8470&rep=rep1&type=pdf Bentley/McIlroy technique]
 for finding matches between the
 dictionary and target data.
 
