@@ -112,10 +112,10 @@ FilePath FilePath::MakeFileName(const FilePath& directory,
 // either a file, directory, or whatever.
 bool FilePath::FileOrDirectoryExists() const {
 #ifdef GTEST_OS_WINDOWS
-  struct _stat file_stat = {};
+  struct _stat file_stat;
   return _stat(pathname_.c_str(), &file_stat) == 0;
 #else
-  struct stat file_stat = {};
+  struct stat file_stat;
   return stat(pathname_.c_str(), &file_stat) == 0;
 #endif  // GTEST_OS_WINDOWS
 }
@@ -126,11 +126,13 @@ bool FilePath::DirectoryExists() const {
   bool result = false;
 #ifdef _WIN32
   FilePath removed_sep(this->RemoveTrailingPathSeparator());
-  struct _stat file_stat = {};
+  struct _stat file_stat;
+  file_stat.st_mode = 0;
   result = _stat(removed_sep.c_str(), &file_stat) == 0 &&
       (_S_IFDIR & file_stat.st_mode) != 0;
 #else
-  struct stat file_stat = {};
+  struct stat file_stat;
+  file_stat.st_mode = 0;
   result = stat(pathname_.c_str(), &file_stat) == 0 &&
       S_ISDIR(file_stat.st_mode);
 #endif  // _WIN32

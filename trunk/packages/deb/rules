@@ -103,7 +103,7 @@ binary-arch: build install
 		      $(CURDIR)/debian/tmp/usr/share/man/man1/vcdiff.1
 	dh_link
 	dh_strip
-	dh_compress $(CURDIR)/debian/tmp/usr/share/doc/open-vcdiff-0.1/ChangeLog
+	dh_compress
 	dh_fixperms
 #	dh_perl
 #	dh_python
