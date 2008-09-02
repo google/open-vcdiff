@@ -1,6 +1,18 @@
+Tue, 02 Sep 2008 09:27:54 -0700  Google Inc. <opensource@google.com>
+
+  * Fix problems found on OpenBSD platform.
+    * Issue #1: vcdiff command-line executable crashes on startup.
+      This was a problem with the stub intended to replace pthread_once if the
+      package was not linked with the pthreads library.  Simplify gflags.cc to
+      assume single-threaded execution.
+    * Issue #2: Unit test blockhash_test fails.
+      Define VCDIFF_USE_BLOCK_COMPARE_WORDS for BSD platforms to ensure that
+      the most efficient version of memcmp is used in the encoder's inner loop.
+  * Fix compilation warnings in gtest-filepath.cc: "warning: missing
+    initializer for member 'stat::...'"
+
 Mon, 16 Jun 2008 15:15:51 -0700  Google Inc. <opensource@google.com>
 
   * open-vcdiff: initial release:
   The open-vcdiff package provides an encoder and decoder for the VCDIFF format
   described in RFC 3284 (http://www.ietf.org/rfc/rfc3284.txt).
-

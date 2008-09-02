@@ -20,12 +20,6 @@
 #ifndef OPEN_VCDIFF_VSPROJECTS_CONFIG_H_
 #define OPEN_VCDIFF_VSPROJECTS_CONFIG_H_
 
-/* Define to 1 if you have the `InitializeCriticalSection' function. */
-#define HAVE_INITIALIZECRITICALSECTION 1
-
-/* Define to 1 if you have the `InterlockedCompareExchange' function. */
-#define HAVE_INTERLOCKEDCOMPAREEXCHANGE 1
-
 /* Define to 1 if you have the `QueryPerformanceCounter' function. */
 #define HAVE_QUERYPERFORMANCECOUNTER 1
 
@@ -41,7 +35,6 @@
 /* Define to 1 if the system has the type `__int16'. */
 #define HAVE___INT16 1
 
-
 /* Name of package */
 #define PACKAGE "open-vcdiff"
 
@@ -52,19 +45,19 @@
 #define PACKAGE_NAME "open-vcdiff"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "open-vcdiff 0.1"
+#define PACKAGE_STRING "open-vcdiff 0.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "open-vcdiff"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.1"
+#define PACKAGE_VERSION "0.2"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "0.1"
+#define VERSION "0.2"
 
 // These functions have different names, but the same behavior,
 // for Visual Studio.

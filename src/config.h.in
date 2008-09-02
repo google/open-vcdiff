@@ -15,12 +15,6 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
-/* Define to 1 if you have the `InitializeCriticalSection' function. */
-#undef HAVE_INITIALIZECRITICALSECTION
-
-/* Define to 1 if you have the `InterlockedCompareExchange' function. */
-#undef HAVE_INTERLOCKEDCOMPAREEXCHANGE
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -38,9 +32,6 @@
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN
-
-/* Define if you have POSIX threads libraries and header files. */
-#undef HAVE_PTHREAD
 
 /* Define to 1 if you have the `QueryPerformanceCounter' function. */
 #undef HAVE_QUERYPERFORMANCECOUNTER
@@ -110,10 +101,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* Define to necessary symbol if this constant uses a non-standard name on
-   your system. */
-#undef PTHREAD_CREATE_JOINABLE
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
