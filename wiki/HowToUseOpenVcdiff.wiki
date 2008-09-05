@@ -40,7 +40,23 @@ the format can be enabled if desired:
  
 == System requirements ==
 
-The package has been built and tested using the Autoconf/Automake build system on Red Hat Linux, Ubuntu Linux, Cygwin on Windows, and Solaris 10, using gcc versions 3.2.2, 3.4.4, and 4.0.3.  Other flavors of Unix may require some minor changes.  Solution and project files for Microsoft Visual Studio 2005 are also provided.  Of course, the authors will be delighted to receive submissions of patches that will add support for additional operating systems and compilers.
+The package has been built and tested using the [http://www.gnu.org/software/autoconf Autoconf]/[http://www.gnu.org/software/automake Automake] build system on Red Hat Linux, Ubuntu Linux, Cygwin on Windows, Mac OS X, and Solaris 10, using gcc versions 3.2.2, 3.4.4, and 4.0.3.  Other flavors of Unix may require some minor changes.
+
+On Microsoft Windows, you can build the package using either [http://www.cygwin.com Cygwin] or Visual Studio 2005.  See below for details on the latter.
+
+Of course, the authors will be delighted to receive submissions of patches that will add support for additional operating systems and compilers.
+
+Some notes about porting {{{open-vcdiff}}} to specific environments follow.
+
+=== Microsoft Visual Studio 2005 ===
+
+Solution and project files for Microsoft Visual Studio 2005 are provided in the {{{vsprojects}}} directory of the CVS source tree (but not the source tarball.)
+
+=== Mac OS X ===
+
+In order to build {{{open-vcdiff}}} on OS X, you will need to download and install [http://developer.apple.com/tools/xcode/ Xcode] if it is not already installed on your machine.
+
+=== Solaris ===
 
 On Solaris 10, if you run across a build error
 "{{{libstdc++.la is not a valid libtool archive}}}", please refer to the following
