@@ -17,8 +17,8 @@
 #define OPEN_VCDIFF_DECODETABLE_H_
 
 #include <config.h>
+#include <stddef.h>     // NULL
 #include <stdint.h>     // int32_t
-#include <cstddef>      // NULL
 #include <memory>       // auto_ptr
 #include "codetable.h"  // VCDiffInstructi...
 #include "logging.h"

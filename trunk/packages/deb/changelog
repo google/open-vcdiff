@@ -1,3 +1,20 @@
+open-vcdiff (0.3-1) unstable; urgency=low
+
+  * Issue #15: open-vcdiff fails to compile on Fedora 9
+    * Add header <string.h> to source files that use memcmp, memset, memcpy,
+      and/or strlen.
+    * Change C++-style includes like <cstdlib> to C-style includes like
+      <stdlib.h> so that function names are guaranteed to be defined in the
+      global namespace.
+  * Issue #8: Decoder should not crash if it runs out of memory
+    * Add a new interface that places a limit on the maximum bytes allowed in
+      a single target window or a target file.
+  * Issue #13: Add unit test for vcdiff command-line executable
+    * Unit test vcdiff_test.sh added for Linux and Mac builds.
+    * Still need to add a Windows version of this test.
+
+ -- Google Inc. <opensource@google.com>  Fri, 10 Oct 2008 11:16:23 -0700
+
 open-vcdiff (0.2-1) unstable; urgency=low
 
   * Fix problems found on OpenBSD platform.

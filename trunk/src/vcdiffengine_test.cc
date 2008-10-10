@@ -15,6 +15,7 @@
 
 #include <config.h>
 #include "vcdiffengine.h"
+#include <string.h>  // memset, strlen
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -31,10 +32,12 @@ namespace open_vcdiff {
 
 namespace {
 
-using std::string;
-
 class VCDiffEngineTestBase : public testing::Test {
  protected:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   // Some common definitions and helper functions used in the various tests
   // for VCDiffEngine.
   static const int kBlockSize = BlockHash::kBlockSize;

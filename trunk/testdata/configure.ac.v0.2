@@ -4,7 +4,7 @@
 # make sure we're interpreted by some minimal autoconf
 AC_PREREQ(2.57)
 
-AC_INIT(open-vcdiff, 0.3, opensource@google.com)
+AC_INIT(open-vcdiff, 0.2, opensource@google.com)
 AC_CONFIG_SRCDIR(README)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(src/config.h)
@@ -22,14 +22,10 @@ AC_SUBST(LIBTOOL_DEPS)
 # Check whether some low-level functions/files are available
 AC_HEADER_STDC
 
-# Built-in memcmp can be inefficient when gcc compiles for x86 processors.
-# In those cases, use an alternative function instead of memcmp.
-case $host_cpu in
-  *86*)
-    if test "$GCC" = "yes"; then
-      AC_DEFINE(VCDIFF_USE_BLOCK_COMPARE_WORDS, 1,
-                Use custom compare function instead of memcmp)
-    fi
+case $host in
+  *86*-*-*bsd* | *86*-*-gnu*)
+    AC_DEFINE(VCDIFF_USE_BLOCK_COMPARE_WORDS, 1,
+              Use custom compare function instead of memcmp)
     ;;
 esac
 

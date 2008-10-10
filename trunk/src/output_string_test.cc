@@ -24,16 +24,14 @@
 #endif  // HAVE_EXT_ROPE
 
 namespace open_vcdiff {
-
 namespace {
-
-using std::string;
-#ifdef HAVE_EXT_ROPE
-using __gnu_cxx::crope;
-#endif  // HAVE_EXT_ROPE
 
 class OutputStringTest : public testing::Test {
  public:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   OutputStringTest() : string_("ab"), output_string_(&string_) { }
 
   virtual ~OutputStringTest() { }
@@ -77,6 +75,8 @@ TEST_F(OutputStringTest, Size) {
 #ifdef HAVE_EXT_ROPE
 class OutputCRopeTest : public testing::Test {
  public:
+  typedef __gnu_cxx::crope crope;
+
   OutputCRopeTest() : crope_("ab"), output_crope_(&crope_) { }
 
   virtual ~OutputCRopeTest() { }

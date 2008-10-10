@@ -16,7 +16,7 @@
 #include <config.h>
 #include "rolling_hash.h"
 #include <stdint.h>  // uint32_t
-#include <cstdlib>  // rand, srand
+#include <stdlib.h>  // rand, srand
 #include <vector>
 #include "testing.h"
 

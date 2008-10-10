@@ -25,33 +25,28 @@ googleinclude_HEADERS = src/google/vcdecoder.h src/google/vcencoder.h \
 			src/google/output_string.h
 
 docdir = $(prefix)/share/doc/$(PACKAGE)-$(VERSION)
-## This is for HTML and other documentation you want to install.
-## Add your documentation files (in doc/) in addition to these
-## top-level boilerplate files.  Also add a TODO file if you have one.
-dist_doc_DATA = AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS
+dist_doc_DATA = AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS \
+		src/gtest/README
 
 # The manual pages that should be installed
 dist_man1_MANS = man/vcdiff.1
 
-## The libraries (.so's) you want to install
+## The libraries (.so's) you want to build and install
 lib_LTLIBRARIES =
 
-## Internal libraries that will not be installed
-noinst_LTLIBRARIES =
-
-## Binaries to be built; these are added in the RULES section
+## Binaries to be built and installed; these are added in the RULES section
 bin_PROGRAMS =
 
-## unittests you want to run when people type 'make check'.
-## Individual tests are added to TESTS in the RULES section.
-## TESTS is for binary unittests, check_SCRIPTS for script-based unittests.
-## TESTS_ENVIRONMENT sets environment variables for when you run unittest,
-## but it only seems to take effect for *binary* unittests (argh!)
-TESTS =
-TESTS_ENVIRONMENT = SRCDIR="$(top_srcdir)"
+## Binary and script unit tests you want to run when people type 'make check'.
+## Tests are added one by one to these lists in the RULES sections.
+check_PROGRAMS =
 check_SCRIPTS =
-# Every time you add a unittest to check_SCRIPTS, add it here too
+
+## Other binaries, scripts, and libraries that are built but not automatically
+## installed.
+noinst_PROGRAMS =
 noinst_SCRIPTS =
+noinst_LTLIBRARIES =
 
 ## vvvv RULES TO MAKE THE LIBRARIES, BINARIES, AND UNITTESTS
 
@@ -134,65 +129,72 @@ bin_PROGRAMS += vcdiff
 vcdiff_SOURCES = src/vcdiff_main.cc
 vcdiff_LDADD = libvcddec.la libvcdenc.la libgflags.la
 
-TESTS += addrcache_test
+check_PROGRAMS += addrcache_test
 addrcache_test_SOURCES = src/addrcache_test.cc
 addrcache_test_LDADD = libvcdcom.la libgtest_main.la
 
-TESTS += blockhash_test
+check_PROGRAMS += blockhash_test
 blockhash_test_SOURCES = src/blockhash_test.cc
 blockhash_test_LDADD = libvcdenc.la libgtest_main.la
 
-TESTS += codetable_test
+check_PROGRAMS += codetable_test
 codetable_test_SOURCES = src/codetable_test.cc
 codetable_test_LDADD = libvcdcom.la libgtest_main.la
 
-TESTS += decodetable_test
+check_PROGRAMS += decodetable_test
 decodetable_test_SOURCES = src/decodetable_test.cc
 decodetable_test_LDADD = libvcddec.la libgtest_main.la
 
-TESTS += encodetable_test
+check_PROGRAMS += encodetable_test
 encodetable_test_SOURCES = src/encodetable_test.cc
 encodetable_test_LDADD = libvcdenc.la libgtest_main.la
 
-TESTS += headerparser_test
+check_PROGRAMS += headerparser_test
 headerparser_test_SOURCES = src/headerparser_test.cc
 headerparser_test_LDADD = libvcddec.la libgtest_main.la
 
-TESTS += instruction_map_test
+check_PROGRAMS += instruction_map_test
 instruction_map_test_SOURCES = src/instruction_map_test.cc
 instruction_map_test_LDADD = libvcdenc.la libgtest_main.la
 
-TESTS += output_string_test
-output_string_test_SOURCES = src/output_string_test.cc
+check_PROGRAMS += output_string_test
+output_string_test_SOURCES = src/output_string_crope.h \
+			     src/output_string_test.cc
 output_string_test_LDADD = libgtest_main.la
 
-TESTS += rolling_hash_test
+check_PROGRAMS += rolling_hash_test
 rolling_hash_test_SOURCES = src/rolling_hash_test.cc
 rolling_hash_test_LDADD = libvcdcom.la libgtest_main.la
 
-TESTS += varint_bigendian_test
+check_PROGRAMS += varint_bigendian_test
 varint_bigendian_test_SOURCES = src/varint_bigendian_test.cc
 varint_bigendian_test_LDADD = libvcdcom.la libgtest_main.la
 
-TESTS += vcdecoder_test
+check_PROGRAMS += vcdecoder_test
 vcdecoder_test_SOURCES = src/vcdecoder_test.h src/vcdecoder_test.cc \
-			 src/vcdecoder_test1.cc src/vcdecoder_test2.cc \
-			 src/vcdecoder_test3.cc src/vcdecoder_test4.cc
+			 src/vcdecoder1_test.cc src/vcdecoder2_test.cc \
+			 src/vcdecoder3_test.cc src/vcdecoder4_test.cc
 vcdecoder_test_LDADD = libvcddec.la libgtest_main.la
 
-TESTS += vcdiffengine_test
+check_PROGRAMS += vcdiffengine_test
 vcdiffengine_test_SOURCES = src/vcdiffengine_test.cc
 vcdiffengine_test_LDADD = libvcdenc.la libgtest_main.la
 
-TESTS += vcencoder_test
+check_PROGRAMS += vcencoder_test
 vcencoder_test_SOURCES = src/vcencoder_test.cc
 vcencoder_test_LDADD = libvcddec.la libvcdenc.la libgtest_main.la
 
+check_SCRIPTS += src/vcdiff_test.sh
+dist_noinst_DATA = testdata/configure.ac.v0.1 \
+                   testdata/configure.ac.v0.2 \
+                   testdata/allocates_4gb.vcdiff
+
 ## ^^^^ END OF RULES TO MAKE THE LIBRARIES, BINARIES, AND UNITTESTS
 
-## This should always include $(TESTS), but may also include other
-## binaries that you compile but don't want automatically installed.
-noinst_PROGRAMS = $(TESTS)
+TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+## TESTS_ENVIRONMENT sets environment variables for when you run unit tests,
+## but it only seems to take effect for *binary* unit tests (argh!)
+TESTS_ENVIRONMENT = SRCDIR="$(top_srcdir)"
 
 rpm: dist-gzip packages/rpm.sh packages/rpm/rpm.spec
 	@cd packages && ./rpm.sh ${PACKAGE} ${VERSION}
@@ -203,5 +205,30 @@ deb: dist-gzip packages/deb.sh packages/deb/*
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
-EXTRA_DIST = packages/rpm.sh packages/rpm/rpm.spec packages/deb.sh \
-  packages/deb autogen.sh $(SCRIPTS) libtool
+EXTRA_DIST = $(check_SCRIPTS) \
+	     autogen.sh \
+	     packages/rpm.sh \
+	     packages/rpm/rpm.spec \
+	     packages/deb.sh \
+	     packages/deb \
+	     vsprojects/config.h \
+	     vsprojects/stdint.h \
+	     vsprojects/open-vcdiff.sln \
+	     vsprojects/addrcache_test/addrcache_test.vcproj \
+	     vsprojects/blockhash_test/blockhash_test.vcproj \
+	     vsprojects/codetable_test/codetable_test.vcproj \
+	     vsprojects/decodetable_test/decodetable_test.vcproj \
+	     vsprojects/encodetable_test/encodetable_test.vcproj \
+	     vsprojects/gtest/gtest.vcproj \
+	     vsprojects/headerparser_test/headerparser_test.vcproj \
+	     vsprojects/instruction_map_test/instruction_map_test.vcproj \
+	     vsprojects/output_string_test/output_string_test.vcproj \
+	     vsprojects/rolling_hash_test/rolling_hash_test.vcproj \
+	     vsprojects/varint_bigendian_test/varint_bigendian_test.vcproj \
+	     vsprojects/vcdcom/vcdcom.vcproj \
+	     vsprojects/vcddec/vcddec.vcproj \
+	     vsprojects/vcdecoder_test/vcdecoder_test.vcproj \
+	     vsprojects/vcdenc/vcdenc.vcproj \
+	     vsprojects/vcdiff/vcdiff.vcproj \
+	     vsprojects/vcdiffengine_test/vcdiffengine_test.vcproj \
+	     vsprojects/vcencoder_test/vcencoder_test.vcproj

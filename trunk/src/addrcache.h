@@ -22,7 +22,6 @@
 #define OPEN_VCDIFF_ADDRCACHE_H_
 
 #include <config.h>
-#include <cstring>             // memset
 #include <vector>
 #include "vcdiff_defs.h"  // VCDAddress
 

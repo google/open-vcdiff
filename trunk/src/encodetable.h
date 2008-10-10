@@ -17,8 +17,8 @@
 #define OPEN_VCDIFF_ENCODETABLE_H_
 
 #include <config.h>
-#include <stdint.h>             // int32_t
-#include <cstddef>              // size_t
+#include <stddef.h>  // size_t
+#include <stdint.h>  // int32_t
 #include <string>
 #include <vector>
 #include "addrcache.h"
@@ -26,8 +26,6 @@
 #include "codetable.h"
 
 namespace open_vcdiff {
-
-using std::string;
 
 class OutputStringInterface;
 class VCDiffInstructionMap;
@@ -115,6 +113,10 @@ class VCDiffCodeTableWriter {
   const std::vector<int>& match_counts() const { return match_counts_; }
 
  private:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   // This is an estimate of the longest match size the encoder expects to find.
   // It is used to determine the initial size of the vector match_counts_.
   // If it is too large, then some space will be wasted on vector elements
