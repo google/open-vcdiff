@@ -16,13 +16,11 @@
 #ifndef OPEN_VCDIFF_VCDECODER_H_
 #define OPEN_VCDIFF_VCDECODER_H_
 
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 #include <string>
 #include "google/output_string.h"
 
 namespace open_vcdiff {
-
-using std::string;
 
 class VCDiffStreamingDecoderImpl;
 
@@ -96,6 +94,32 @@ class VCDiffStreamingDecoder {
   //
   bool FinishDecoding();
 
+  // *** Adjustable parameters ***
+
+  // Specifies the maximum allowable target file size.  If the decoder
+  // encounters a delta file that would cause it to create a target file larger
+  // than this limit, it will log an error and stop decoding.  If the decoder is
+  // applied to delta files whose sizes vary greatly and whose contents can be
+  // trusted, then a value larger than the the default value (64 MB) can be
+  // specified to allow for maximum flexibility.  On the other hand, if the
+  // input data is known never to exceed a particular size, and/or the input
+  // data may be maliciously constructed, a lower value can be supplied in order
+  // to guard against running out of memory or swapping to disk while decoding
+  // an extremely large target file.  The argument must be between 0 and
+  // INT32_MAX (2G); if it is within these bounds, the function will set the
+  // limit and return true.  Otherwise, the function will return false and will
+  // not change the limit.  Setting the limit to 0 will cause all decode
+  // operations of non-empty target files to fail.
+  bool SetMaximumTargetFileSize(size_t new_maximum_target_file_size);
+
+  // Specifies the maximum allowable target *window* size.  (A target file is
+  // composed of zero or more target windows.)  If the decoder encounters a
+  // delta window that would cause it to create a target window larger
+  // than this limit, it will log an error and stop decoding.
+  bool SetMaximumTargetWindowSize(size_t new_maximum_target_window_size);
+
+  // *** Diagnostic interfaces ***
+
   // The decoder can create a version of the output target string with XML tags
   // added to indicate where each section of the decoded text came from.  This
   // can assist in debugging the decoder and/or determining the effectiveness of
@@ -147,6 +171,10 @@ class VCDiffStreamingDecoder {
 //
 class VCDiffDecoder {
  public:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   VCDiffDecoder() { }
   ~VCDiffDecoder() { }
 

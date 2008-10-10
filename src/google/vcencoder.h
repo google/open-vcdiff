@@ -16,7 +16,7 @@
 #ifndef OPEN_VCDIFF_VCENCODER_H_
 #define OPEN_VCDIFF_VCENCODER_H_
 
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 #include <vector>
 #include "google/output_string.h"
 

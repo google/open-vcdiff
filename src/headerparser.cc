@@ -250,13 +250,6 @@ bool VCDiffHeaderParser::ParseWindowLengths(size_t* target_window_length) {
   if (!ParseSize("size of the target window", target_window_length)) {
     return false;
   }
-  if (*target_window_length > kMaxTargetWindowSize) {
-    LOG(ERROR) << "Length of target window (" << (*target_window_length)
-               << ") exceeds limit of " << kMaxTargetWindowSize << " bytes"
-               << LOG_ENDL;
-    return_code_ = RESULT_ERROR;
-    return false;
-  }
   return true;
 }
 

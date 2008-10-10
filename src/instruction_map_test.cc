@@ -26,7 +26,8 @@ namespace {
 
 class InstructionMapTest : public testing::Test {
  protected:
-  virtual ~InstructionMapTest() { }
+  static void SetUpTestCase();
+  static void TearDownTestCase();
 
   static void AddExerciseOpcode(unsigned char inst1,
                                 unsigned char mode1,
@@ -34,82 +35,12 @@ class InstructionMapTest : public testing::Test {
                                 unsigned char inst2,
                                 unsigned char mode2,
                                 unsigned char size2,
-                                int opcode) {
-    g_exercise_code_table_->inst1[opcode] = inst1;
-    g_exercise_code_table_->mode1[opcode] = mode1;
-    g_exercise_code_table_->size1[opcode] = (inst1 == VCD_NOOP) ? 0 : size1;
-    g_exercise_code_table_->inst2[opcode] = inst2;
-    g_exercise_code_table_->mode2[opcode] = mode2;
-    g_exercise_code_table_->size2[opcode] = (inst2 == VCD_NOOP) ? 0 : size2;
-  }
-
-  static void SetUpTestCase() {
-    g_exercise_code_table_ = new VCDiffCodeTableData;
-    int opcode = 0;
-    for (unsigned char inst_mode1 = 0;
-         inst_mode1 <= VCD_LAST_INSTRUCTION_TYPE + kLastExerciseMode;
-         ++inst_mode1) {
-      unsigned char inst1 = inst_mode1;
-      unsigned char mode1 = 0;
-      if (inst_mode1 > VCD_COPY) {
-        inst1 = VCD_COPY;
-        mode1 = inst_mode1 - VCD_COPY;
-      }
-      for (unsigned char inst_mode2 = 0;
-           inst_mode2 <= VCD_LAST_INSTRUCTION_TYPE + kLastExerciseMode;
-           ++inst_mode2) {
-        unsigned char inst2 = inst_mode2;
-        unsigned char mode2 = 0;
-        if (inst_mode2 > VCD_COPY) {
-          inst2 = VCD_COPY;
-          mode2 = inst_mode2 - VCD_COPY;
-        }
-        AddExerciseOpcode(inst1, mode1, 0, inst2, mode2, 0, opcode++);
-        AddExerciseOpcode(inst1, mode1, 0, inst2, mode2, 255, opcode++);
-        AddExerciseOpcode(inst1, mode1, 255, inst2, mode2, 0, opcode++);
-        AddExerciseOpcode(inst1, mode1, 255, inst2, mode2, 255, opcode++);
-      }
-    }
-    // This is a CHECK rather than an EXPECT because it validates only
-    // the logic of the test, not of the code being tested.
-    CHECK_EQ(VCDiffCodeTableData::kCodeTableSize, opcode);
-
-    EXPECT_TRUE(VCDiffCodeTableData::kDefaultCodeTableData.Validate());
-    EXPECT_TRUE(g_exercise_code_table_->Validate(kLastExerciseMode));
-    default_map = VCDiffInstructionMap::GetDefaultInstructionMap();
-    exercise_map = new VCDiffInstructionMap(*g_exercise_code_table_,
-                                            kLastExerciseMode);
-  }
-
-  static void TearDownTestCase() {
-    delete exercise_map;
-    delete g_exercise_code_table_;
-  }
+                                int opcode);
 
   void VerifyExerciseFirstInstruction(unsigned char expected_opcode,
                                       unsigned char inst,
                                       unsigned char size,
-                                      unsigned char mode) {
-    int found_opcode = exercise_map->LookupFirstOpcode(inst, size, mode);
-    if (g_exercise_code_table_->inst1[found_opcode] == VCD_NOOP) {
-      // The opcode is backwards: (VCD_NOOP, [instruction])
-      EXPECT_GE(expected_opcode, found_opcode);
-      EXPECT_EQ(inst, g_exercise_code_table_->inst2[found_opcode]);
-      EXPECT_EQ(size, g_exercise_code_table_->size2[found_opcode]);
-      EXPECT_EQ(mode, g_exercise_code_table_->mode2[found_opcode]);
-      EXPECT_EQ(VCD_NOOP, g_exercise_code_table_->inst1[found_opcode]);
-      EXPECT_EQ(0, g_exercise_code_table_->size1[found_opcode]);
-      EXPECT_EQ(0, g_exercise_code_table_->mode1[found_opcode]);
-    } else {
-      EXPECT_EQ(expected_opcode, found_opcode);
-      EXPECT_EQ(inst, g_exercise_code_table_->inst1[found_opcode]);
-      EXPECT_EQ(size, g_exercise_code_table_->size1[found_opcode]);
-      EXPECT_EQ(mode, g_exercise_code_table_->mode1[found_opcode]);
-      EXPECT_EQ(VCD_NOOP, g_exercise_code_table_->inst2[found_opcode]);
-      EXPECT_EQ(0, g_exercise_code_table_->size2[found_opcode]);
-      EXPECT_EQ(0, g_exercise_code_table_->mode2[found_opcode]);
-    }
-  }
+                                      unsigned char mode);
 
   void VerifyExerciseSecondInstruction(unsigned char expected_opcode,
                                        unsigned char inst1,
@@ -117,15 +48,7 @@ class InstructionMapTest : public testing::Test {
                                        unsigned char mode1,
                                        unsigned char inst2,
                                        unsigned char size2,
-                                       unsigned char mode2) {
-    int first_opcode = exercise_map->LookupFirstOpcode(inst1, size1, mode1);
-    EXPECT_NE(kNoOpcode, first_opcode);
-    EXPECT_EQ(expected_opcode,
-              exercise_map->LookupSecondOpcode(first_opcode,
-                                               inst2,
-                                               size2,
-                                               mode2));
-  }
+                                       unsigned char mode2);
 
   // This value is designed so that the total number of inst values and modes
   // will equal 8 (VCD_NOOP, VCD_ADD, VCD_RUN, VCD_COPY modes 0 - 4).
@@ -153,6 +76,107 @@ class InstructionMapTest : public testing::Test {
 VCDiffCodeTableData* InstructionMapTest::g_exercise_code_table_ = NULL;
 const VCDiffInstructionMap* InstructionMapTest::default_map = NULL;
 const VCDiffInstructionMap* InstructionMapTest::exercise_map = NULL;
+
+void InstructionMapTest::SetUpTestCase() {
+  g_exercise_code_table_ = new VCDiffCodeTableData;
+  int opcode = 0;
+  for (unsigned char inst_mode1 = 0;
+       inst_mode1 <= VCD_LAST_INSTRUCTION_TYPE + kLastExerciseMode;
+       ++inst_mode1) {
+    unsigned char inst1 = inst_mode1;
+    unsigned char mode1 = 0;
+    if (inst_mode1 > VCD_COPY) {
+      inst1 = VCD_COPY;
+      mode1 = inst_mode1 - VCD_COPY;
+    }
+    for (unsigned char inst_mode2 = 0;
+         inst_mode2 <= VCD_LAST_INSTRUCTION_TYPE + kLastExerciseMode;
+         ++inst_mode2) {
+      unsigned char inst2 = inst_mode2;
+      unsigned char mode2 = 0;
+      if (inst_mode2 > VCD_COPY) {
+        inst2 = VCD_COPY;
+        mode2 = inst_mode2 - VCD_COPY;
+      }
+      AddExerciseOpcode(inst1, mode1, 0, inst2, mode2, 0, opcode++);
+      AddExerciseOpcode(inst1, mode1, 0, inst2, mode2, 255, opcode++);
+      AddExerciseOpcode(inst1, mode1, 255, inst2, mode2, 0, opcode++);
+      AddExerciseOpcode(inst1, mode1, 255, inst2, mode2, 255, opcode++);
+    }
+  }
+  // This is a CHECK rather than an EXPECT because it validates only
+  // the logic of the test, not of the code being tested.
+  CHECK_EQ(VCDiffCodeTableData::kCodeTableSize, opcode);
+
+  EXPECT_TRUE(VCDiffCodeTableData::kDefaultCodeTableData.Validate());
+  EXPECT_TRUE(g_exercise_code_table_->Validate(kLastExerciseMode));
+  default_map = VCDiffInstructionMap::GetDefaultInstructionMap();
+  exercise_map = new VCDiffInstructionMap(*g_exercise_code_table_,
+                                          kLastExerciseMode);
+}
+
+void InstructionMapTest::TearDownTestCase() {
+  delete exercise_map;
+  delete g_exercise_code_table_;
+}
+
+void InstructionMapTest::AddExerciseOpcode(unsigned char inst1,
+                                           unsigned char mode1,
+                                           unsigned char size1,
+                                           unsigned char inst2,
+                                           unsigned char mode2,
+                                           unsigned char size2,
+                                           int opcode) {
+  g_exercise_code_table_->inst1[opcode] = inst1;
+  g_exercise_code_table_->mode1[opcode] = mode1;
+  g_exercise_code_table_->size1[opcode] = (inst1 == VCD_NOOP) ? 0 : size1;
+  g_exercise_code_table_->inst2[opcode] = inst2;
+  g_exercise_code_table_->mode2[opcode] = mode2;
+  g_exercise_code_table_->size2[opcode] = (inst2 == VCD_NOOP) ? 0 : size2;
+}
+
+void InstructionMapTest::VerifyExerciseFirstInstruction(
+    unsigned char expected_opcode,
+    unsigned char inst,
+    unsigned char size,
+    unsigned char mode) {
+  int found_opcode = exercise_map->LookupFirstOpcode(inst, size, mode);
+  if (g_exercise_code_table_->inst1[found_opcode] == VCD_NOOP) {
+    // The opcode is backwards: (VCD_NOOP, [instruction])
+    EXPECT_GE(expected_opcode, found_opcode);
+    EXPECT_EQ(inst, g_exercise_code_table_->inst2[found_opcode]);
+    EXPECT_EQ(size, g_exercise_code_table_->size2[found_opcode]);
+    EXPECT_EQ(mode, g_exercise_code_table_->mode2[found_opcode]);
+    EXPECT_EQ(VCD_NOOP, g_exercise_code_table_->inst1[found_opcode]);
+    EXPECT_EQ(0, g_exercise_code_table_->size1[found_opcode]);
+    EXPECT_EQ(0, g_exercise_code_table_->mode1[found_opcode]);
+  } else {
+    EXPECT_EQ(expected_opcode, found_opcode);
+    EXPECT_EQ(inst, g_exercise_code_table_->inst1[found_opcode]);
+    EXPECT_EQ(size, g_exercise_code_table_->size1[found_opcode]);
+    EXPECT_EQ(mode, g_exercise_code_table_->mode1[found_opcode]);
+    EXPECT_EQ(VCD_NOOP, g_exercise_code_table_->inst2[found_opcode]);
+    EXPECT_EQ(0, g_exercise_code_table_->size2[found_opcode]);
+    EXPECT_EQ(0, g_exercise_code_table_->mode2[found_opcode]);
+  }
+}
+
+void InstructionMapTest::VerifyExerciseSecondInstruction(
+    unsigned char expected_opcode,
+    unsigned char inst1,
+    unsigned char size1,
+    unsigned char mode1,
+    unsigned char inst2,
+    unsigned char size2,
+    unsigned char mode2) {
+  int first_opcode = exercise_map->LookupFirstOpcode(inst1, size1, mode1);
+  EXPECT_NE(kNoOpcode, first_opcode);
+  EXPECT_EQ(expected_opcode,
+            exercise_map->LookupSecondOpcode(first_opcode,
+                                             inst2,
+                                             size2,
+                                             mode2));
+}
 
 TEST_F(InstructionMapTest, DefaultMapLookupFirstNoop) {
   EXPECT_EQ(kNoOpcode, default_map->LookupFirstOpcode(VCD_NOOP, 0, 0));

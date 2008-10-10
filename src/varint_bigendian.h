@@ -42,8 +42,6 @@
 
 namespace open_vcdiff {
 
-using std::string;
-
 class OutputStringInterface;
 
 // This helper class is needed in order to ensure that
@@ -76,6 +74,10 @@ template<> class VarintMaxBytes<int64_t> {
 template <typename SignedIntegerType>
 class VarintBE {  // BE stands for Big-Endian
  public:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   // The maximum positive value represented by a SignedIntegerType.
   static const SignedIntegerType kMaxVal;
 

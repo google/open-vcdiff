@@ -17,10 +17,10 @@
 #define OPEN_VCDIFF_TESTING_H_
 
 #include <config.h>
-#include <stdint.h>  // int64_t, uint64_t
+#include <assert.h>
+#include <stdint.h>  // int64_t
+#include <stdlib.h>  // rand
 #include <time.h>  // gettimeofday
-#include <cassert>
-#include <cstdlib>  // rand
 #include "gtest/gtest.h"
 
 #ifdef HAVE_SYS_TIME_H

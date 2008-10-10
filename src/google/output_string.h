@@ -16,7 +16,7 @@
 #ifndef OPEN_VCDIFF_OUTPUT_STRING_H_
 #define OPEN_VCDIFF_OUTPUT_STRING_H_
 
-#include <cstddef>  // size_t
+#include <stddef.h>  // size_t
 
 namespace open_vcdiff {
 

@@ -29,8 +29,9 @@
 
 #include <config.h>
 #include "google/vcdecoder.h"
+#include <stddef.h>  // size_t, ptrdiff_t
 #include <stdint.h>  // int32_t
-#include <cstddef>  // size_t, ptrdiff_t
+#include <string.h>  // memcpy, memset
 #include <memory>  // auto_ptr
 #include <string>
 #include "addrcache.h"
@@ -46,8 +47,6 @@
 namespace open_vcdiff {
 
 namespace {
-
-using std::string;
 
 enum VCDiffAnnotationType {
   VCD_ANNOTATION_LITERAL,
@@ -112,6 +111,10 @@ static const char* kAnnotationEndTags[] = {
 //
 class VCDiffDeltaFileWindow {
  public:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   VCDiffDeltaFileWindow();
   ~VCDiffDeltaFileWindow();
 
@@ -139,7 +142,7 @@ class VCDiffDeltaFileWindow {
   // is undefined; otherwise, parseable_chunk->Advance() is called to point to
   // the input data position just after the data that has been decoded.
   //
-  // If expected_target_bytes is not set to kUnlimitedBytes, then the decoder
+  // If planned_target_file_size is not set to kUnlimitedBytes, then the decoder
   // expects *exactly* this number of target bytes to be decoded from one or
   // more delta file windows.  If this number is met exactly after finishing a
   // delta window, this function will return RESULT_SUCCESS without processing
@@ -343,9 +346,34 @@ class VCDiffDeltaFileWindow {
   void operator=(const VCDiffDeltaFileWindow&);
 };
 
+// *** Inline methods for VCDiffDeltaFileWindow
+
+inline VCDiffDeltaFileWindow::VCDiffDeltaFileWindow() : parent_(NULL) {
+  Reset();
+}
+
+inline VCDiffDeltaFileWindow::~VCDiffDeltaFileWindow() { }
+
+inline void VCDiffDeltaFileWindow::Init(VCDiffStreamingDecoderImpl* parent) {
+  parent_ = parent;
+}
+
 class VCDiffStreamingDecoderImpl {
  public:
-  // A constant that is the default value for expected_target_bytes_,
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
+  // The default maximum target file size (and target window size) if
+  // SetMaximumTargetFileSize() is not called.
+  static const size_t kDefaultMaximumTargetFileSize = 67108864U;  // 64 MB
+
+  // The largest value that can be passed to SetMaximumTargetFileSize() or
+  // SetMaximumTargetWindowSize().  Using a larger value will result in an
+  // error.
+  static const size_t kTargetSizeLimit = 2147483647U;  // INT32_MAX
+
+  // A constant that is the default value for planned_target_file_size_,
   // indicating that the decoder does not have an expected length
   // for the target data.
   static const size_t kUnlimitedBytes = static_cast<size_t>(-3);
@@ -390,66 +418,67 @@ class VCDiffStreamingDecoderImpl {
   //
   bool AllowChecksum() const { return vcdiff_version_code_ == 'S'; }
 
-  // See description of expected_target_bytes_, below.
-  bool HasTargetByteLimit() const {
-    return expected_target_bytes_ != kUnlimitedBytes;
-  }
-
-  void SetTargetByteLimit(size_t expected_target_bytes) {
-    expected_target_bytes_ = expected_target_bytes;
-  }
-
-  // Checks to see whether the decoded target data has reached the expected
-  // size.
-  bool MetTargetByteLimit() const {
-    if (!HasTargetByteLimit()) {
+  bool SetMaximumTargetFileSize(size_t new_maximum_target_file_size) {
+    if (new_maximum_target_file_size > kTargetSizeLimit) {
+      LOG(ERROR) << "Specified maximum target file size "
+                 << new_maximum_target_file_size << " exceeds limit of "
+                 << kTargetSizeLimit << " bytes" << LOG_ENDL;
       return false;
     }
-    // The target byte limit should not have been exceeded, because each target
-    // window size is checked against that limit in ReadHeader(), and
+    maximum_target_file_size_ = new_maximum_target_file_size;
+    return true;
+  }
+
+  bool SetMaximumTargetWindowSize(size_t new_maximum_target_window_size) {
+    if (new_maximum_target_window_size > kTargetSizeLimit) {
+      LOG(ERROR) << "Specified maximum target window size "
+                 << new_maximum_target_window_size << " exceeds limit of "
+                 << kTargetSizeLimit << " bytes" << LOG_ENDL;
+      return false;
+    }
+    maximum_target_window_size_ = new_maximum_target_window_size;
+    return true;
+  }
+
+  // See description of planned_target_file_size_, below.
+  bool HasPlannedTargetFileSize() const {
+    return planned_target_file_size_ != kUnlimitedBytes;
+  }
+
+  void SetPlannedTargetFileSize(size_t planned_target_file_size) {
+    planned_target_file_size_ = planned_target_file_size;
+  }
+
+  // Checks to see whether the decoded target data has reached its planned size.
+  bool ReachedPlannedTargetFileSize() const {
+    if (!HasPlannedTargetFileSize()) {
+      return false;
+    }
+    // The planned target file size should not have been exceeded.
+    // TargetWindowWouldExceedSizeLimits() ensures that the advertised size of
+    // each target window would not make the target file exceed that limit, and
     // DecodeBody() will return RESULT_ERROR if the actual decoded output ever
     // exceeds the advertised target window size.
-    if (decoded_target_.size() > expected_target_bytes_) {
+    if (decoded_target_.size() > planned_target_file_size_) {
       LOG(DFATAL) << "Internal error: Decoded data size "
                   << decoded_target_.size()
-                  << " exceeds target byte limit "
-                  << expected_target_bytes_ << LOG_ENDL;
+                  << " exceeds planned target file size "
+                  << planned_target_file_size_ << LOG_ENDL;
       return true;
     }
-    return decoded_target_.size() == expected_target_bytes_;
+    return decoded_target_.size() == planned_target_file_size_;
   }
 
   // Checks to see whether adding a new target window of the specified size
-  // would exceed the expected target size.  If so, logs an error and returns
-  // true; otherwise, returns false.
-  bool TargetWindowWouldExceedTargetByteLimit(size_t window_size) const {
-    if (!HasTargetByteLimit()) {
-      return false;
-    }
-    // The logical expression to check would be:
-    //
-    //   decoded_target_.size() + target_bytes_to_add > expected_target_bytes_
-    //
-    // but the addition might cause an integer overflow if target_bytes_to_add
-    // is very large.  So it is better to check target_bytes_to_add against
-    // the remaining expected target bytes.
-    size_t remaining_expected_target_bytes =
-        expected_target_bytes_ - decoded_target_.size();
-    if (window_size > remaining_expected_target_bytes) {
-      LOG(ERROR) << "Length of target window (" << window_size
-                 << " bytes) plus previous windows (" << decoded_target_.size()
-                 << " bytes) would exceed expected size of "
-                 << expected_target_bytes_ << " bytes" << LOG_ENDL;
-      return true;
-    } else {
-      return false;
-    }
-  }
+  // would exceed the planned target file size, the maximum target file size,
+  // or the maximum target window size.  If so, logs an error and returns true;
+  // otherwise, returns false.
+  bool TargetWindowWouldExceedSizeLimits(size_t window_size) const;
 
   // Returns the amount of input data passed to the last DecodeChunk()
   // that was not consumed by the decoder.  This is essential if
-  // SetExpectedTargetBytes() is being used, in order to preserve
-  // the input data stream beyond the expected encoding.
+  // SetPlannedTargetFileSize() is being used, in order to preserve the
+  // remaining input data stream once the planned target file has been decoded.
   size_t GetUnconsumedDataSize() const {
     return unparsed_bytes_.size();
   }
@@ -471,8 +500,8 @@ class VCDiffStreamingDecoderImpl {
       // The decoder is in the middle of parsing an interleaved format delta
       // window.
       return false;
-    } else if (MetTargetByteLimit()) {
-      // The decoder found exactly the expected number of bytes.  In this case
+    } else if (ReachedPlannedTargetFileSize()) {
+      // The decoder found exactly the planned number of bytes.  In this case
       // it is OK for unparsed_bytes_ to be non-empty; it contains the leftover
       // data after the end of the delta file.
       return true;
@@ -599,7 +628,11 @@ class VCDiffStreamingDecoderImpl {
   // stop processing the embedded data once the entire code table has
   // been decoded, and treat the rest of the available data as part
   // of the enclosing delta file.
-  size_t expected_target_bytes_;
+  size_t planned_target_file_size_;
+
+  size_t maximum_target_file_size_;
+
+  size_t maximum_target_window_size_;
 
   // This string will always be empty until EnableAnnotatedOutput() is called,
   // at which point it will start to accumulate annotated delta windows each
@@ -620,7 +653,12 @@ class VCDiffStreamingDecoderImpl {
 
 // *** Methods for VCDiffStreamingDecoderImpl
 
-VCDiffStreamingDecoderImpl::VCDiffStreamingDecoderImpl() {
+const size_t VCDiffStreamingDecoderImpl::kDefaultMaximumTargetFileSize;
+const size_t VCDiffStreamingDecoderImpl::kUnlimitedBytes;
+
+VCDiffStreamingDecoderImpl::VCDiffStreamingDecoderImpl()
+    : maximum_target_file_size_(kDefaultMaximumTargetFileSize),
+      maximum_target_window_size_(kDefaultMaximumTargetFileSize) {
   delta_window_.Init(this);
   Reset();
 }
@@ -633,7 +671,7 @@ void VCDiffStreamingDecoderImpl::Reset() {
   dictionary_ptr_ = NULL;
   dictionary_size_ = 0;
   vcdiff_version_code_ = '\0';
-  expected_target_bytes_ = kUnlimitedBytes;
+  planned_target_file_size_ = kUnlimitedBytes;
   addr_cache_.reset();
   custom_code_table_.reset();
   custom_code_table_decoder_.reset();
@@ -779,7 +817,8 @@ int VCDiffStreamingDecoderImpl::InitCustomCodeTable(const char* data_start,
       reinterpret_cast<const char*>(
           &VCDiffCodeTableData::kDefaultCodeTableData),
       sizeof(VCDiffCodeTableData::kDefaultCodeTableData));
-  custom_code_table_decoder_->SetTargetByteLimit(sizeof(*custom_code_table_));
+  custom_code_table_decoder_->SetPlannedTargetFileSize(
+      sizeof(*custom_code_table_));
   return static_cast<int>(header_parser.ParsedSize());
 }
 
@@ -808,10 +847,10 @@ VCDiffResult VCDiffStreamingDecoderImpl::ReadCustomCodeTable(
     return RESULT_ERROR;
   }
   if (custom_code_table_string_.length() != sizeof(*custom_code_table_)) {
-    LOG(DFATAL) << "Decoded custom code table size "
+    LOG(DFATAL) << "Decoded custom code table size ("
                 << custom_code_table_string_.length()
-                << " does not match expected size "
-                << sizeof(*custom_code_table_) << LOG_ENDL;
+                << ") does not match size of a code table ("
+                << sizeof(*custom_code_table_) << ")" << LOG_ENDL;
     return RESULT_ERROR;
   }
   memcpy(custom_code_table_.get(),
@@ -829,6 +868,10 @@ namespace {
 
 class TrackNewOutputText {
  public:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   explicit TrackNewOutputText(const string& decoded_target)
       : decoded_target_(decoded_target),
       initial_decoded_target_size_(decoded_target.size()) { }
@@ -912,17 +955,45 @@ bool VCDiffStreamingDecoderImpl::FinishDecoding() {
   return success;
 }
 
+bool VCDiffStreamingDecoderImpl::TargetWindowWouldExceedSizeLimits(
+    size_t window_size) const {
+  if (window_size > maximum_target_window_size_) {
+    LOG(ERROR) << "Length of target window (" << window_size
+               << ") exceeds limit of " << maximum_target_window_size_
+               << " bytes" << LOG_ENDL;
+    return true;
+  }
+  if (HasPlannedTargetFileSize()) {
+    // The logical expression to check would be:
+    //
+    //   decoded_target_.size() + window_size > planned_target_file_size_
+    //
+    // but the addition might cause an integer overflow if target_bytes_to_add
+    // is very large.  So it is better to check target_bytes_to_add against
+    // the remaining planned target bytes.
+    size_t remaining_planned_target_file_size =
+        planned_target_file_size_ - decoded_target_.size();
+    if (window_size > remaining_planned_target_file_size) {
+      LOG(ERROR) << "Length of target window (" << window_size
+                 << " bytes) plus previous windows (" << decoded_target_.size()
+                 << " bytes) would exceed planned size of "
+                 << planned_target_file_size_ << " bytes" << LOG_ENDL;
+      return true;
+    }
+  }
+  size_t remaining_maximum_target_bytes =
+      maximum_target_file_size_ - decoded_target_.size();
+  if (window_size > remaining_maximum_target_bytes) {
+    LOG(ERROR) << "Length of target window (" << window_size
+               << " bytes) plus previous windows (" << decoded_target_.size()
+               << " bytes) would exceed maximum target file size of "
+               << maximum_target_file_size_ << " bytes" << LOG_ENDL;
+    return true;
+  }
+  return false;
+}
+
 // *** Methods for VCDiffDeltaFileWindow
-
-inline VCDiffDeltaFileWindow::VCDiffDeltaFileWindow() : parent_(NULL) {
-  Reset();
-}
-
-inline VCDiffDeltaFileWindow::~VCDiffDeltaFileWindow() { }
-
-inline void VCDiffDeltaFileWindow::Init(VCDiffStreamingDecoderImpl* parent) {
-  parent_ = parent;
-}
 
 void VCDiffDeltaFileWindow::Reset() {
   found_header_ = false;
@@ -1031,8 +1102,8 @@ VCDiffResult VCDiffDeltaFileWindow::ReadHeader(
   if (!header_parser.ParseWindowLengths(&target_window_length_)) {
     return header_parser.GetResult();
   }
-  if (parent_->TargetWindowWouldExceedTargetByteLimit(target_window_length_)) {
-    // An error has been logged by TargetWindowWouldExceedTargetByteLimit().
+  if (parent_->TargetWindowWouldExceedSizeLimits(target_window_length_)) {
+    // An error has been logged by TargetWindowWouldExceedSizeLimits().
     return RESULT_ERROR;
   }
   header_parser.ParseDeltaIndicator();
@@ -1341,8 +1412,8 @@ VCDiffResult VCDiffDeltaFileWindow::DecodeWindows(
     AppendAnnotatedOutput(parent_->annotated_output());
     // Get ready to read a new delta window
     Reset();
-    if (parent_->MetTargetByteLimit()) {
-      // Found exactly the length expected.  Stop decoding.
+    if (parent_->ReachedPlannedTargetFileSize()) {
+      // Found exactly the length we expected.  Stop decoding.
       return RESULT_SUCCESS;
     }
   }
@@ -1369,6 +1440,16 @@ bool VCDiffStreamingDecoder::DecodeChunkToInterface(
 
 bool VCDiffStreamingDecoder::FinishDecoding() {
   return impl_->FinishDecoding();
+}
+
+bool VCDiffStreamingDecoder::SetMaximumTargetFileSize(
+    size_t new_maximum_target_file_size) {
+  return impl_->SetMaximumTargetFileSize(new_maximum_target_file_size);
+}
+
+bool VCDiffStreamingDecoder::SetMaximumTargetWindowSize(
+    size_t new_maximum_target_window_size) {
+  return impl_->SetMaximumTargetWindowSize(new_maximum_target_window_size);
 }
 
 void VCDiffStreamingDecoder::EnableAnnotatedOutput() {

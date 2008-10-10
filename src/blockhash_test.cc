@@ -15,7 +15,8 @@
 
 #include <config.h>
 #include "blockhash.h"
-#include <climits>  // INT_MIN
+#include <limits.h>  // INT_MIN
+#include <string.h>  // memcpy, memcmp, strlen
 #include <memory>  // auto_ptr
 #include "encodetable.h"
 #include "logging.h"
@@ -379,12 +380,12 @@ void BlockHashTest::TestAndPrintTimesForCompareFunctions(
                 << " FASTER than BlockCompareWords" << LOG_ENDL;
     }
   }
-#ifdef NDEBUG
+#if defined(NDEBUG) && !defined(VCDIFF_USE_BLOCK_COMPARE_WORDS)
   // Only check timings for optimized build.  There's plenty of margin: this
   // check will fail only if BlockContentsMatch is at least twice as slow as
   // BlockCompareWords.
   EXPECT_GT(time_for_block_compare_words * 2.0, time_for_block_contents_match);
-#endif  // NDEBUG
+#endif  // NDEBUG && !VCDIFF_USE_BLOCK_COMPARE_WORDS
 }
 
 // The two strings passed to BlockHash::MatchingBytesToLeft do have matching

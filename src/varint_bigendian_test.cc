@@ -15,7 +15,8 @@
 
 #include <config.h>
 #include "varint_bigendian.h"
-#include <cstdlib>  // rand, srand
+#include <stdlib.h>  // rand, srand
+#include <string.h>  // strlen
 #include <string>
 #include <vector>
 #include "logging.h"
@@ -24,10 +25,12 @@
 namespace open_vcdiff {
 namespace {
 
-using std::string;
-
 class VarintBETestCommon : public testing::Test {
  protected:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   VarintBETestCommon()
       : varint_buf_(VarintBE<int64_t>::kMaxBytes),
         verify_encoded_byte_index_(0),

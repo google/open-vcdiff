@@ -191,19 +191,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\vcdecoder_test1.cc"
+				RelativePath="..\..\src\vcdecoder1_test.cc"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\vcdecoder_test2.cc"
+				RelativePath="..\..\src\vcdecoder2_test.cc"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\vcdecoder_test3.cc"
+				RelativePath="..\..\src\vcdecoder3_test.cc"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\vcdecoder_test4.cc"
+				RelativePath="..\..\src\vcdecoder4_test.cc"
 				>
 			</File>
 		</Filter>

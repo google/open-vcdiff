@@ -15,6 +15,7 @@
 
 #include <config.h>
 #include "instruction_map.h"
+#include <string.h>  // memset
 #include "addrcache.h"
 #include "vcdiff_defs.h"
 

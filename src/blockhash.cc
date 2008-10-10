@@ -17,6 +17,7 @@
 #include "blockhash.h"
 #include "compile_assert.h"
 #include <stdint.h>  // uint32_t
+#include <string.h>  // memcpy, memcmp
 #include "logging.h"
 #include "rolling_hash.h"
 

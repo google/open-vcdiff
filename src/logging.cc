@@ -14,6 +14,7 @@
 // limitations under the License.
 
 #include <config.h>
+#include <stdlib.h>  // exit
 #include "logging.h"
 
 namespace open_vcdiff {

@@ -16,13 +16,12 @@
 #include <config.h>
 #include "varint_bigendian.h"
 #include <stdint.h>  // int32_t, int64_t
+#include <string.h>  // memcpy
 #include <string>
 #include "logging.h"
 #include "google/output_string.h"
 
 namespace open_vcdiff {
-
-using std::string;
 
 template<> const int32_t VarintBE<int32_t>::kMaxVal = 0x7FFFFFFF;
 template<> const int64_t VarintBE<int64_t>::kMaxVal = 0x7FFFFFFFFFFFFFFFULL;

@@ -49,9 +49,16 @@ host_triplet = @host@
 # "-Wextra" when we can be sure that early gcc versions will not be used.
 @GCC_TRUE@am__append_1 = -Wall -Wwrite-strings -Woverloaded-virtual -W
 bin_PROGRAMS = vcdiff$(EXEEXT)
-noinst_PROGRAMS = $(am__EXEEXT_1)
+check_PROGRAMS = addrcache_test$(EXEEXT) blockhash_test$(EXEEXT) \
+	codetable_test$(EXEEXT) decodetable_test$(EXEEXT) \
+	encodetable_test$(EXEEXT) headerparser_test$(EXEEXT) \
+	instruction_map_test$(EXEEXT) output_string_test$(EXEEXT) \
+	rolling_hash_test$(EXEEXT) varint_bigendian_test$(EXEEXT) \
+	vcdecoder_test$(EXEEXT) vcdiffengine_test$(EXEEXT) \
+	vcencoder_test$(EXEEXT)
+noinst_PROGRAMS =
 DIST_COMMON = README $(am__configure_deps) $(dist_doc_DATA) \
-	$(dist_man1_MANS) $(googleinclude_HEADERS) \
+	$(dist_man1_MANS) $(dist_noinst_DATA) $(googleinclude_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/configure $(top_srcdir)/src/config.h.in AUTHORS \
 	COPYING ChangeLog INSTALL NEWS THANKS compile config.guess \
@@ -100,13 +107,6 @@ am_libvcdenc_la_OBJECTS = blockhash.lo encodetable.lo \
 	instruction_map.lo vcdiffengine.lo vcencoder.lo
 libvcdenc_la_OBJECTS = $(am_libvcdenc_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-am__EXEEXT_1 = addrcache_test$(EXEEXT) blockhash_test$(EXEEXT) \
-	codetable_test$(EXEEXT) decodetable_test$(EXEEXT) \
-	encodetable_test$(EXEEXT) headerparser_test$(EXEEXT) \
-	instruction_map_test$(EXEEXT) output_string_test$(EXEEXT) \
-	rolling_hash_test$(EXEEXT) varint_bigendian_test$(EXEEXT) \
-	vcdecoder_test$(EXEEXT) vcdiffengine_test$(EXEEXT) \
-	vcencoder_test$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_addrcache_test_OBJECTS = addrcache_test.$(OBJEXT)
 addrcache_test_OBJECTS = $(am_addrcache_test_OBJECTS)
@@ -139,8 +139,8 @@ am_varint_bigendian_test_OBJECTS = varint_bigendian_test.$(OBJEXT)
 varint_bigendian_test_OBJECTS = $(am_varint_bigendian_test_OBJECTS)
 varint_bigendian_test_DEPENDENCIES = libvcdcom.la libgtest_main.la
 am_vcdecoder_test_OBJECTS = vcdecoder_test.$(OBJEXT) \
-	vcdecoder_test1.$(OBJEXT) vcdecoder_test2.$(OBJEXT) \
-	vcdecoder_test3.$(OBJEXT) vcdecoder_test4.$(OBJEXT)
+	vcdecoder1_test.$(OBJEXT) vcdecoder2_test.$(OBJEXT) \
+	vcdecoder3_test.$(OBJEXT) vcdecoder4_test.$(OBJEXT)
 vcdecoder_test_OBJECTS = $(am_vcdecoder_test_OBJECTS)
 vcdecoder_test_DEPENDENCIES = libvcddec.la libgtest_main.la
 am_vcdiff_OBJECTS = vcdiff_main.$(OBJEXT)
@@ -197,7 +197,7 @@ man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(dist_man1_MANS)
 dist_docDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(dist_doc_DATA)
+DATA = $(dist_doc_DATA) $(dist_noinst_DATA)
 googleincludeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(googleinclude_HEADERS)
 ETAGS = etags
@@ -324,7 +324,9 @@ googleinclude_HEADERS = src/google/vcdecoder.h src/google/vcencoder.h \
 			src/google/output_string.h
 
 docdir = $(prefix)/share/doc/$(PACKAGE)-$(VERSION)
-dist_doc_DATA = AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS
+dist_doc_DATA = AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS \
+		src/gtest/README
+
 
 # The manual pages that should be installed
 dist_man1_MANS = man/vcdiff.1
@@ -335,6 +337,8 @@ dist_man1_MANS = man/vcdiff.1
 
 # libvcdenc: The open-vcdiff *encoder* library
 lib_LTLIBRARIES = libvcdcom.la libvcddec.la libvcdenc.la
+check_SCRIPTS = src/vcdiff_test.sh
+noinst_SCRIPTS = 
 
 # google-gflags: Used for command-line client
 #     Please refer to http://code.google.com/p/google-gflags/ for details
@@ -342,14 +346,6 @@ lib_LTLIBRARIES = libvcdcom.la libvcddec.la libvcdenc.la
 # gtest (Google Test): Used for unit tests only
 #     Please refer to http://code.google.com/p/googletest/ for details
 noinst_LTLIBRARIES = libgflags.la libgtest.la libgtest_main.la
-TESTS = addrcache_test blockhash_test codetable_test decodetable_test \
-	encodetable_test headerparser_test instruction_map_test \
-	output_string_test rolling_hash_test varint_bigendian_test \
-	vcdecoder_test vcdiffengine_test vcencoder_test
-TESTS_ENVIRONMENT = SRCDIR="$(top_srcdir)"
-check_SCRIPTS = 
-# Every time you add a unittest to check_SCRIPTS, add it here too
-noinst_SCRIPTS = 
 libgflags_la_SOURCES = src/gflags/gflags.h \
 		       src/gflags.cc \
 		       src/gflags_reporting.cc
@@ -427,23 +423,56 @@ headerparser_test_SOURCES = src/headerparser_test.cc
 headerparser_test_LDADD = libvcddec.la libgtest_main.la
 instruction_map_test_SOURCES = src/instruction_map_test.cc
 instruction_map_test_LDADD = libvcdenc.la libgtest_main.la
-output_string_test_SOURCES = src/output_string_test.cc
+output_string_test_SOURCES = src/output_string_crope.h \
+			     src/output_string_test.cc
+
 output_string_test_LDADD = libgtest_main.la
 rolling_hash_test_SOURCES = src/rolling_hash_test.cc
 rolling_hash_test_LDADD = libvcdcom.la libgtest_main.la
 varint_bigendian_test_SOURCES = src/varint_bigendian_test.cc
 varint_bigendian_test_LDADD = libvcdcom.la libgtest_main.la
 vcdecoder_test_SOURCES = src/vcdecoder_test.h src/vcdecoder_test.cc \
-			 src/vcdecoder_test1.cc src/vcdecoder_test2.cc \
-			 src/vcdecoder_test3.cc src/vcdecoder_test4.cc
+			 src/vcdecoder1_test.cc src/vcdecoder2_test.cc \
+			 src/vcdecoder3_test.cc src/vcdecoder4_test.cc
 
 vcdecoder_test_LDADD = libvcddec.la libgtest_main.la
 vcdiffengine_test_SOURCES = src/vcdiffengine_test.cc
 vcdiffengine_test_LDADD = libvcdenc.la libgtest_main.la
 vcencoder_test_SOURCES = src/vcencoder_test.cc
 vcencoder_test_LDADD = libvcddec.la libvcdenc.la libgtest_main.la
-EXTRA_DIST = packages/rpm.sh packages/rpm/rpm.spec packages/deb.sh \
-  packages/deb autogen.sh $(SCRIPTS) libtool
+dist_noinst_DATA = testdata/configure.ac.v0.1 \
+                   testdata/configure.ac.v0.2 \
+                   testdata/allocates_4gb.vcdiff
+
+TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+TESTS_ENVIRONMENT = SRCDIR="$(top_srcdir)"
+EXTRA_DIST = $(check_SCRIPTS) \
+	     autogen.sh \
+	     packages/rpm.sh \
+	     packages/rpm/rpm.spec \
+	     packages/deb.sh \
+	     packages/deb \
+	     vsprojects/config.h \
+	     vsprojects/stdint.h \
+	     vsprojects/open-vcdiff.sln \
+	     vsprojects/addrcache_test/addrcache_test.vcproj \
+	     vsprojects/blockhash_test/blockhash_test.vcproj \
+	     vsprojects/codetable_test/codetable_test.vcproj \
+	     vsprojects/decodetable_test/decodetable_test.vcproj \
+	     vsprojects/encodetable_test/encodetable_test.vcproj \
+	     vsprojects/gtest/gtest.vcproj \
+	     vsprojects/headerparser_test/headerparser_test.vcproj \
+	     vsprojects/instruction_map_test/instruction_map_test.vcproj \
+	     vsprojects/output_string_test/output_string_test.vcproj \
+	     vsprojects/rolling_hash_test/rolling_hash_test.vcproj \
+	     vsprojects/varint_bigendian_test/varint_bigendian_test.vcproj \
+	     vsprojects/vcdcom/vcdcom.vcproj \
+	     vsprojects/vcddec/vcddec.vcproj \
+	     vsprojects/vcdecoder_test/vcdecoder_test.vcproj \
+	     vsprojects/vcdenc/vcdenc.vcproj \
+	     vsprojects/vcdiff/vcdiff.vcproj \
+	     vsprojects/vcdiffengine_test/vcdiffengine_test.vcproj \
+	     vsprojects/vcencoder_test/vcencoder_test.vcproj
 
 all: all-am
 
@@ -576,6 +605,13 @@ clean-binPROGRAMS:
 	  rm -f $$p $$f ; \
 	done
 
+clean-checkPROGRAMS:
+	@list='$(check_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
+	done
+
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; for p in $$list; do \
 	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
@@ -659,11 +695,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/varint_bigendian.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/varint_bigendian_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder1_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder2_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder3_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder4_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder_test.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder_test1.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder_test2.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder_test3.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdecoder_test4.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdiff_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdiffengine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vcdiffengine_test.Po@am__quote@
@@ -1006,61 +1042,61 @@ vcdecoder_test.obj: src/vcdecoder_test.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test.obj `if test -f 'src/vcdecoder_test.cc'; then $(CYGPATH_W) 'src/vcdecoder_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test.cc'; fi`
 
-vcdecoder_test1.o: src/vcdecoder_test1.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test1.o -MD -MP -MF "$(DEPDIR)/vcdecoder_test1.Tpo" -c -o vcdecoder_test1.o `test -f 'src/vcdecoder_test1.cc' || echo '$(srcdir)/'`src/vcdecoder_test1.cc; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test1.Tpo" "$(DEPDIR)/vcdecoder_test1.Po"; else rm -f "$(DEPDIR)/vcdecoder_test1.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test1.cc' object='vcdecoder_test1.o' libtool=no @AMDEPBACKSLASH@
+vcdecoder1_test.o: src/vcdecoder1_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder1_test.o -MD -MP -MF "$(DEPDIR)/vcdecoder1_test.Tpo" -c -o vcdecoder1_test.o `test -f 'src/vcdecoder1_test.cc' || echo '$(srcdir)/'`src/vcdecoder1_test.cc; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder1_test.Tpo" "$(DEPDIR)/vcdecoder1_test.Po"; else rm -f "$(DEPDIR)/vcdecoder1_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder1_test.cc' object='vcdecoder1_test.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test1.o `test -f 'src/vcdecoder_test1.cc' || echo '$(srcdir)/'`src/vcdecoder_test1.cc
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder1_test.o `test -f 'src/vcdecoder1_test.cc' || echo '$(srcdir)/'`src/vcdecoder1_test.cc
 
-vcdecoder_test1.obj: src/vcdecoder_test1.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test1.obj -MD -MP -MF "$(DEPDIR)/vcdecoder_test1.Tpo" -c -o vcdecoder_test1.obj `if test -f 'src/vcdecoder_test1.cc'; then $(CYGPATH_W) 'src/vcdecoder_test1.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test1.cc'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test1.Tpo" "$(DEPDIR)/vcdecoder_test1.Po"; else rm -f "$(DEPDIR)/vcdecoder_test1.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test1.cc' object='vcdecoder_test1.obj' libtool=no @AMDEPBACKSLASH@
+vcdecoder1_test.obj: src/vcdecoder1_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder1_test.obj -MD -MP -MF "$(DEPDIR)/vcdecoder1_test.Tpo" -c -o vcdecoder1_test.obj `if test -f 'src/vcdecoder1_test.cc'; then $(CYGPATH_W) 'src/vcdecoder1_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder1_test.cc'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder1_test.Tpo" "$(DEPDIR)/vcdecoder1_test.Po"; else rm -f "$(DEPDIR)/vcdecoder1_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder1_test.cc' object='vcdecoder1_test.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test1.obj `if test -f 'src/vcdecoder_test1.cc'; then $(CYGPATH_W) 'src/vcdecoder_test1.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test1.cc'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder1_test.obj `if test -f 'src/vcdecoder1_test.cc'; then $(CYGPATH_W) 'src/vcdecoder1_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder1_test.cc'; fi`
 
-vcdecoder_test2.o: src/vcdecoder_test2.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test2.o -MD -MP -MF "$(DEPDIR)/vcdecoder_test2.Tpo" -c -o vcdecoder_test2.o `test -f 'src/vcdecoder_test2.cc' || echo '$(srcdir)/'`src/vcdecoder_test2.cc; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test2.Tpo" "$(DEPDIR)/vcdecoder_test2.Po"; else rm -f "$(DEPDIR)/vcdecoder_test2.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test2.cc' object='vcdecoder_test2.o' libtool=no @AMDEPBACKSLASH@
+vcdecoder2_test.o: src/vcdecoder2_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder2_test.o -MD -MP -MF "$(DEPDIR)/vcdecoder2_test.Tpo" -c -o vcdecoder2_test.o `test -f 'src/vcdecoder2_test.cc' || echo '$(srcdir)/'`src/vcdecoder2_test.cc; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder2_test.Tpo" "$(DEPDIR)/vcdecoder2_test.Po"; else rm -f "$(DEPDIR)/vcdecoder2_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder2_test.cc' object='vcdecoder2_test.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test2.o `test -f 'src/vcdecoder_test2.cc' || echo '$(srcdir)/'`src/vcdecoder_test2.cc
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder2_test.o `test -f 'src/vcdecoder2_test.cc' || echo '$(srcdir)/'`src/vcdecoder2_test.cc
 
-vcdecoder_test2.obj: src/vcdecoder_test2.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test2.obj -MD -MP -MF "$(DEPDIR)/vcdecoder_test2.Tpo" -c -o vcdecoder_test2.obj `if test -f 'src/vcdecoder_test2.cc'; then $(CYGPATH_W) 'src/vcdecoder_test2.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test2.cc'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test2.Tpo" "$(DEPDIR)/vcdecoder_test2.Po"; else rm -f "$(DEPDIR)/vcdecoder_test2.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test2.cc' object='vcdecoder_test2.obj' libtool=no @AMDEPBACKSLASH@
+vcdecoder2_test.obj: src/vcdecoder2_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder2_test.obj -MD -MP -MF "$(DEPDIR)/vcdecoder2_test.Tpo" -c -o vcdecoder2_test.obj `if test -f 'src/vcdecoder2_test.cc'; then $(CYGPATH_W) 'src/vcdecoder2_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder2_test.cc'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder2_test.Tpo" "$(DEPDIR)/vcdecoder2_test.Po"; else rm -f "$(DEPDIR)/vcdecoder2_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder2_test.cc' object='vcdecoder2_test.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test2.obj `if test -f 'src/vcdecoder_test2.cc'; then $(CYGPATH_W) 'src/vcdecoder_test2.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test2.cc'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder2_test.obj `if test -f 'src/vcdecoder2_test.cc'; then $(CYGPATH_W) 'src/vcdecoder2_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder2_test.cc'; fi`
 
-vcdecoder_test3.o: src/vcdecoder_test3.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test3.o -MD -MP -MF "$(DEPDIR)/vcdecoder_test3.Tpo" -c -o vcdecoder_test3.o `test -f 'src/vcdecoder_test3.cc' || echo '$(srcdir)/'`src/vcdecoder_test3.cc; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test3.Tpo" "$(DEPDIR)/vcdecoder_test3.Po"; else rm -f "$(DEPDIR)/vcdecoder_test3.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test3.cc' object='vcdecoder_test3.o' libtool=no @AMDEPBACKSLASH@
+vcdecoder3_test.o: src/vcdecoder3_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder3_test.o -MD -MP -MF "$(DEPDIR)/vcdecoder3_test.Tpo" -c -o vcdecoder3_test.o `test -f 'src/vcdecoder3_test.cc' || echo '$(srcdir)/'`src/vcdecoder3_test.cc; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder3_test.Tpo" "$(DEPDIR)/vcdecoder3_test.Po"; else rm -f "$(DEPDIR)/vcdecoder3_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder3_test.cc' object='vcdecoder3_test.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test3.o `test -f 'src/vcdecoder_test3.cc' || echo '$(srcdir)/'`src/vcdecoder_test3.cc
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder3_test.o `test -f 'src/vcdecoder3_test.cc' || echo '$(srcdir)/'`src/vcdecoder3_test.cc
 
-vcdecoder_test3.obj: src/vcdecoder_test3.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test3.obj -MD -MP -MF "$(DEPDIR)/vcdecoder_test3.Tpo" -c -o vcdecoder_test3.obj `if test -f 'src/vcdecoder_test3.cc'; then $(CYGPATH_W) 'src/vcdecoder_test3.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test3.cc'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test3.Tpo" "$(DEPDIR)/vcdecoder_test3.Po"; else rm -f "$(DEPDIR)/vcdecoder_test3.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test3.cc' object='vcdecoder_test3.obj' libtool=no @AMDEPBACKSLASH@
+vcdecoder3_test.obj: src/vcdecoder3_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder3_test.obj -MD -MP -MF "$(DEPDIR)/vcdecoder3_test.Tpo" -c -o vcdecoder3_test.obj `if test -f 'src/vcdecoder3_test.cc'; then $(CYGPATH_W) 'src/vcdecoder3_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder3_test.cc'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder3_test.Tpo" "$(DEPDIR)/vcdecoder3_test.Po"; else rm -f "$(DEPDIR)/vcdecoder3_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder3_test.cc' object='vcdecoder3_test.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test3.obj `if test -f 'src/vcdecoder_test3.cc'; then $(CYGPATH_W) 'src/vcdecoder_test3.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test3.cc'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder3_test.obj `if test -f 'src/vcdecoder3_test.cc'; then $(CYGPATH_W) 'src/vcdecoder3_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder3_test.cc'; fi`
 
-vcdecoder_test4.o: src/vcdecoder_test4.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test4.o -MD -MP -MF "$(DEPDIR)/vcdecoder_test4.Tpo" -c -o vcdecoder_test4.o `test -f 'src/vcdecoder_test4.cc' || echo '$(srcdir)/'`src/vcdecoder_test4.cc; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test4.Tpo" "$(DEPDIR)/vcdecoder_test4.Po"; else rm -f "$(DEPDIR)/vcdecoder_test4.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test4.cc' object='vcdecoder_test4.o' libtool=no @AMDEPBACKSLASH@
+vcdecoder4_test.o: src/vcdecoder4_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder4_test.o -MD -MP -MF "$(DEPDIR)/vcdecoder4_test.Tpo" -c -o vcdecoder4_test.o `test -f 'src/vcdecoder4_test.cc' || echo '$(srcdir)/'`src/vcdecoder4_test.cc; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder4_test.Tpo" "$(DEPDIR)/vcdecoder4_test.Po"; else rm -f "$(DEPDIR)/vcdecoder4_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder4_test.cc' object='vcdecoder4_test.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test4.o `test -f 'src/vcdecoder_test4.cc' || echo '$(srcdir)/'`src/vcdecoder_test4.cc
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder4_test.o `test -f 'src/vcdecoder4_test.cc' || echo '$(srcdir)/'`src/vcdecoder4_test.cc
 
-vcdecoder_test4.obj: src/vcdecoder_test4.cc
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder_test4.obj -MD -MP -MF "$(DEPDIR)/vcdecoder_test4.Tpo" -c -o vcdecoder_test4.obj `if test -f 'src/vcdecoder_test4.cc'; then $(CYGPATH_W) 'src/vcdecoder_test4.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test4.cc'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder_test4.Tpo" "$(DEPDIR)/vcdecoder_test4.Po"; else rm -f "$(DEPDIR)/vcdecoder_test4.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder_test4.cc' object='vcdecoder_test4.obj' libtool=no @AMDEPBACKSLASH@
+vcdecoder4_test.obj: src/vcdecoder4_test.cc
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdecoder4_test.obj -MD -MP -MF "$(DEPDIR)/vcdecoder4_test.Tpo" -c -o vcdecoder4_test.obj `if test -f 'src/vcdecoder4_test.cc'; then $(CYGPATH_W) 'src/vcdecoder4_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder4_test.cc'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/vcdecoder4_test.Tpo" "$(DEPDIR)/vcdecoder4_test.Po"; else rm -f "$(DEPDIR)/vcdecoder4_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/vcdecoder4_test.cc' object='vcdecoder4_test.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder_test4.obj `if test -f 'src/vcdecoder_test4.cc'; then $(CYGPATH_W) 'src/vcdecoder_test4.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder_test4.cc'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vcdecoder4_test.obj `if test -f 'src/vcdecoder4_test.cc'; then $(CYGPATH_W) 'src/vcdecoder4_test.cc'; else $(CYGPATH_W) '$(srcdir)/src/vcdecoder4_test.cc'; fi`
 
 vcdiff_main.o: src/vcdiff_main.cc
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vcdiff_main.o -MD -MP -MF "$(DEPDIR)/vcdiff_main.Tpo" -c -o vcdiff_main.o `test -f 'src/vcdiff_main.cc' || echo '$(srcdir)/'`src/vcdiff_main.cc; \
@@ -1317,7 +1353,7 @@ check-TESTS: $(TESTS)
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/m4 $(distdir)/man $(distdir)/packages $(distdir)/packages/rpm $(distdir)/src $(distdir)/src/google
+	$(mkdir_p) $(distdir)/m4 $(distdir)/man $(distdir)/packages $(distdir)/packages/rpm $(distdir)/src $(distdir)/src/google $(distdir)/src/gtest $(distdir)/testdata $(distdir)/vsprojects $(distdir)/vsprojects/addrcache_test $(distdir)/vsprojects/blockhash_test $(distdir)/vsprojects/codetable_test $(distdir)/vsprojects/decodetable_test $(distdir)/vsprojects/encodetable_test $(distdir)/vsprojects/gtest $(distdir)/vsprojects/headerparser_test $(distdir)/vsprojects/instruction_map_test $(distdir)/vsprojects/output_string_test $(distdir)/vsprojects/rolling_hash_test $(distdir)/vsprojects/varint_bigendian_test $(distdir)/vsprojects/vcdcom $(distdir)/vsprojects/vcddec $(distdir)/vsprojects/vcdecoder_test $(distdir)/vsprojects/vcdenc $(distdir)/vsprojects/vcdiff $(distdir)/vsprojects/vcdiffengine_test $(distdir)/vsprojects/vcencoder_test
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -1442,7 +1478,7 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-	$(MAKE) $(AM_MAKEFLAGS) $(check_SCRIPTS)
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS) $(check_SCRIPTS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(MANS) $(DATA) \
@@ -1479,9 +1515,9 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool clean-noinstLTLIBRARIES clean-noinstPROGRAMS \
-	mostlyclean-am
+clean-am: clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
+	clean-libLTLIBRARIES clean-libtool clean-noinstLTLIBRARIES \
+	clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -1538,24 +1574,24 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 uninstall-man: uninstall-man1
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-TESTS check-am \
-	clean clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool clean-noinstLTLIBRARIES clean-noinstPROGRAMS \
-	ctags dist dist-all dist-bzip2 dist-gzip dist-shar dist-tarZ \
-	dist-zip distcheck distclean distclean-compile \
-	distclean-generic distclean-hdr distclean-libtool \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am \
-	install-dist_docDATA install-exec install-exec-am \
-	install-googleincludeHEADERS install-info install-info-am \
-	install-libLTLIBRARIES install-man install-man1 install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-dist_docDATA uninstall-googleincludeHEADERS \
-	uninstall-info-am uninstall-libLTLIBRARIES uninstall-man \
-	uninstall-man1
+	clean clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
+	clean-libLTLIBRARIES clean-libtool clean-noinstLTLIBRARIES \
+	clean-noinstPROGRAMS ctags dist dist-all dist-bzip2 dist-gzip \
+	dist-shar dist-tarZ dist-zip distcheck distclean \
+	distclean-compile distclean-generic distclean-hdr \
+	distclean-libtool distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-dist_docDATA install-exec \
+	install-exec-am install-googleincludeHEADERS install-info \
+	install-info-am install-libLTLIBRARIES install-man \
+	install-man1 install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
+	uninstall-am uninstall-binPROGRAMS uninstall-dist_docDATA \
+	uninstall-googleincludeHEADERS uninstall-info-am \
+	uninstall-libLTLIBRARIES uninstall-man uninstall-man1
 
 
 rpm: dist-gzip packages/rpm.sh packages/rpm/rpm.spec

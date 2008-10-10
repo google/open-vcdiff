@@ -15,7 +15,7 @@
 
 #include <config.h>
 #include "headerparser.h"
-#include <cstdlib>  // rand, srand
+#include <stdlib.h>  // rand, srand
 #include <string>
 #include <vector>
 #include "testing.h"
@@ -24,11 +24,14 @@
 namespace open_vcdiff {
 namespace {  // anonymous
 
-using std::string;
 using std::vector;
 
 class VCDiffHeaderParserTest : public testing::Test {
  protected:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   static const int kTestSize = 1024;
 
   VCDiffHeaderParserTest() : parser(NULL) { }

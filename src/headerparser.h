@@ -17,8 +17,8 @@
 #define OPEN_VCDIFF_HEADERPARSER_H_
 
 #include <config.h>
+#include <stddef.h>  // NULL
 #include <stdint.h>  // int32_t, uint32_t
-#include <cstddef>  // NULL
 #include "checksum.h"  // VCDChecksum
 #include "vcdiff_defs.h"  // VCDiffResult
 
@@ -191,14 +191,6 @@ class DeltaWindowSection {
 // or delta window header.
 class VCDiffHeaderParser {
  public:
-  // The maximum allowable size of a target window.  This restricts the amount
-  // of memory that can be allocated by the decoder.  A maliciously formulated
-  // delta file can create a target window of any arbitrary size, so the
-  // decoder needs to be sure that it can allocate this much memory using
-  // std::string::reserve().
-  //
-  static const size_t kMaxTargetWindowSize = 1 << 26;  // 64 MB
-
   // header_start should be the start of the header to be parsed;
   // data_end is the position just after the last byte of available data
   // (which may extend far past the end of the header.)

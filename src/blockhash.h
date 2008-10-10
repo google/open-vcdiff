@@ -21,8 +21,8 @@
 #define OPEN_VCDIFF_BLOCKHASH_H_
 
 #include <config.h>
+#include <stddef.h>  // size_t
 #include <stdint.h>  // uint32_t
-#include <cstddef>  // size_t
 #include <vector>
 
 namespace open_vcdiff {

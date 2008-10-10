@@ -16,10 +16,10 @@
 // A command-line interface to the open-vcdiff library.
 
 #include <config.h>
-#include <cassert>
-#include <cerrno>
-#include <cstdio>
-#include <cstring>  // strerror
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>  // strerror
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,7 +28,9 @@
 #include "google/vcdecoder.h"
 #include "google/vcencoder.h"
 
+#ifndef VCDIFF_HAS_GLOBAL_STRING
 using std::string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
 using google::GetCommandLineFlagInfoOrDie;
 using google::ShowUsageWithFlagsRestrict;
 
@@ -55,6 +57,10 @@ DEFINE_bool(interleaved, false, "Use interleaved format");
 DEFINE_bool(stats, false, "Report compression percentage");
 DEFINE_bool(target_matches, false, "Find duplicate strings in target data"
                                    " as well as dictionary data");
+DEFINE_uint64(max_target_file_size, kMaxBufferSize,
+              "Maximum target file size allowed by decoder");
+DEFINE_uint64(max_target_window_size, kMaxBufferSize,
+              "Maximum target window size allowed by decoder");
 
 static const char* const kUsageString =
     " {encode | delta | decode | patch }[ <options> ]\n"
@@ -426,6 +432,8 @@ bool VCDiffFileBasedCoder::Decode() {
   }
 
   open_vcdiff::VCDiffStreamingDecoder decoder;
+  decoder.SetMaximumTargetFileSize(FLAGS_max_target_file_size);
+  decoder.SetMaximumTargetWindowSize(FLAGS_max_target_window_size);
   string output;
   size_t input_size = 0;
   size_t output_size = 0;
@@ -479,6 +487,8 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
   }
 
   open_vcdiff::VCDiffStreamingDecoder decoder;
+  decoder.SetMaximumTargetFileSize(FLAGS_max_target_file_size);
+  decoder.SetMaximumTargetWindowSize(FLAGS_max_target_window_size);
   string output;
   size_t input_size = 0;
   size_t output_size = 0;

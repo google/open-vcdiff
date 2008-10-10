@@ -15,9 +15,9 @@
 
 #include <config.h>
 #include "addrcache.h"
+#include <limits.h>  // INT_MAX, INT_MIN
 #include <stdint.h>  // uint32_t
-#include <climits>  // INT_MAX, INT_MIN
-#include <cstdlib>  // rand, srand
+#include <stdlib.h>  // rand, srand
 #include <string>
 #include <vector>
 #include "logging.h"
@@ -26,9 +26,6 @@
 #include "vcdiff_defs.h"  // RESULT_ERROR
 
 namespace open_vcdiff {
-
-using std::string;
-
 namespace {
 
 // Provides an address_stream_ buffer and functions to manually encode
@@ -37,6 +34,10 @@ namespace {
 //
 class VCDiffAddressCacheTest : public testing::Test {
  public:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   VCDiffAddressCacheTest() : decode_position_(NULL),
                              decode_position_end_(NULL),
                              verify_encode_position_(NULL),

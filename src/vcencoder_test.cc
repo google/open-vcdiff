@@ -15,9 +15,9 @@
 
 #include <config.h>
 #include "google/vcencoder.h"
+#include <stdlib.h>  // free, posix_memalign
+#include <string.h>  // memcpy
 #include <algorithm>
-#include <cstdlib>  // free, posix_memalign
-#include <cstring>  // memcpy
 #include <string>
 #include <vector>
 #include "blockhash.h"
@@ -51,8 +51,6 @@ using __gnu_cxx::crope;
 namespace open_vcdiff {
 namespace {
 
-using std::string;
-
 static const size_t kFileHeaderSize = sizeof(DeltaFileHeader);
 
 // This is to check the maximum possible encoding size
@@ -68,6 +66,10 @@ static const size_t kWindowHeaderSize = 21;
 
 class VerifyEncodedBytesTest : public testing::Test {
  public:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   VerifyEncodedBytesTest() : delta_index_(0) { }
   virtual ~VerifyEncodedBytesTest() { }
 

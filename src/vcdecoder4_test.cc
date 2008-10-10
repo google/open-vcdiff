@@ -24,8 +24,6 @@
 namespace open_vcdiff {
 namespace {
 
-using std::string;
-
 // Use the interleaved file header with the standard encoding.  Should work.
 class VCDiffDecoderInterleavedAllowedButNotUsed
     : public VCDiffStandardDecoderTest {
@@ -117,6 +115,8 @@ TEST_F(VCDiffDecoderInterleavedUsedButNotSupported,
 // Each delta instruction appears in its own window.
 class VCDiffStandardWindowDecoderTest : public VCDiffDecoderTest {
  protected:
+  static const size_t kWindow2Size = 61;
+
   VCDiffStandardWindowDecoderTest();
   virtual ~VCDiffStandardWindowDecoderTest() {}
 
@@ -124,6 +124,8 @@ class VCDiffStandardWindowDecoderTest : public VCDiffDecoderTest {
   static const char kExpectedAnnotatedTarget[];
   static const char kWindowBody[];
 };
+
+const size_t VCDiffStandardWindowDecoderTest::kWindow2Size;
 
 const char VCDiffStandardWindowDecoderTest::kWindowBody[] = {
 // Window 1:
@@ -146,7 +148,7 @@ const char VCDiffStandardWindowDecoderTest::kWindowBody[] = {
 // Window 2:
     0x00,  // Win_Indicator: No source segment (ADD only)
     0x44,  // Length of the delta encoding
-    0x3D,  // Size of the target window (61)
+    static_cast<char>(kWindow2Size),  // Size of the target window (61)
     0x00,  // Delta_indicator (no compression)
     0x3D,  // length of data for ADDs and RUNs
     0x02,  // length of instructions section
@@ -335,6 +337,47 @@ TEST_F(VCDiffStandardWindowDecoderTest, DecodeInThreeParts) {
                 output_chunk1 + output_chunk2 + output_chunk3);
     }
   }
+}
+
+// For the window test, the maximum target window size is much smaller than the
+// target file size.  (The largest window is Window 2, with 61 target bytes.)
+// Use the minimum values possible.
+TEST_F(VCDiffStandardWindowDecoderTest, TargetMatchesWindowSizeLimit) {
+  decoder_.SetMaximumTargetWindowSize(kWindow2Size);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_TRUE(decoder_.DecodeChunk(delta_file_.data(),
+                                   delta_file_.size(),
+                                   &output_));
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
+TEST_F(VCDiffStandardWindowDecoderTest, TargetMatchesFileSizeLimit) {
+  decoder_.SetMaximumTargetFileSize(expected_target_.size());
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_TRUE(decoder_.DecodeChunk(delta_file_.data(),
+                                   delta_file_.size(),
+                                   &output_));
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
+TEST_F(VCDiffStandardWindowDecoderTest, TargetExceedsWindowSizeLimit) {
+  decoder_.SetMaximumTargetWindowSize(kWindow2Size - 1);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
+                                    delta_file_.size(),
+                                    &output_));
+  EXPECT_EQ("", output_);
+}
+
+TEST_F(VCDiffStandardWindowDecoderTest, TargetExceedsFileSizeLimit) {
+  decoder_.SetMaximumTargetFileSize(expected_target_.size() - 1);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
+                                    delta_file_.size(),
+                                    &output_));
+  EXPECT_EQ("", output_);
 }
 
 typedef VCDiffStandardWindowDecoderTest

@@ -22,8 +22,6 @@
 
 namespace open_vcdiff {
 
-using std::string;
-
 TEST_F(VCDiffStandardDecoderTest, DecodeHeaderOnly) {
   decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
   EXPECT_TRUE(decoder_.DecodeChunk(delta_file_header_.data(),
@@ -75,6 +73,44 @@ TEST_F(VCDiffStandardDecoderTest, FinishAfterDecodingPartialWindowHeader) {
                                        + delta_window_header_.size() - 1,
                                    &output_));
   EXPECT_FALSE(decoder_.FinishDecoding());
+  EXPECT_EQ("", output_);
+}
+
+TEST_F(VCDiffStandardDecoderTest, TargetMatchesWindowSizeLimit) {
+  decoder_.SetMaximumTargetWindowSize(expected_target_.size());
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_TRUE(decoder_.DecodeChunk(delta_file_.data(),
+                                   delta_file_.size(),
+                                   &output_));
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
+TEST_F(VCDiffStandardDecoderTest, TargetMatchesFileSizeLimit) {
+  decoder_.SetMaximumTargetFileSize(expected_target_.size());
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_TRUE(decoder_.DecodeChunk(delta_file_.data(),
+                                   delta_file_.size(),
+                                   &output_));
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
+TEST_F(VCDiffStandardDecoderTest, TargetExceedsWindowSizeLimit) {
+  decoder_.SetMaximumTargetWindowSize(expected_target_.size() - 1);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
+                                    delta_file_.size(),
+                                    &output_));
+  EXPECT_EQ("", output_);
+}
+
+TEST_F(VCDiffStandardDecoderTest, TargetExceedsFileSizeLimit) {
+  decoder_.SetMaximumTargetFileSize(expected_target_.size() - 1);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
+                                    delta_file_.size(),
+                                    &output_));
   EXPECT_EQ("", output_);
 }
 

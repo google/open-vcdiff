@@ -15,7 +15,7 @@
 
 #include <config.h>
 #include "vcdecoder_test.h"
-#include <string>
+#include <string.h>  // strlen
 #include "checksum.h"
 #include "codetable.h"
 #include "testing.h"
@@ -23,8 +23,6 @@
 #include "vcdiff_defs.h"
 
 namespace open_vcdiff {
-
-using std::string;
 
 const char VCDiffDecoderTest::kStandardFileHeader[] = {
     0xD6,  // 'V' | 0x80

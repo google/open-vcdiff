@@ -17,8 +17,8 @@
 
 #include <config.h>
 #include "encodetable.h"
+#include <string.h>  // strlen
 #include <algorithm>
-#include <cstring>  // strlen
 #include <string>
 #include <vector>
 #include "addrcache.h"  // VCDiffAddressCache::kDefaultNearCacheSize
@@ -31,12 +31,11 @@
 namespace open_vcdiff {
 namespace {
 
-using std::string;
-
 class CodeTableWriterTest : public testing::Test {
  protected:
-  // Remove all of the functions below that are not useful for this
-  // test fixture.
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   CodeTableWriterTest()
       : standard_writer(false),

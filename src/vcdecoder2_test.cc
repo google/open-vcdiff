@@ -15,14 +15,11 @@
 
 #include <config.h>
 #include "google/vcdecoder.h"
-#include <string>
 #include "testing.h"
 #include "vcdecoder_test.h"
 #include "vcdiff_defs.h"  // VCD_SOURCE
 
 namespace open_vcdiff {
-
-using std::string;
 
 // These are the same tests as for VCDiffStandardDecoderTest, with the added
 // complication that instead of calling DecodeChunk() once with the entire data
@@ -93,6 +90,54 @@ TEST_F(VCDiffStandardDecoderTestByteByByte,
   EXPECT_TRUE(failed);
   // The decoder should not create more target bytes than were expected.
   EXPECT_GE(expected_target_.size(), output_.size());
+}
+
+TEST_F(VCDiffStandardDecoderTestByteByByte, TargetMatchesWindowSizeLimit) {
+  decoder_.SetMaximumTargetWindowSize(expected_target_.size());
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  for (size_t i = 0; i < delta_file_.size(); ++i) {
+    EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
+  }
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
+TEST_F(VCDiffStandardDecoderTestByteByByte, TargetMatchesFileSizeLimit) {
+  decoder_.SetMaximumTargetFileSize(expected_target_.size());
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  for (size_t i = 0; i < delta_file_.size(); ++i) {
+    EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
+  }
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
+TEST_F(VCDiffStandardDecoderTestByteByByte, TargetExceedsWindowSizeLimit) {
+  decoder_.SetMaximumTargetWindowSize(expected_target_.size() - 1);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  bool failed = false;
+  for (size_t i = 0; i < delta_file_.size(); ++i) {
+    if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
+      failed = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(failed);
+  EXPECT_EQ("", output_);
+}
+
+TEST_F(VCDiffStandardDecoderTestByteByByte, TargetExceedsFileSizeLimit) {
+  decoder_.SetMaximumTargetFileSize(expected_target_.size() - 1);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  bool failed = false;
+  for (size_t i = 0; i < delta_file_.size(); ++i) {
+    if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
+      failed = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(failed);
+  EXPECT_EQ("", output_);
 }
 
 // Fuzz bits to make sure decoder does not violently crash.

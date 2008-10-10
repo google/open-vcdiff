@@ -29,6 +29,10 @@ namespace open_vcdiff {
 // overwritten by each specific decoder test as needed.
 class VCDiffDecoderTest : public testing::Test {
  protected:
+#ifndef VCDIFF_HAS_GLOBAL_STRING
+  typedef std::string string;
+#endif  // !VCDIFF_HAS_GLOBAL_STRING
+
   static const char kDictionary[];
   static const char kExpectedTarget[];
   static const char kExpectedAnnotatedTarget[];
