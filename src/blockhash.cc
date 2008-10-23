@@ -105,7 +105,7 @@ BlockHash* BlockHash::CreateTargetHash(const char* target_data,
 }
 
 // Returns zero if an error occurs.
-const size_t BlockHash::CalcTableSize(const size_t dictionary_size) {
+size_t BlockHash::CalcTableSize(const size_t dictionary_size) {
   // Overallocate the hash table by making it the same size (in bytes)
   // as the source data.  This is a trade-off between space and time:
   // the empty entries in the hash table will reduce the

@@ -65,7 +65,7 @@ class VCDiffAddressCache {
   // an element of the near_addresses_ array, where a recently-referenced
   // address is stored.
   //
-  static const unsigned char FirstNearMode() {
+  static unsigned char FirstNearMode() {
     return VCD_FIRST_NEAR_MODE;
   }
 
@@ -75,18 +75,18 @@ class VCDiffAddressCache {
   // 8 bits of the address are used to find the element of this block that
   // may match the desired address value.
   //
-  const unsigned char FirstSameMode() const {
+  unsigned char FirstSameMode() const {
     return VCD_FIRST_NEAR_MODE + near_cache_size();
   }
 
   // Returns the maximum valid mode number, which happens to be
   // the last SAME mode.
   //
-  const unsigned char LastMode() const {
+  unsigned char LastMode() const {
     return FirstSameMode() + same_cache_size() - 1;
   }
 
-  static const unsigned char DefaultLastMode() {
+  static unsigned char DefaultLastMode() {
     return VCD_FIRST_NEAR_MODE
         + kDefaultNearCacheSize + kDefaultSameCacheSize - 1;
   }

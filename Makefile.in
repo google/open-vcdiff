@@ -452,8 +452,10 @@ EXTRA_DIST = $(check_SCRIPTS) \
 	     packages/rpm/rpm.spec \
 	     packages/deb.sh \
 	     packages/deb \
+	     testdata/empty_file.txt \
 	     vsprojects/config.h \
 	     vsprojects/stdint.h \
+	     vsprojects/vcdiff_test.bat \
 	     vsprojects/open-vcdiff.sln \
 	     vsprojects/addrcache_test/addrcache_test.vcproj \
 	     vsprojects/blockhash_test/blockhash_test.vcproj \
@@ -472,6 +474,7 @@ EXTRA_DIST = $(check_SCRIPTS) \
 	     vsprojects/vcdenc/vcdenc.vcproj \
 	     vsprojects/vcdiff/vcdiff.vcproj \
 	     vsprojects/vcdiffengine_test/vcdiffengine_test.vcproj \
+	     vsprojects/vcdiff_test/vcdiff_test.vcproj \
 	     vsprojects/vcencoder_test/vcencoder_test.vcproj
 
 all: all-am
@@ -1353,7 +1356,7 @@ check-TESTS: $(TESTS)
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/m4 $(distdir)/man $(distdir)/packages $(distdir)/packages/rpm $(distdir)/src $(distdir)/src/google $(distdir)/src/gtest $(distdir)/testdata $(distdir)/vsprojects $(distdir)/vsprojects/addrcache_test $(distdir)/vsprojects/blockhash_test $(distdir)/vsprojects/codetable_test $(distdir)/vsprojects/decodetable_test $(distdir)/vsprojects/encodetable_test $(distdir)/vsprojects/gtest $(distdir)/vsprojects/headerparser_test $(distdir)/vsprojects/instruction_map_test $(distdir)/vsprojects/output_string_test $(distdir)/vsprojects/rolling_hash_test $(distdir)/vsprojects/varint_bigendian_test $(distdir)/vsprojects/vcdcom $(distdir)/vsprojects/vcddec $(distdir)/vsprojects/vcdecoder_test $(distdir)/vsprojects/vcdenc $(distdir)/vsprojects/vcdiff $(distdir)/vsprojects/vcdiffengine_test $(distdir)/vsprojects/vcencoder_test
+	$(mkdir_p) $(distdir)/m4 $(distdir)/man $(distdir)/packages $(distdir)/packages/rpm $(distdir)/src $(distdir)/src/google $(distdir)/src/gtest $(distdir)/testdata $(distdir)/vsprojects $(distdir)/vsprojects/addrcache_test $(distdir)/vsprojects/blockhash_test $(distdir)/vsprojects/codetable_test $(distdir)/vsprojects/decodetable_test $(distdir)/vsprojects/encodetable_test $(distdir)/vsprojects/gtest $(distdir)/vsprojects/headerparser_test $(distdir)/vsprojects/instruction_map_test $(distdir)/vsprojects/output_string_test $(distdir)/vsprojects/rolling_hash_test $(distdir)/vsprojects/varint_bigendian_test $(distdir)/vsprojects/vcdcom $(distdir)/vsprojects/vcddec $(distdir)/vsprojects/vcdecoder_test $(distdir)/vsprojects/vcdenc $(distdir)/vsprojects/vcdiff $(distdir)/vsprojects/vcdiff_test $(distdir)/vsprojects/vcdiffengine_test $(distdir)/vsprojects/vcencoder_test
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

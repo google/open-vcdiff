@@ -211,8 +211,10 @@ EXTRA_DIST = $(check_SCRIPTS) \
 	     packages/rpm/rpm.spec \
 	     packages/deb.sh \
 	     packages/deb \
+	     testdata/empty_file.txt \
 	     vsprojects/config.h \
 	     vsprojects/stdint.h \
+	     vsprojects/vcdiff_test.bat \
 	     vsprojects/open-vcdiff.sln \
 	     vsprojects/addrcache_test/addrcache_test.vcproj \
 	     vsprojects/blockhash_test/blockhash_test.vcproj \
@@ -231,4 +233,5 @@ EXTRA_DIST = $(check_SCRIPTS) \
 	     vsprojects/vcdenc/vcdenc.vcproj \
 	     vsprojects/vcdiff/vcdiff.vcproj \
 	     vsprojects/vcdiffengine_test/vcdiffengine_test.vcproj \
+	     vsprojects/vcdiff_test/vcdiff_test.vcproj \
 	     vsprojects/vcencoder_test/vcencoder_test.vcproj

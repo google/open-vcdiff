@@ -15,6 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# This script tests the correctness of the vcdiff command-line executable.
+# If you add a new test here, please add the same test to the Windows script
+# vsprojects/vcdiff_test.bat.
+#
 # The caller should set the environment variable $srcdir to the root directory
 # of the open-vcdiff package.  ($srcdir is automatically provided by Automake
 # when this script is run by "make check".)

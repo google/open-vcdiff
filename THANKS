@@ -7,6 +7,7 @@ Many people further contributed to open-vcdiff by reporting
 problems, suggesting various improvements or submitting actual
 code.  Here is a list of these people. Help me keep it complete
 and free of errors.
+Jens Alfke
 Daniel Berlin
 Jon Butler
 Wiltse Carpenter
@@ -14,11 +15,14 @@ Jagannadh Chukka
 Eric Dorland
 Eric Flatt
 David Glasser
+Jeff Gustafson
+Pawel Hajdan jr
 Bijun He
 Jacob Hoffman-Andrews
 Ashu Jain
-Leonidas Kontothanassis
+Daniel Kegel
 Michael Kleber
+Leonidas Kontothanassis
 Wei-Hsin Lee
 Frank Lin
 Josh MacDonald
@@ -28,6 +32,7 @@ Jim Morrison
 Alex Raikman
 David Rochberg
 Jim Roskind
+Craig Schlenter
 Robin Shostack
 Adeodato Simo
 Ben Smith

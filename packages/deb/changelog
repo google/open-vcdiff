@@ -1,3 +1,21 @@
+open-vcdiff (0.4-1) unstable; urgency=low
+
+  * Issue #15: open-vcdiff fails to compile on Fedora 9
+    * Apply patch sent by Daniel Kegel
+    * Add header <string.h> to src/vcdiffengine.cc, which uses memcpy.
+    * Remove const qualifier from integral return types to fix gcc 4.3.1
+      warning.
+  * Issue #6: vcdiff crashes with zero-size dictionary
+    * Add special cases for empty dictionary file in vcdiff_main.cc.
+  * Issue #7: vcdiff incorrect binary I/O on Windows
+    * Change stdin/stdout file type to binary in vcdiff_main.cc.
+  * Issue #13: Add unit test for vcdiff command-line executable
+    * Unit test vcdiff_test.bat added for Visual Studio testing of vcdiff.exe.
+      Includes regression tests for issues #6 and #7.
+  * Add contributors' names to THANKS file.
+
+ -- Google Inc. <opensource@google.com>  Thu, 23 Oct 2008 09:03:56 -0700
+
 open-vcdiff (0.3-1) unstable; urgency=low
 
   * Issue #15: open-vcdiff fails to compile on Fedora 9
