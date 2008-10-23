@@ -333,9 +333,9 @@ class BlockHash {
   // the dictionary_size.  Will return a power of two if successful, or 0 if an
   // internal error occurs.  Some calculations (such as GetHashTableIndex())
   // depend on the table size being a power of two.
-  static const size_t CalcTableSize(const size_t dictionary_size);
+  static size_t CalcTableSize(const size_t dictionary_size);
 
-  const size_t GetNumberOfBlocks() const {
+  size_t GetNumberOfBlocks() const {
     return source_size_ / kBlockSize;
   }
 
@@ -353,8 +353,8 @@ class BlockHash {
 
   static inline bool TooManyMatches(int* match_counter);
 
-  const char* const source_data() { return source_data_; }
-  const size_t source_size() { return source_size_; }
+  const char* source_data() { return source_data_; }
+  size_t source_size() { return source_size_; }
 
   // Adds an entry to the hash table for one block of source data of length
   // kBlockSize, starting at source_data_[block_number * kBlockSize],

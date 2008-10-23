@@ -16,6 +16,7 @@
 #include <config.h>
 #include "vcdiffengine.h"
 #include <stdint.h>  // uint32_t
+#include <string.h>  // memcpy
 #include "blockhash.h"
 #include "encodetable.h"
 #include "logging.h"

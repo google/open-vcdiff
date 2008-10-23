@@ -279,10 +279,10 @@ TEST_F(VCDiffStandardWindowDecoderTest, Decode) {
 // tries to allocate ~MAX_INT bytes.
 TEST_F(VCDiffStandardWindowDecoderTest, DecodeBreakInFourthWindowHeader) {
   // Parse file header + first two windows.
-  const int chunk_1_size = delta_file_header_.size() + 83;
+  const size_t chunk_1_size = delta_file_header_.size() + 83;
   // Parse third window, plus everything up to "Size of the target window" field
   // of fourth window, but do not parse complete header of fourth window.
-  const int chunk_2_size = 12 + 5;
+  const size_t chunk_2_size = 12 + 5;
   CHECK_EQ(VCD_TARGET, static_cast<unsigned char>(delta_file_[chunk_1_size]));
   CHECK_EQ(0x00, static_cast<int>(delta_file_[chunk_1_size + chunk_2_size]));
   string output_chunk1, output_chunk2, output_chunk3;

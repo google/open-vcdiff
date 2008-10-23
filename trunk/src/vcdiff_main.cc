@@ -18,6 +18,10 @@
 #include <config.h>
 #include <assert.h>
 #include <errno.h>
+#ifdef WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif  // WIN32
 #include <stdio.h>
 #include <string.h>  // strerror
 #include <memory>
@@ -231,13 +235,15 @@ bool VCDiffFileBasedCoder::OpenDictionary() {
     return false;
   }
   dictionary_.resize(dictionary_size);
-  if (fread(&dictionary_[0], 1, dictionary_size, dictionary_file)
-          != dictionary_size) {
-    LOG(ERROR) << "Unable to read dictionary file '" << FLAGS_dictionary
-               << "': " << strerror(errno) << LOG_ENDL;
-    fclose(dictionary_file);
-    dictionary_.clear();
-    return false;
+  if (dictionary_size > 0) {
+    if (fread(&dictionary_[0], 1, dictionary_size, dictionary_file)
+            != dictionary_size) {
+      LOG(ERROR) << "Unable to read dictionary file '" << FLAGS_dictionary
+                 << "': " << strerror(errno) << LOG_ENDL;
+      fclose(dictionary_file);
+      dictionary_.clear();
+      return false;
+    }
   }
   fclose(dictionary_file);
   return true;
@@ -250,6 +256,9 @@ bool VCDiffFileBasedCoder::OpenFileForReading(const string& file_name,
   assert(buffer->empty());
   size_t buffer_size = 0U;
   if (!*file && file_name.empty()) {
+#ifdef WIN32
+    _setmode(_fileno(stdin), _O_BINARY);
+#endif
     *file = stdin;
     buffer_size = static_cast<size_t>(FLAGS_buffersize);
   } else {
@@ -287,6 +296,9 @@ bool VCDiffFileBasedCoder::OpenFileForReading(const string& file_name,
 // whose buffer is resized as needed.
 bool VCDiffFileBasedCoder::OpenOutputFile() {
   if (output_file_name_.empty()) {
+#ifdef WIN32
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
     output_file_ = stdout;
   } else {
     output_file_ = fopen(output_file_name_.c_str(), "wb");
@@ -366,8 +378,15 @@ bool VCDiffFileBasedCoder::Encode() {
   if (!OpenDictionary() || !OpenInputFile() || !OpenOutputFile()) {
     return false;
   }
-  hashed_dictionary_.reset(
-      new open_vcdiff::HashedDictionary(&dictionary_[0], dictionary_.size()));
+  // Issue 6: Visual Studio STL produces a runtime exception
+  // if &dictionary_[0] is attempted for an empty dictionary.
+  if (dictionary_.empty()) {
+    hashed_dictionary_.reset(new open_vcdiff::HashedDictionary("", 0));
+  } else {
+    hashed_dictionary_.reset(
+        new open_vcdiff::HashedDictionary(&dictionary_[0],
+                                          dictionary_.size()));
+  }
   if (!hashed_dictionary_->Init()) {
     LOG(ERROR) << "Error initializing hashed dictionary" << LOG_ENDL;
     return false;
@@ -437,7 +456,13 @@ bool VCDiffFileBasedCoder::Decode() {
   string output;
   size_t input_size = 0;
   size_t output_size = 0;
-  decoder.StartDecoding(&dictionary_[0], dictionary_.size());
+  // Issue 6: Visual Studio STL produces a runtime exception
+  // if &dictionary_[0] is attempted for an empty dictionary.
+  if (dictionary_.empty()) {
+    decoder.StartDecoding("", 0);
+  } else {
+    decoder.StartDecoding(&dictionary_[0], dictionary_.size());
+  }
 
   do {
     size_t bytes_read = 0;
@@ -492,7 +517,13 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
   string output;
   size_t input_size = 0;
   size_t output_size = 0;
-  decoder.StartDecoding(&dictionary_[0], dictionary_.size());
+  // Issue 6: Visual Studio STL produces a runtime exception
+  // if &dictionary_[0] is attempted for an empty dictionary.
+  if (dictionary_.empty()) {
+    decoder.StartDecoding("", 0);
+  } else {
+    decoder.StartDecoding(&dictionary_[0], dictionary_.size());
+  }
 
   do {
     size_t bytes_read = 0;
