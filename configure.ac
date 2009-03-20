@@ -4,7 +4,7 @@
 # make sure we're interpreted by some minimal autoconf
 AC_PREREQ(2.57)
 
-AC_INIT(open-vcdiff, 0.4, opensource@google.com)
+AC_INIT(open-vcdiff, 0.5, opensource@google.com)
 AC_CONFIG_SRCDIR(README)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(src/config.h)
@@ -54,6 +54,15 @@ AC_CHECK_TYPES([uint16_t, u_int16_t, __int16])
 AX_C___ATTRIBUTE__
 
 # End of definitions needed by gflags package
+
+# Solaris 10 6/06 has a bug where /usr/sfw/lib/libstdc++.la is empty.
+# If so, we replace it with our own version.
+LIBSTDCXX_LA_LINKER_FLAG=
+if test -f /usr/sfw/lib/libstdc++.la && ! test -s /usr/sfw/lib/libstdc++.la
+then
+  LIBSTDCXX_LA_LINKER_FLAG='-L$(top_srcdir)/src/solaris'
+fi
+AC_SUBST(LIBSTDCXX_LA_LINKER_FLAG)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

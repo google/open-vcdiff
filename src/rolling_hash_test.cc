@@ -85,7 +85,7 @@ TEST_F(RollingHashSimpleTest, VerifyHashFirstTwoBytes) {
 }
 
 #ifdef GTEST_HAS_DEATH_TEST
-TEST_F(RollingHashDeathTest, InstantiateBlockHashWithoutCallingInit) {
+TEST_F(RollingHashDeathTest, InstantiateRollingHashWithoutCallingInit) {
   EXPECT_DEBUG_DEATH(RollingHash<16> bad_hash, "Init");
 }
 #endif  // GTEST_HAS_DEATH_TEST

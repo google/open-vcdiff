@@ -19,7 +19,6 @@
 #include <string.h>  // strlen
 #include <string>
 #include <vector>
-#include "logging.h"
 #include "testing.h"
 
 namespace open_vcdiff {

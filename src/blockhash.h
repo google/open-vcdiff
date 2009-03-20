@@ -71,7 +71,7 @@ class BlockHash {
   //
   // If you change kBlockSize to a smaller value, please increase
   // kMaxMatchesToCheck accordingly.
-  static const int kBlockSize = 32;
+  static const int kBlockSize = 16;
 
   // This class is used to store the best match found by FindBestMatch()
   // and return it to the caller.
@@ -322,8 +322,8 @@ class BlockHash {
   // The expected number of true matches scales super-linearly
   // with the inverse of kBlockSize, but here a linear scale is used
   // for block sizes smaller than 32.
-  static const int kMaxMatchesToCheck = (kBlockSize >= 32) ? 8 :
-                                            (8 * (32 / kBlockSize));
+  static const int kMaxMatchesToCheck = (kBlockSize >= 32) ? 32 :
+                                            (32 * (32 / kBlockSize));
 
   // Do not skip more than this number of non-matching hash collisions
   // to find the next matching entry in the hash chain.

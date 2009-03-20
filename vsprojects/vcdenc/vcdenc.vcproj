@@ -157,6 +157,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\codetablewriter_interface.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\compile_assert.h"
 				>
 			</File>

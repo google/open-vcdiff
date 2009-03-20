@@ -17,9 +17,9 @@
 #include "blockhash.h"
 #include <limits.h>  // INT_MIN
 #include <string.h>  // memcpy, memcmp, strlen
+#include <iostream>
 #include <memory>  // auto_ptr
 #include "encodetable.h"
-#include "logging.h"
 #include "rolling_hash.h"
 #include "testing.h"
 
@@ -92,7 +92,7 @@ class BlockHashTest : public testing::Test {
 
   void TimingTestForBlocksThatDifferAtByte(int n) {
     InitBlocksToDifferAtNthByte(n);
-    LOG(INFO) << "Comparing blocks that differ at byte " << n << LOG_ENDL;
+    std::cout << "Comparing blocks that differ at byte " << n << std::endl;
     TestAndPrintTimesForCompareFunctions(false);
   }
 
@@ -364,20 +364,21 @@ void BlockHashTest::TestAndPrintTimesForCompareFunctions(
   } else {
     CHECK_GT(block_compare_words_result, 0);
   }
-  LOG(INFO) << "BlockHash::BlockCompareWords: "
-            << time_for_block_compare_words << " us per operation" << LOG_ENDL;
-  LOG(INFO) << "BlockHash::BlockContentsMatch: "
-            << time_for_block_contents_match << " us per operation" << LOG_ENDL;
+  std::cout << "BlockHash::BlockCompareWords: "
+            << time_for_block_compare_words << " us per operation" << std::endl;
+  std::cout << "BlockHash::BlockContentsMatch: "
+            << time_for_block_contents_match << " us per operation"
+            << std::endl;
   if (time_for_block_compare_words > 0) {
     double percent_change =
         (((time_for_block_contents_match - time_for_block_compare_words)
           / time_for_block_compare_words) * 100.0);
     if (percent_change >= 0.0) {
-      LOG(INFO) << "BlockContentsMatch is " << percent_change << "%"
-                << " SLOWER than BlockCompareWords" << LOG_ENDL;
+      std::cout << "BlockContentsMatch is " << percent_change << "%"
+                << " SLOWER than BlockCompareWords" << std::endl;
     } else {
-      LOG(INFO) << "BlockContentsMatch is " << (-percent_change) << "%"
-                << " FASTER than BlockCompareWords" << LOG_ENDL;
+      std::cout << "BlockContentsMatch is " << (-percent_change) << "%"
+                << " FASTER than BlockCompareWords" << std::endl;
     }
   }
 #if defined(NDEBUG) && !defined(VCDIFF_USE_BLOCK_COMPARE_WORDS)
@@ -512,17 +513,17 @@ TEST_F(BlockHashTest, BlockContentsMatchIsAsFastAsBlockCompareWords) {
   // and will return true.
   memset(compare_buffer_1_, 0xBE, kTimingTestSize);
   memset(compare_buffer_2_, 0xBE, kTimingTestSize);
-  LOG(INFO) << "Comparing "
+  std::cout << "Comparing "
             << (kTimingTestSize / kBlockSize) << " identical values:"
-            << LOG_ENDL;
+            << std::endl;
   TestAndPrintTimesForCompareFunctions(true);
 
   // Now change one value in the middle of one buffer, so that the contents
   // are no longer the same.
   compare_buffer_1_[kTimingTestSize / 2] = 0x00;
-  LOG(INFO) << "Comparing "
+  std::cout << "Comparing "
             << ((kTimingTestSize / kBlockSize) - 1) << " identical values"
-            << " and one mismatch:" << LOG_ENDL;
+            << " and one mismatch:" << std::endl;
   TestAndPrintTimesForCompareFunctions(false);
 
   // Set one of the bytes of each block to differ so that
@@ -902,8 +903,8 @@ TEST_F(BlockHashTest, SearchStringFindsTooManyMatches) {
                         &best_match_);
   timer.Stop();
   double elapsed_time_in_us = static_cast<double>(timer.GetInUsec());
-  LOG(INFO) << "Time to search for best match with 1M matches: "
-            << elapsed_time_in_us << " us" << LOG_ENDL;
+  std::cout << "Time to search for best match with 1M matches: "
+            << elapsed_time_in_us << " us" << std::endl;
   // All blocks match the candidate block.  FindBestMatch should have checked
   // a certain number of matches before giving up.  The best match
   // should include at least half the source and target, since the candidate
@@ -911,7 +912,10 @@ TEST_F(BlockHashTest, SearchStringFindsTooManyMatches) {
   EXPECT_GT((kTestSize / 2), best_match_.source_offset());
   EXPECT_GT((kTestSize / 2), best_match_.target_offset());
   EXPECT_LT(static_cast<size_t>(kTestSize / 2), best_match_.size());
+  EXPECT_GT(5000000, elapsed_time_in_us);  // < 5 seconds
+#ifdef NDEBUG
   EXPECT_GT(1000000, elapsed_time_in_us);  // < 1 second
+#endif  // NDEBUG
   delete[] huge_target;
   delete[] huge_dictionary;
 }

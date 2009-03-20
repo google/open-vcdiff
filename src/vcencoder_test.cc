@@ -22,7 +22,6 @@
 #include <vector>
 #include "blockhash.h"
 #include "checksum.h"
-#include "logging.h"
 #include "google/output_string.h"
 #include "testing.h"
 #include "varint_bigendian.h"
@@ -335,7 +334,6 @@ void VCDiffEncoderTest::TestWithFixedChunkSize(size_t chunk_size) {
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
   EXPECT_EQ(kTarget, result_target_);
-  LOG(INFO) << "Finished testing chunk_size = " << chunk_size << LOG_ENDL;
 }
 
 TEST_F(VCDiffEncoderTest, EncodeDecodeFixedChunkSizes) {
@@ -391,7 +389,6 @@ void VCDiffEncoderTest::TestWithEncodedChunkVector(size_t chunk_size) {
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
   EXPECT_EQ(kTarget, result_target_);
-  LOG(INFO) << "Finished testing chunk_size = " << chunk_size << LOG_ENDL;
 }
 
 TEST_F(VCDiffEncoderTest, EncodeDecodeStreamOfChunks) {
@@ -633,6 +630,7 @@ class VCDiffHTML1Test : public VCDiffMatchCountTest {
  protected:
   static const char kDictionary[];
   static const char kTarget[];
+  static const char kRedundantTarget[];
 
   VCDiffHTML1Test();
   virtual ~VCDiffHTML1Test() { }
@@ -655,6 +653,12 @@ const char VCDiffHTML1Test::kDictionary[] =
 const char VCDiffHTML1Test::kTarget[] =
     "<html><font color=red>This part from the dict</font><br>\n"
     "And this part is not...</html>";
+
+const char VCDiffHTML1Test::kRedundantTarget[] =
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";  // 256
 
 VCDiffHTML1Test::VCDiffHTML1Test()
     : hashed_dictionary_(kDictionary, sizeof(kDictionary)),
@@ -693,29 +697,7 @@ TEST_F(VCDiffHTML1Test, CheckOutputOfSimpleEncoder) {
   ExpectByte(VCD_SOURCE);  // Win_Indicator: VCD_SOURCE (dictionary)
   ExpectByte(sizeof(kDictionary));  // Dictionary length
   ExpectByte(0x00);  // Source segment position: start of dictionary
-  if (BlockHash::kBlockSize == 2) {
-    // A very small block size will catch the "html>" match.
-    ExpectByte(0x1F);  // Length of the delta encoding
-    ExpectSize(strlen(kTarget));  // Size of the target window
-    ExpectByte(0x00);  // Delta_indicator (no compression)
-    ExpectByte(0x11);  // Length of the data section
-    ExpectByte(0x06);  // Length of the instructions section
-    ExpectByte(0x03);  // Length of the address section
-    // Data section
-    ExpectString("\nAnd t");      // Data for 1st ADD
-    ExpectString("is not...</");  // Data for 2nd ADD
-    // Instructions section
-    ExpectByte(0x73);  // COPY size 0 mode VCD_SAME(0)
-    ExpectByte(0x38);  // COPY size (56)
-    ExpectByte(0x07);  // ADD size 6
-    ExpectByte(0x19);  // COPY size 9 mode VCD_SELF
-    ExpectByte(0x0C);  // ADD size 11
-    ExpectByte(0x15);  // COPY size 5 mode VCD_SELF
-    // Address section
-    ExpectByte(0x00);  // COPY address (0) mode VCD_SAME(0)
-    ExpectByte(0x17);  // COPY address (23) mode VCD_SELF
-    ExpectByte(0x01);  // COPY address (1) mode VCD_SELF
-  } else if (BlockHash::kBlockSize < 16) {
+  if (BlockHash::kBlockSize < 16) {
     // A medium block size will catch the "his part " match.
     ExpectByte(0x22);  // Length of the delta encoding
     ExpectSize(strlen(kTarget));  // Size of the target window
@@ -771,12 +753,7 @@ TEST_F(VCDiffHTML1Test, CheckOutputOfSimpleEncoder) {
 TEST_F(VCDiffHTML1Test, MatchCounts) {
   StreamingEncode();
   encoder_.GetMatchCounts(&actual_match_counts_);
-  if (BlockHash::kBlockSize == 2) {
-    // A very small block size will catch the "html>" match.
-    ExpectMatch(56);
-    ExpectMatch(9);
-    ExpectMatch(5);
-  } else if (BlockHash::kBlockSize < 16) {
+  if (BlockHash::kBlockSize < 16) {
     // A medium block size will catch the "his part " match.
     ExpectMatch(56);
     ExpectMatch(9);
@@ -785,6 +762,79 @@ TEST_F(VCDiffHTML1Test, MatchCounts) {
     ExpectMatch(56);
   }
   VerifyMatchCounts();
+}
+
+TEST_F(VCDiffHTML1Test, SimpleEncoderPerformsTargetMatching) {
+  EXPECT_TRUE(simple_encoder_.Encode(kRedundantTarget,
+                                     strlen(kRedundantTarget),
+                                     delta()));
+  EXPECT_GE(strlen(kRedundantTarget) + kFileHeaderSize + kWindowHeaderSize,
+            delta_size());
+  EXPECT_TRUE(simple_decoder_.Decode(kDictionary,
+                                     sizeof(kDictionary),
+                                     delta_as_const(),
+                                     &result_target_));
+  EXPECT_EQ(kRedundantTarget, result_target_);
+  // These values do not depend on the block size used for encoding
+  ExpectByte(0xD6);  // 'V' | 0x80
+  ExpectByte(0xC3);  // 'C' | 0x80
+  ExpectByte(0xC4);  // 'D' | 0x80
+  ExpectByte(0x00);  // Simple encoder never uses interleaved format
+  ExpectByte(0x00);  // Hdr_Indicator
+  ExpectByte(VCD_SOURCE);  // Win_Indicator: VCD_SOURCE (dictionary)
+  ExpectByte(sizeof(kDictionary));  // Dictionary length
+  ExpectByte(0x00);  // Source segment position: start of dictionary
+  ExpectByte(0x0C);  // Length of the delta encoding
+  ExpectSize(strlen(kRedundantTarget));  // Size of the target window
+  ExpectByte(0x00);  // Delta_indicator (no compression)
+  ExpectByte(0x01);  // Length of the data section
+  ExpectByte(0x04);  // Length of the instructions section
+  ExpectByte(0x01);  // Length of the address section
+  // Data section
+  ExpectString("A");      // Data for ADD
+  // Instructions section
+  ExpectByte(0x02);  // ADD size 1
+  ExpectByte(0x23);  // COPY size 0 mode VCD_HERE
+  ExpectSize(strlen(kRedundantTarget) - 1);  // COPY size 255
+  // Address section
+  ExpectByte(0x01);  // COPY address (1) mode VCD_HERE
+  ExpectNoMoreBytes();
+}
+
+TEST_F(VCDiffHTML1Test, SimpleEncoderWithoutTargetMatching) {
+  simple_encoder_.SetTargetMatching(false);
+  EXPECT_TRUE(simple_encoder_.Encode(kRedundantTarget,
+                                     strlen(kRedundantTarget),
+                                     delta()));
+  EXPECT_GE(strlen(kRedundantTarget) + kFileHeaderSize + kWindowHeaderSize,
+            delta_size());
+  EXPECT_TRUE(simple_decoder_.Decode(kDictionary,
+                                     sizeof(kDictionary),
+                                     delta_as_const(),
+                                     &result_target_));
+  EXPECT_EQ(kRedundantTarget, result_target_);
+  // These values do not depend on the block size used for encoding
+  ExpectByte(0xD6);  // 'V' | 0x80
+  ExpectByte(0xC3);  // 'C' | 0x80
+  ExpectByte(0xC4);  // 'D' | 0x80
+  ExpectByte(0x00);  // Simple encoder never uses interleaved format
+  ExpectByte(0x00);  // Hdr_Indicator
+  ExpectByte(VCD_SOURCE);  // Win_Indicator: VCD_SOURCE (dictionary)
+  ExpectByte(sizeof(kDictionary));  // Dictionary length
+  ExpectByte(0x00);  // Source segment position: start of dictionary
+  ExpectSize(strlen(kRedundantTarget) + 0x0A);  // Length of the delta encoding
+  ExpectSize(strlen(kRedundantTarget));  // Size of the target window
+  ExpectByte(0x00);  // Delta_indicator (no compression)
+  ExpectSize(strlen(kRedundantTarget));  // Length of the data section
+  ExpectByte(0x03);  // Length of the instructions section
+  ExpectByte(0x00);  // Length of the address section
+  // Data section
+  ExpectString(kRedundantTarget);      // Data for ADD
+  // Instructions section
+  ExpectByte(0x01);  // ADD size 0
+  ExpectSize(strlen(kRedundantTarget));  // ADD size
+  // Address section empty
+  ExpectNoMoreBytes();
 }
 
 #ifdef GTEST_HAS_DEATH_TEST

@@ -7,7 +7,7 @@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 
 # For a non-optimized (debug) build, change "-DNDEBUG" to "-DDEBUG".
-AM_CXXFLAGS = -DNDEBUG
+AM_CXXFLAGS = -DNDEBUG -DNO_THREADS
 
 # Enable verbose gcc warnings.  We use the older option name "-W" to be
 # compatible with gcc v3.3 and earlier.  That option should be changed to
@@ -16,7 +16,7 @@ if GCC
 AM_CXXFLAGS += -Wall -Wwrite-strings -Woverloaded-virtual -W
 endif
 
-AM_LDFLAGS = -no-undefined
+AM_LDFLAGS = -no-undefined $(LIBSTDCXX_LA_LINKER_FLAG)
 
 googleincludedir = $(includedir)/google
 ## The .h files you want to install (that is, .h files that people
@@ -54,6 +54,7 @@ noinst_LTLIBRARIES =
 #     Please refer to http://code.google.com/p/google-gflags/ for details
 noinst_LTLIBRARIES += libgflags.la
 libgflags_la_SOURCES = src/gflags/gflags.h \
+		       src/mutex.h \
 		       src/gflags.cc \
 		       src/gflags_reporting.cc
 
@@ -113,6 +114,7 @@ libvcddec_la_LIBADD = libvcdcom.la
 lib_LTLIBRARIES += libvcdenc.la
 libvcdenc_la_SOURCES = src/google/vcencoder.h \
 		       src/blockhash.h \
+		       src/codetablewriter_interface.h \
 		       src/compile_assert.h \
 		       src/encodetable.h \
 		       src/instruction_map.h \
@@ -211,6 +213,7 @@ EXTRA_DIST = $(check_SCRIPTS) \
 	     packages/rpm/rpm.spec \
 	     packages/deb.sh \
 	     packages/deb \
+	     src/solaris/libstdc++.la \
 	     testdata/empty_file.txt \
 	     vsprojects/config.h \
 	     vsprojects/stdint.h \

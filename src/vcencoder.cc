@@ -130,6 +130,11 @@ inline void VCDiffStreamingEncoderImpl::WriteHeader(
 
 inline bool VCDiffStreamingEncoderImpl::StartEncoding(
     OutputStringInterface* out) {
+  if (!coder_.Init(engine_->dictionary_size())) {
+    LOG(DFATAL) << "Internal error: "
+                   "Initialization of code table writer failed" << LOG_ENDL;
+    return false;
+  }
   WriteHeader(out);
   encode_chunk_allowed_ = true;
   return true;

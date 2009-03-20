@@ -80,13 +80,7 @@ class DecodeTableTest : public testing::Test {
         AddExerciseOpcode(inst1, mode1, 255, inst2, mode2, 255, opcode++);
       }
     }
-    if (VCDiffCodeTableData::kCodeTableSize != opcode) {
-      LOG(FATAL) << "Internal error in test: The nested loops in "
-                    "DecodeTableTest::SetUpTestCase should iterate through "
-                    "exactly " << VCDiffCodeTableData::kCodeTableSize
-                 << " opcodes.";
-      return;
-    }
+    CHECK_EQ(VCDiffCodeTableData::kCodeTableSize, opcode);
     EXPECT_TRUE(VCDiffCodeTableData::kDefaultCodeTableData.Validate());
     EXPECT_TRUE(g_exercise_code_table_->Validate(kLastExerciseMode));
   }
@@ -451,13 +445,7 @@ TEST_F(DecodeTableTest, ExerciseCodeTableReader) {
       ++opcode;
     }
   }
-  if (VCDiffCodeTableData::kCodeTableSize != opcode) {
-    LOG(FATAL) << "Internal error in test: The nested loops in "
-                  "DecodeTableTest::ExerciseCodeTableReader should iterate "
-                  "through exactly " << VCDiffCodeTableData::kCodeTableSize
-               << " opcodes.";
-    return;
-  }
+  CHECK_EQ(VCDiffCodeTableData::kCodeTableSize, opcode);
 }
 
 }  // unnamed namespace

@@ -40,7 +40,7 @@ class VCDiffEngineTestBase : public testing::Test {
 
   // Some common definitions and helper functions used in the various tests
   // for VCDiffEngine.
-  static const int kBlockSize = BlockHash::kBlockSize;
+  static const int kBlockSize = VCDiffEngine::kMinimumMatchSize;
 
   VCDiffEngineTestBase() : interleaved_(false),
                            diff_output_string_(&diff_),
@@ -200,11 +200,10 @@ class VCDiffEngineTestBase : public testing::Test {
   // This version uses conditional statements, while encodetable.h
   // looks up values in a mapping table.
   void ExpectAddress(int32_t address, int copy_mode) {
-    if ((copy_mode >= default_cache_.FirstSameMode()) &&
-        (copy_mode <= default_cache_.LastMode())) {
-      ExpectAddressByte(address);
-    } else {
+    if (default_cache_.WriteAddressAsVarintForMode(copy_mode)) {
       ExpectAddressVarint(address);
+    } else {
+      ExpectAddressByte(address);
     }
   }
 
@@ -228,7 +227,7 @@ class VCDiffEngineTestBase : public testing::Test {
   }
 
   bool ExpectAddCopyInstruction(int add_size, int copy_size, int copy_mode) {
-    if ((copy_mode < default_cache_.FirstSameMode()) &&
+    if (!default_cache_.IsSameMode(copy_mode) &&
         (add_size <= 4) &&
         (copy_size >= 4) &&
         (copy_size <= 6)) {
@@ -238,7 +237,7 @@ class VCDiffEngineTestBase : public testing::Test {
                             copy_size);
       ExpectMatch(copy_size);
       return true;
-    } else if ((copy_mode >= default_cache_.FirstSameMode()) &&
+    } else if (default_cache_.IsSameMode(copy_mode) &&
                (add_size <= 4) &&
                (copy_size == 4)) {
       ExpectInstructionByte(0xD2 + (0x04 * copy_mode) + add_size);
@@ -342,6 +341,7 @@ class VCDiffEngineTest : public VCDiffEngineTestBase {
   void EncodeNothing(bool interleaved, bool target_matching) {
     interleaved_ = interleaved;
     VCDiffCodeTableWriter coder(interleaved);
+    coder.Init(engine_.dictionary_size());
     engine_.Encode("", 0, target_matching, &diff_output_string_, &coder);
     EXPECT_TRUE(diff_.empty());
     actual_match_counts_ = coder.match_counts();
@@ -351,6 +351,7 @@ class VCDiffEngineTest : public VCDiffEngineTestBase {
   void EncodeText(const char* text, bool interleaved, bool target_matching) {
     interleaved_ = interleaved;
     VCDiffCodeTableWriter coder(interleaved);
+    coder.Init(engine_.dictionary_size());
     engine_.Encode(text,
                    strlen(text),
                    target_matching,
@@ -442,11 +443,7 @@ TEST_F(VCDiffEngineTest, EngineEncodeSampleText) {
   ExpectDataStringWithBlockSpacing("W", false);
   ExpectDataByte('t');
   ExpectDataByte('s');
-  if (kBlockSize < 4) {
-    ExpectDataStringWithBlockSpacing("ome", false);
-  } else {
-    ExpectDataByte('m');
-  }
+  ExpectDataByte('m');
   // Instructions and sizes
   if (!ExpectAddCopyInstruction(kBlockSize, (3 * kBlockSize) - 1,
                                 VCD_SELF_MODE)) {
@@ -456,26 +453,18 @@ TEST_F(VCDiffEngineTest, EngineEncodeSampleText) {
   ExpectCopyInstruction((6 * kBlockSize) - 1, VCD_SELF_MODE);
   ExpectCopyInstruction(11 * kBlockSize,
                         default_cache_.FirstNearMode());
-  if (kBlockSize < 4) {
-    // Copy instructions of size kBlockSize and (2 * kBlockSize) - 1
-    // are too small to be selected
-    ExpectAddInstruction((3 * kBlockSize) + 1);
-  } else {
-    if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
-      ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
-    }
-    if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
-      ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
-    }
+  if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
+    ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
+  }
+  if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
+    ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
   }
   // Addresses for COPY
   ExpectAddressVarint(18 * kBlockSize);  // "ha"
   ExpectAddressVarint(14 * kBlockSize);  // " we h"
   ExpectAddressVarint((9 * kBlockSize) + (kBlockSize - 1));  // "ear is fear"
-  if (kBlockSize >= 4) {
-    ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
-    ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
-  }
+  ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
+  ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
   VerifySizes();
 }
 
@@ -497,28 +486,20 @@ TEST_F(VCDiffEngineTest, EngineEncodeSampleTextInterleaved) {
   ExpectCopyInstruction(11 * kBlockSize,
                         default_cache_.FirstNearMode());
   ExpectAddressVarint((9 * kBlockSize) + (kBlockSize - 1));  // "ear is fear"
-  if (kBlockSize < 4) {
-    // Copy instructions of size kBlockSize and (2 * kBlockSize) - 1
-    // are too small to be selected
-    ExpectAddInstruction((3 * kBlockSize) + 1);
+  if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
     ExpectDataByte('s');
-    ExpectDataStringWithBlockSpacing("ome", false);
+    ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
   } else {
-    if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
-      ExpectDataByte('s');
-      ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
-    } else {
-      ExpectDataByte('s');
-    }
-    ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
-    if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
-      ExpectDataByte('m');
-      ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
-    } else {
-      ExpectDataByte('m');
-    }
-    ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
+    ExpectDataByte('s');
   }
+  ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
+  if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
+    ExpectDataByte('m');
+    ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
+  } else {
+    ExpectDataByte('m');
+  }
+  ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
   VerifySizes();
 }
 
@@ -528,11 +509,7 @@ TEST_F(VCDiffEngineTest, EngineEncodeSampleTextWithTargetMatching) {
   ExpectDataStringWithBlockSpacing("W", false);
   ExpectDataByte('t');
   ExpectDataByte('s');
-  if (kBlockSize < 4) {
-    ExpectDataStringWithBlockSpacing("ome", false);
-  } else {
-    ExpectDataByte('m');
-  }
+  ExpectDataByte('m');
   // Instructions and sizes
   if (!ExpectAddCopyInstruction(kBlockSize, (3 * kBlockSize) - 1,
                                 VCD_SELF_MODE)) {
@@ -542,26 +519,18 @@ TEST_F(VCDiffEngineTest, EngineEncodeSampleTextWithTargetMatching) {
   ExpectCopyInstruction((6 * kBlockSize) - 1, VCD_SELF_MODE);
   ExpectCopyInstruction(11 * kBlockSize,
                         default_cache_.FirstNearMode());
-  if (kBlockSize < 4) {
-    // Copy instructions of size kBlockSize and (2 * kBlockSize) - 1
-    // are too small to be selected
-    ExpectAddInstruction((3 * kBlockSize) + 1);
-  } else {
-    if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
-      ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
-    }
-    if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
-      ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
-    }
+  if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
+    ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
+  }
+  if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
+    ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
   }
   // Addresses for COPY
   ExpectAddressVarint(18 * kBlockSize);  // "ha"
   ExpectAddressVarint(14 * kBlockSize);  // " we h"
   ExpectAddressVarint((9 * kBlockSize) + (kBlockSize - 1));  // "ear is fear"
-  if (kBlockSize >= 4) {
-    ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
-    ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
-  }
+  ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
+  ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
   VerifySizes();
 }
 
@@ -583,28 +552,20 @@ TEST_F(VCDiffEngineTest, EngineEncodeSampleTextInterleavedWithTargetMatching) {
   ExpectCopyInstruction(11 * kBlockSize,
                         default_cache_.FirstNearMode());
   ExpectAddressVarint((9 * kBlockSize) + (kBlockSize - 1));  // "ear is fear"
-  if (kBlockSize < 4) {
-    // Copy instructions of size kBlockSize and (2 * kBlockSize) - 1
-    // are too small to be selected
-    ExpectAddInstruction((3 * kBlockSize) + 1);
+  if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
     ExpectDataByte('s');
-    ExpectDataStringWithBlockSpacing("ome", false);
+    ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
   } else {
-    if (!ExpectAddCopyInstruction(1, (2 * kBlockSize) - 1, VCD_SELF_MODE)) {
-      ExpectDataByte('s');
-      ExpectCopyInstruction((2 * kBlockSize) - 1, VCD_SELF_MODE);
-    } else {
-      ExpectDataByte('s');
-    }
-    ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
-    if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
-      ExpectDataByte('m');
-      ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
-    } else {
-      ExpectDataByte('m');
-    }
-    ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
+    ExpectDataByte('s');
   }
+  ExpectAddressVarint(4 * kBlockSize);  // "o" from "The only"
+  if (!ExpectAddCopyInstruction(1, kBlockSize, VCD_SELF_MODE)) {
+    ExpectDataByte('m');
+    ExpectCopyInstruction(kBlockSize, VCD_SELF_MODE);
+  } else {
+    ExpectDataByte('m');
+  }
+  ExpectAddressVarint(2 * kBlockSize);  // "e" from "The only"
   VerifySizes();
 }
 
@@ -632,8 +593,7 @@ class WeaselsToMoonpiesTest : public VCDiffEngineTestBase {
   // the encoder's block-hash algorithm.  A good value, that will give
   // reproducible results across all block sizes, will be somewhere
   // in between these extremes.
-  static const int kCompressibleTestBlockSize =
-      (kBlockSize < 4) ? 1 : kBlockSize / 4;
+  static const int kCompressibleTestBlockSize = kBlockSize / 4;
   static const int kTrailingSpaces = kCompressibleTestBlockSize - 1;
 
   WeaselsToMoonpiesTest() :
@@ -680,6 +640,7 @@ class WeaselsToMoonpiesTest : public VCDiffEngineTestBase {
   void EncodeText(const char* text, bool interleaved, bool target_matching) {
     interleaved_ = interleaved;
     VCDiffCodeTableWriter coder(interleaved);
+    coder.Init(engine_.dictionary_size());
     engine_.Encode(text,
                    strlen(text),
                    target_matching,
@@ -879,16 +840,12 @@ const char* WeaselsToMoonpiesTest::moonpie_text_ = NULL;
 int32_t WeaselsToMoonpiesTest::FindBoilerplateAddressForCopyMode(
     int copy_mode) const {
   size_t copy_address = 0;
-  if (copy_mode == VCD_SELF_MODE) {
+  if (default_cache_.IsSelfMode(copy_mode)) {
     copy_address = AfterLastWeasel();
-  } else if ((copy_mode >= default_cache_.FirstNearMode()) &&
-             (copy_mode < default_cache_.FirstSameMode())) {
+  } else if (default_cache_.IsNearMode(copy_mode)) {
     copy_address = DistanceBetweenLastTwoWeasels();
-  } else if ((copy_mode >= default_cache_.FirstSameMode()) &&
-             (copy_mode <= default_cache_.LastMode())) {
+  } else if (default_cache_.IsSameMode(copy_mode)) {
     copy_address = AfterLastWeasel() % 256;
-  } else {
-    LOG(FATAL) << "Unexpected copy mode " << copy_mode;
   }
   return static_cast<int32_t>(copy_address);
 }
@@ -905,16 +862,12 @@ int WeaselsToMoonpiesTest::UpdateCopyModeForMoonpie(int copy_mode) const {
 int32_t WeaselsToMoonpiesTest::FindMoonpieAddressForCopyMode(
     int copy_mode) const {
   size_t copy_address = 0;
-  if (copy_mode == VCD_HERE_MODE) {
+  if (default_cache_.IsHereMode(copy_mode)) {
     copy_address = DistanceFromLastMoonpie();
-  } else if ((copy_mode >= default_cache_.FirstNearMode()) &&
-             (copy_mode < default_cache_.FirstSameMode())) {
+  } else if (default_cache_.IsNearMode(copy_mode)) {
     copy_address = DistanceBetweenLastTwoMoonpies() - kTrailingSpaces;
-  } else if ((copy_mode >= default_cache_.FirstSameMode()) &&
-             (copy_mode <= default_cache_.LastMode())) {
+  } else if (default_cache_.IsSameMode(copy_mode)) {
     copy_address = copied_moonpie_address_ % 256;
-  } else {
-    LOG(FATAL) << "Unexpected copy mode " << copy_mode;
   }
   return static_cast<int32_t>(copy_address);
 }
@@ -942,6 +895,7 @@ void WeaselsToMoonpiesTest::CopyBoilerplateAndCopyMoonpie(
   ExpectCopyForSize(strlen(moonpie_text_) + kTrailingSpaces, moonpie_copy_mode);
   ExpectAddress(FindMoonpieAddressForCopyMode(moonpie_copy_mode),
                 moonpie_copy_mode);
+  copied_moonpie_address_ = strlen(dictionary_) + LastMoonpiePosition();
 }
 
 TEST_F(WeaselsToMoonpiesTest, EngineEncodeCompressibleNoTargetMatching) {
@@ -974,22 +928,12 @@ TEST_F(WeaselsToMoonpiesTest, EngineEncodeCompressibleWithTargetMatching) {
   CopyBoilerplateAndAddMoonpie(default_cache_.FirstSameMode());
   FindNextMoonpie(true);
   CopyBoilerplateAndCopyMoonpie(VCD_SELF_MODE, VCD_HERE_MODE);
-  if (kBlockSize <= 4) {
-    copied_moonpie_address_ = strlen(dictionary_) + LastMoonpiePosition();
-    FindNextMoonpie(true);
-    CopyBoilerplateAndCopyMoonpie(default_cache_.FirstNearMode() + 1,
-                                  default_cache_.FirstSameMode());
-  } else {  // kBlockSize > 4
-    copied_moonpie_address_ = strlen(dictionary_) + CurrentMoonpiePosition();
-    FindNextMoonpie(true);
-    CopyBoilerplateAndCopyMoonpie(default_cache_.FirstNearMode() + 1,
-                                  default_cache_.FirstNearMode() + 2);
-  }
-  LOG(INFO) << "copied_moonpie_address_ : "
-            << copied_moonpie_address_ << LOG_ENDL;
+  FindNextMoonpie(true);
+  CopyBoilerplateAndCopyMoonpie(default_cache_.FirstNearMode() + 1,
+                                default_cache_.FirstSameMode());
   FindNextMoonpie(true);
   CopyBoilerplateAndCopyMoonpie(default_cache_.FirstNearMode() + 3,
-                                default_cache_.FirstSameMode());
+                                VCD_HERE_MODE);
   FindNextMoonpie(true);
   CopyBoilerplateAndCopyMoonpie(default_cache_.FirstNearMode() + 1,
                                 default_cache_.FirstSameMode());
