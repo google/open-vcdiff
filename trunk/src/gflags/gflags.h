@@ -113,9 +113,12 @@ typedef unsigned __int64 uint64;
 // DEFINE_string, etc. at the bottom of this file.  You may also find
 // it useful to register a validator with the flag.  This ensures that
 // when the flag is parsed from the commandline, or is later set via
-// SetCommandLineOption, we call the validation function.  The
-// validation function should return true if the flag value is valid,
-// and false otherwise.
+// SetCommandLineOption, we call the validation function.
+//
+// The validation function should return true if the flag value is valid, and
+// false otherwise. If the function returns false for the new setting of the
+// flag, the flag will retain its current value. If it returns false for the
+// default value, InitGoogle will die.
 //
 // This function is safe to call at global construct time (as in the
 // example below).
@@ -494,13 +497,16 @@ extern bool FlagsTypeWarn(const char *name);
 // try to avoid crashes in that case, we use a char buffer to store
 // the string, which we can static-initialize, and then placement-new
 // into it later.  It's not perfect, but the best we can do.
-#define DECLARE_string(name)  namespace fLS { extern string& FLAGS_##name; } \
+#define DECLARE_string(name)  namespace fLS { extern std::string& FLAGS_##name; } \
                               using fLS::FLAGS_##name
 
 // We need to define a var named FLAGS_no##name so people don't define
 // --string and --nostring.  And we need a temporary place to put val
 // so we don't have to evaluate it twice.  Two great needs that go
 // great together!
+// The weird 'using' + 'extern' inside the fLS namespace is to work around
+// an unknown compiler bug/issue with the gcc 4.2.1 on SUSE 10.  See
+//    http://code.google.com/p/google-gflags/issues/detail?id=20
 #define DEFINE_string(name, val, txt)                                     \
   namespace fLS {                                                         \
     static union { void* align; char s[sizeof(std::string)]; } s_##name[2]; \
@@ -508,6 +514,8 @@ extern bool FlagsTypeWarn(const char *name);
     static ::google::FlagRegisterer o_##name(                \
       #name, "string", MAYBE_STRIPPED_HELP(txt), __FILE__,                \
       s_##name[0].s, new (s_##name[1].s) std::string(*FLAGS_no##name));   \
+    extern std::string& FLAGS_##name;                                     \
+    using fLS::FLAGS_##name;                                              \
     std::string& FLAGS_##name = *(reinterpret_cast<std::string*>(s_##name[0].s));   \
   }                                                                       \
   using fLS::FLAGS_##name

@@ -239,11 +239,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\google\gflags.h"
+				RelativePath="..\..\src\gflags\gflags.h"
 				>
 			</File>
 			<File
-				RelativePath="..\google\gflags_completions.h"
+				RelativePath="..\..\src\mutex.h"
 				>
 			</File>
 		</Filter>

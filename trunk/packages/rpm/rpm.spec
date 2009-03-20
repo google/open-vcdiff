@@ -58,8 +58,8 @@ rm -rf $RPM_BUILD_ROOT
 %docdir %{prefix}/share/doc/%{NAME}-%{VERSION}
 %{prefix}/share/doc/%{NAME}-%{VERSION}/*
 
-%docdir %{prefix}/man/man1/vcdiff.1
-%{prefix}/man/man1/vcdiff.1
+%docdir %{prefix}/share/man/man1/vcdiff.1*
+%{prefix}/share/man/man1/vcdiff.1*
 
 %{prefix}/bin/vcdiff
 %{prefix}/lib/libvcdcom.so.0

@@ -24,6 +24,7 @@
 #include "addrcache.h"
 #include "checksum.h"
 #include "codetable.h"
+#include "codetablewriter_interface.h"
 
 namespace open_vcdiff {
 
@@ -40,13 +41,9 @@ class VCDiffInstructionMap;
 // case Output will do nothing.)  The output will not be available for use
 // until after each call to Output().
 //
-// This class can also write a compressed
-// representation of a non-standard code table to an string so that it
-// can be sent with the data that was encoded using that code table.
-//
 // NOT threadsafe.
 //
-class VCDiffCodeTableWriter {
+class VCDiffCodeTableWriter : public CodeTableWriterInterface {
  public:
   // This constructor uses the default code table.
   // If interleaved is true, the encoder writes each delta file window
@@ -75,7 +72,7 @@ class VCDiffCodeTableWriter {
                         const VCDiffCodeTableData& code_table_data,
                         unsigned char max_mode);
 
-  ~VCDiffCodeTableWriter();
+  virtual ~VCDiffCodeTableWriter();
 
   // Initializes the constructed object for use.
   // This method must be called after a VCDiffCodeTableWriter is constructed
@@ -86,19 +83,16 @@ class VCDiffCodeTableWriter {
   //
   bool Init(size_t dictionary_size);
 
-  size_t target_length() const { return target_length_; }
+  virtual size_t target_length() const { return target_length_; }
 
   // Encode an ADD opcode with the "size" bytes starting at data
-  //
-  void Add(const char* data, size_t size);
+  virtual void Add(const char* data, size_t size);
 
   // Encode a COPY opcode with args "offset" (into dictionary) and "size" bytes.
-  //
-  void Copy(int32_t offset, size_t size);
+  virtual void Copy(int32_t offset, size_t size);
 
   // Encode a RUN opcode for "size" copies of the value "byte".
-  //
-  void Run(size_t size, unsigned char byte);
+  virtual void Run(size_t size, unsigned char byte);
 
   void AddChecksum(VCDChecksum checksum) {
     add_checksum_ = true;
@@ -108,7 +102,7 @@ class VCDiffCodeTableWriter {
   // Finishes encoding and appends the encoded delta window to the output
   // string.  The output string is not null-terminated and may contain embedded
   // '\0' characters.
-  void Output(OutputStringInterface* out);
+  virtual void Output(OutputStringInterface* out);
 
   const std::vector<int>& match_counts() const { return match_counts_; }
 

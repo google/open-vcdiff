@@ -96,9 +96,10 @@
 #endif
 #include <inttypes.h>
 #endif  // HAVE_INTTYPES_H
-#include <stdio.h>     // for snprintf
 #include <ctype.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdarg.h> // For va_list and related operations
 #include <string.h>
 #include <assert.h>
 #ifdef HAVE_FNMATCH_H
@@ -111,6 +112,7 @@
 #include <utility>     // for pair<>
 #include <algorithm>
 #include "gflags/gflags.h"
+#include "mutex.h"
 
 #ifndef PATH_SEPARATOR
 #define PATH_SEPARATOR  '/'
@@ -196,6 +198,19 @@ static bool logging_is_probably_set_up = false;
 // a flag value.
 typedef bool (*ValidateFnProto)();
 
+// Whether we should die when reporting an error.
+enum DieWhenReporting { DIE, DO_NOT_DIE };
+
+// Report Error and exit if requested.
+static void ReportError(DieWhenReporting should_die, const char* format, ...) {
+  va_list ap;
+  va_start(ap, format);
+  vfprintf(stderr, format, ap);
+  va_end(ap);
+  if (should_die == DIE)
+    commandlineflags_exitfunc(1);   // almost certainly exit()
+}
+
 
 // --------------------------------------------------------------------
 // FlagValue
@@ -204,6 +219,7 @@ typedef bool (*ValidateFnProto)();
 //    given type, and back.  Thread-compatible.
 // --------------------------------------------------------------------
 
+class CommandLineFlag;
 class FlagValue {
  public:
   FlagValue(void* valbuf, const char* type);
@@ -217,7 +233,7 @@ class FlagValue {
   friend class ::google::FlagSaverImpl; // calls New()
   friend class FlagRegistry;     // checks value_buffer_ for flags_by_ptr_ map
   template <typename T> friend T GetFromEnv(const char*, const char*, T);
-  friend bool TryParseLocked(const class CommandLineFlag*, FlagValue*,
+  friend bool TryParseLocked(const CommandLineFlag*, FlagValue*,
                              const char*, string*);  // for New(), CopyFrom()
 
   enum ValueType {FV_BOOL, FV_INT32, FV_INT64, FV_UINT64, FV_DOUBLE, FV_STRING};
@@ -305,7 +321,7 @@ bool FlagValue::ParseFrom(const char* value) {
       if (errno || end != value + strlen(value))  return false;  // bad parse
       if (static_cast<int32>(r) != r)  // worked, but number out of range
         return false;
-      SET_VALUE_AS(int32, r);
+      SET_VALUE_AS(int32, static_cast<int32>(r));
       return true;
     }
     case FV_INT64: {
@@ -593,11 +609,10 @@ struct StringCmp {  // Used by the FlagRegistry map class to compare char*'s
 
 class FlagRegistry {
  public:
-  FlagRegistry();
-  ~FlagRegistry();
+  FlagRegistry() { }
 
-  void Lock();
-  void Unlock();
+  void Lock() { lock_.Lock(); }
+  void Unlock() { lock_.Unlock(); }
 
   // Store a flag in this registry.  Takes ownership of the given pointer.
   void RegisterFlag(CommandLineFlag* flag);
@@ -642,37 +657,25 @@ class FlagRegistry {
   typedef map<const void*, CommandLineFlag*> FlagPtrMap;
   FlagPtrMap flags_by_ptr_;
 
-  static FlagRegistry* global_registry_;   // a singleton registry
+  Mutex lock_;
 
-  // If global_registry_ has not yet been initialized, this function allocates
-  // a new global registry.  Single-threaded execution is assumed.
-  static void InitGlobalRegistry();
+  static FlagRegistry* global_registry_;   // a singleton registry
+  static Mutex global_registry_lock_;  // guards creation of global_registry_
 
   // Disallow
   FlagRegistry(const FlagRegistry&);
   FlagRegistry& operator=(const FlagRegistry&);
 };
 
-// Single-threaded execution is assumed.
-inline FlagRegistry::FlagRegistry() { }
-inline FlagRegistry::~FlagRegistry() { }
-
-inline void FlagRegistry::Lock() { }
-inline void FlagRegistry::Unlock() { }
+FlagRegistry* FlagRegistry::global_registry_ = NULL;
+Mutex FlagRegistry::global_registry_lock_;
 
 FlagRegistry* FlagRegistry::GlobalRegistry() {
-  InitGlobalRegistry();
-  return global_registry_;
-}
-
-// Get the singleton FlagRegistry object
-FlagRegistry* FlagRegistry::global_registry_ = NULL;
-
-void FlagRegistry::InitGlobalRegistry() {
-  // Assume single-threaded execution.
+  MutexLock acquire_lock(&global_registry_lock_);
   if (!global_registry_) {
     global_registry_ = new FlagRegistry;
   }
+  return global_registry_;
 }
 
 void FlagRegistry::RegisterFlag(CommandLineFlag* flag) {
@@ -681,21 +684,18 @@ void FlagRegistry::RegisterFlag(CommandLineFlag* flag) {
     flags_.insert(pair<const char*, CommandLineFlag*>(flag->name(), flag));
   if (ins.second == false) {   // means the name was already in the map
     if (strcmp(ins.first->second->filename(), flag->filename()) != 0) {
-      fprintf(stderr,
-              "ERROR: flag '%s' was defined more than once "
-              "(in files '%s' and '%s').\n",
-              flag->name(),
-              ins.first->second->filename(),
-              flag->filename());
+      ReportError(DIE, "ERROR: flag '%s' was defined more than once "
+                  "(in files '%s' and '%s').\n",
+                  flag->name(),
+                  ins.first->second->filename(),
+                  flag->filename());
     } else {
-      fprintf(stderr,
-              "ERROR: something wrong with flag '%s' in file '%s'.  "
-              "One possibility: file '%s' is being linked both statically "
-              "and dynamically into this executable.\n",
-              flag->name(),
-              flag->filename(), flag->filename());
+      ReportError(DIE, "ERROR: something wrong with flag '%s' in file '%s'.  "
+                  "One possibility: file '%s' is being linked both statically "
+                  "and dynamically into this executable.\n",
+                  flag->name(),
+                  flag->filename(), flag->filename());
     }
-    commandlineflags_exitfunc(1);   // almost certainly exit()
   }
   // Also add to the flags_by_ptr_ map.
   flags_by_ptr_[flag->current_->value_buffer_] = flag;
@@ -949,14 +949,10 @@ static void ParseFlagList(const char* value, vector<string>* flags) {
       len = static_cast<int>(strlen(value));
     }
 
-    if (len == 0) {
-      fprintf(stderr, "ERROR: empty flaglist entry\n");
-      commandlineflags_exitfunc(1);   // almost certainly exit()
-    }
-    if (value[0] == '-') {
-      fprintf(stderr, "ERROR: flag \"%*s\" begins with '-'\n", len, value);
-      commandlineflags_exitfunc(1);
-    }
+    if (len == 0)
+      ReportError(DIE, "ERROR: empty flaglist entry\n");
+    if (value[0] == '-')
+      ReportError(DIE, "ERROR: flag \"%*s\" begins with '-'\n", len, value);
 
     flags->push_back(string(value, len));
   }
@@ -1153,10 +1149,10 @@ void CommandLineFlagParser::ValidateAllFlags() {
       // an error message, our job is done, even if it's not exactly
       // the same error.)
       if (error_flags_[i->second->name()].empty())
-        error_flags_[i->second->name()] = (string(kError) +
-                                           "--" + i->second->name() +
-                                           " must be set on the commandline" +
-                                           " (default value fails validation)");
+        error_flags_[i->second->name()] =
+            string(kError) + "--" + i->second->name() +
+            " must be set on the commandline"
+            " (default value fails validation)\n";
     }
   }
 }
@@ -1167,10 +1163,15 @@ bool CommandLineFlagParser::ReportErrors() {
   if (!FLAGS_undefok.empty()) {
     vector<string> flaglist;
     ParseFlagList(FLAGS_undefok.c_str(), &flaglist);
-    for (size_t i = 0; i < flaglist.size(); ++i)
+    for (size_t i = 0; i < flaglist.size(); ++i) {
+      // We also deal with --no<flag>, in case the flagname was boolean
+      const string no_version = string("no") + flaglist[i];
       if (undefined_names_.find(flaglist[i]) != undefined_names_.end()) {
         error_flags_[flaglist[i]] = "";    // clear the error message
+      } else if (undefined_names_.find(no_version) != undefined_names_.end()) {
+        error_flags_[no_version] = "";
       }
+    }
   }
   // Likewise, if they decided to allow reparsing, all undefined-names
   // are ok; we just silently ignore them now, and hope that a future
@@ -1182,13 +1183,16 @@ bool CommandLineFlagParser::ReportErrors() {
   }
 
   bool found_error = false;
+  string error_message;
   for (map<string, string>::const_iterator it = error_flags_.begin();
        it != error_flags_.end(); ++it) {
     if (!it->second.empty()) {
-      fprintf(stderr, "%s", it->second.c_str());
+      error_message.append(it->second.data(), it->second.size());
       found_error = true;
     }
   }
+  if (found_error)
+    ReportError(DO_NOT_DIE, "%s", error_message.c_str());
   return found_error;
 }
 
@@ -1290,11 +1294,9 @@ T GetFromEnv(const char *varname, const char* type, T dflt) {
   if (!valstr)
     return dflt;
   FlagValue ifv(new T, type);
-  if (!ifv.ParseFrom(valstr)) {
-    fprintf(stderr, "ERROR: error parsing env variable '%s' with value '%s'\n",
-            varname, valstr);
-    commandlineflags_exitfunc(1);
-  }
+  if (!ifv.ParseFrom(valstr))
+    ReportError(DIE, "ERROR: error parsing env variable '%s' with value '%s'\n",
+                varname, valstr);
   return OTHER_VALUE_AS(ifv, T);
 }
 
@@ -1463,10 +1465,8 @@ const char* ProgramInvocationShortName() {        // like the GNU libc fn
 }
 
 void SetUsageMessage(const string& usage) {
-  if (program_usage != NULL) {
-    fprintf(stderr, "ERROR: SetUsageMessage() called twice\n");
-    exit(1);
-  }
+  if (program_usage != NULL)
+    ReportError(DIE, "ERROR: SetUsageMessage() called twice\n");
   program_usage = strdup(usage.c_str());      // small memory leak
 }
 

@@ -13,13 +13,13 @@ rm -rf autom4te.cache
 
 trap 'rm -f aclocal.m4.tmp' EXIT
 
-# Use version 1.9 of aclocal and automake if available.
-ACLOCAL=aclocal-1.9
+# Use version 1.10 of aclocal and automake if available.
+ACLOCAL=aclocal-1.10
 if test -z `which "$ACLOCAL"`; then
   ACLOCAL=aclocal
 fi
 
-AUTOMAKE=automake-1.9
+AUTOMAKE=automake-1.10
 if test -z `which "$AUTOMAKE"`; then
   AUTOMAKE=automake
 fi

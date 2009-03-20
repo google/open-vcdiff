@@ -24,11 +24,11 @@
 #endif  // WIN32
 #include <stdio.h>
 #include <string.h>  // strerror
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 #include "gflags/gflags.h"
-#include "logging.h"
 #include "google/vcdecoder.h"
 #include "google/vcencoder.h"
 
@@ -224,22 +224,22 @@ bool VCDiffFileBasedCoder::OpenDictionary() {
   assert(!FLAGS_dictionary.empty());
   FILE* dictionary_file = fopen(FLAGS_dictionary.c_str(), "rb");
   if (!dictionary_file) {
-    LOG(ERROR) << "Error opening dictionary file '" << FLAGS_dictionary
-               << "': " << strerror(errno) << LOG_ENDL;
+    std::cerr << "Error opening dictionary file '" << FLAGS_dictionary
+              << "': " << strerror(errno) << std::endl;
     return false;
   }
   size_t dictionary_size = 0U;
   if (!FileSize(dictionary_file, &dictionary_size)) {
-    LOG(ERROR) << "Error finding size of dictionary file '" << FLAGS_dictionary
-               << "': " << strerror(errno) << LOG_ENDL;
+    std::cerr << "Error finding size of dictionary file '" << FLAGS_dictionary
+              << "': " << strerror(errno) << std::endl;
     return false;
   }
   dictionary_.resize(dictionary_size);
   if (dictionary_size > 0) {
     if (fread(&dictionary_[0], 1, dictionary_size, dictionary_file)
             != dictionary_size) {
-      LOG(ERROR) << "Unable to read dictionary file '" << FLAGS_dictionary
-                 << "': " << strerror(errno) << LOG_ENDL;
+      std::cerr << "Unable to read dictionary file '" << FLAGS_dictionary
+                << "': " << strerror(errno) << std::endl;
       fclose(dictionary_file);
       dictionary_.clear();
       return false;
@@ -265,15 +265,15 @@ bool VCDiffFileBasedCoder::OpenFileForReading(const string& file_name,
     if (!*file) {
       *file = fopen(file_name.c_str(), "rb");
       if (!*file) {
-        LOG(ERROR) << "Error opening " << file_type << " file '"
-                   << file_name << "': " << strerror(errno) << LOG_ENDL;
+        std::cerr << "Error opening " << file_type << " file '"
+                  << file_name << "': " << strerror(errno) << std::endl;
         return false;
       }
     }
     size_t file_size = 0U;
     if (!FileSize(*file, &file_size)) {
-      LOG(ERROR) << "Error finding size of " << file_type << " file '"
-                 << file_name << "': " << strerror(errno) << LOG_ENDL;
+      std::cerr << "Error finding size of " << file_type << " file '"
+                << file_name << "': " << strerror(errno) << std::endl;
       return false;
     }
     buffer_size = kMaxBufferSize;
@@ -303,9 +303,9 @@ bool VCDiffFileBasedCoder::OpenOutputFile() {
   } else {
     output_file_ = fopen(output_file_name_.c_str(), "wb");
     if (!output_file_) {
-      LOG(ERROR) << "Error opening " << output_file_type_ << " file '"
-                 << output_file_name_
-                 << "': " << strerror(errno) << LOG_ENDL;
+      std::cerr << "Error opening " << output_file_type_ << " file '"
+                << output_file_name_
+                << "': " << strerror(errno) << std::endl;
       return false;
     }
   }
@@ -316,9 +316,9 @@ bool VCDiffFileBasedCoder::ReadInput(size_t* bytes_read) {
   // Read from file or stdin
   *bytes_read = fread(&input_buffer_[0], 1, input_buffer_.size(), input_file_);
   if (ferror(input_file_)) {
-    LOG(ERROR) << "Error reading from " << input_file_type_ << " file '"
-               << input_file_name_
-               << "': " << strerror(errno) << LOG_ENDL;
+    std::cerr << "Error reading from " << input_file_type_ << " file '"
+              << input_file_name_
+              << "': " << strerror(errno) << std::endl;
     return false;
   }
   return true;
@@ -330,9 +330,9 @@ bool VCDiffFileBasedCoder::WriteOutput(const string& output) {
     // to the output file or to stdout.
     fwrite(output.data(), 1, output.size(), output_file_);
     if (ferror(output_file_)) {
-      LOG(ERROR) << "Error writing " << output.size() << " bytes to "
-                 << output_file_type_ << " file '" << output_file_name_
-                 << "': " << strerror(errno) << LOG_ENDL;
+      std::cerr << "Error writing " << output.size() << " bytes to "
+                << output_file_type_ << " file '" << output_file_name_
+                << "': " << strerror(errno) << std::endl;
       return false;
     }
   }
@@ -352,18 +352,18 @@ bool VCDiffFileBasedCoder::CompareOutput(const string& output) {
                               output_size,
                               output_file_);
     if (ferror(output_file_)) {
-      LOG(ERROR) << "Error reading from " << output_file_type_ << " file '"
-                 << output_file_name_ << "': " << strerror(errno) << LOG_ENDL;
+      std::cerr << "Error reading from " << output_file_type_ << " file '"
+                << output_file_name_ << "': " << strerror(errno) << std::endl;
       return false;
     }
     if (bytes_read < output_size) {
-      LOG(ERROR) << "Decoded target is longer than original target file"
-                 << LOG_ENDL;
+      std::cerr << "Decoded target is longer than original target file"
+                << std::endl;
       return false;
     }
     if (output.compare(0, output_size, &compare_buffer_[0], bytes_read) != 0) {
-      LOG(ERROR) << "Original target file does not match decoded target"
-                 << LOG_ENDL;
+      std::cerr << "Original target file does not match decoded target"
+                << std::endl;
       return false;
     }
   }
@@ -388,7 +388,7 @@ bool VCDiffFileBasedCoder::Encode() {
                                           dictionary_.size()));
   }
   if (!hashed_dictionary_->Init()) {
-    LOG(ERROR) << "Error initializing hashed dictionary" << LOG_ENDL;
+    std::cerr << "Error initializing hashed dictionary" << std::endl;
     return false;
   }
   VCDiffFormatExtensionFlags format_flags = open_vcdiff::VCD_STANDARD_FORMAT;
@@ -406,7 +406,7 @@ bool VCDiffFileBasedCoder::Encode() {
   size_t output_size = 0;
   {
     if (!encoder.StartEncoding(&output)) {
-      LOG(ERROR) << "Error during encoder initialization" << LOG_ENDL;
+      std::cerr << "Error during encoder initialization" << std::endl;
       return false;
     }
   }
@@ -420,8 +420,8 @@ bool VCDiffFileBasedCoder::Encode() {
     if (bytes_read > 0) {
       input_size += bytes_read;
       if (!encoder.EncodeChunk(&input_buffer_[0], bytes_read, &output)) {
-        LOG(ERROR) << "Error trying to encode data chunk of length "
-                   << bytes_read << LOG_ENDL;
+        std::cerr << "Error trying to encode data chunk of length "
+                  << bytes_read << std::endl;
         return false;
       }
     }
@@ -433,10 +433,10 @@ bool VCDiffFileBasedCoder::Encode() {
   output_size += output.size();
   output.clear();
   if (FLAGS_stats && (input_size > 0)) {
-    LOG(INFO) << "Original size: " << input_size
+    std::cerr << "Original size: " << input_size
               << "\tCompressed size: " << output_size << " ("
               << ((static_cast<double>(output_size) / input_size) * 100)
-              << "% of original)" << LOG_ENDL;
+              << "% of original)" << std::endl;
   }
   return true;
 }
@@ -451,8 +451,10 @@ bool VCDiffFileBasedCoder::Decode() {
   }
 
   open_vcdiff::VCDiffStreamingDecoder decoder;
-  decoder.SetMaximumTargetFileSize(FLAGS_max_target_file_size);
-  decoder.SetMaximumTargetWindowSize(FLAGS_max_target_window_size);
+  decoder.SetMaximumTargetFileSize(
+      static_cast<size_t>(FLAGS_max_target_file_size));
+  decoder.SetMaximumTargetWindowSize(
+      static_cast<size_t>(FLAGS_max_target_window_size));
   string output;
   size_t input_size = 0;
   size_t output_size = 0;
@@ -472,8 +474,8 @@ bool VCDiffFileBasedCoder::Decode() {
     if (bytes_read > 0) {
       input_size += bytes_read;
       if (!decoder.DecodeChunk(&input_buffer_[0], bytes_read, &output)) {
-        LOG(ERROR) << "Error trying to decode data chunk of length "
-                   << bytes_read << LOG_ENDL;
+        std::cerr << "Error trying to decode data chunk of length "
+                  << bytes_read << std::endl;
         return false;
       }
     }
@@ -484,8 +486,8 @@ bool VCDiffFileBasedCoder::Decode() {
     output.clear();
   } while (!feof(input_file_));
   if (!decoder.FinishDecoding()) {
-    LOG(ERROR) << "Decode error; '" << FLAGS_delta
-               << " may not be a valid VCDIFF delta file" << LOG_ENDL;
+    std::cerr << "Decode error; '" << FLAGS_delta
+              << " may not be a valid VCDIFF delta file" << std::endl;
     return false;
   }
   if (!WriteOutput(output)) {
@@ -494,10 +496,10 @@ bool VCDiffFileBasedCoder::Decode() {
   output_size += output.size();
   output.clear();
   if (FLAGS_stats && (output_size > 0)) {
-    LOG(INFO) << "Decompressed size: " << output_size
+    std::cerr << "Decompressed size: " << output_size
               << "\tCompressed size: " << input_size << " ("
               << ((static_cast<double>(input_size) / output_size) * 100)
-              << "% of original)" << LOG_ENDL;
+              << "% of original)" << std::endl;
   }
   return true;
 }
@@ -512,8 +514,10 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
   }
 
   open_vcdiff::VCDiffStreamingDecoder decoder;
-  decoder.SetMaximumTargetFileSize(FLAGS_max_target_file_size);
-  decoder.SetMaximumTargetWindowSize(FLAGS_max_target_window_size);
+  decoder.SetMaximumTargetFileSize(
+      static_cast<size_t>(FLAGS_max_target_file_size));
+  decoder.SetMaximumTargetWindowSize(
+      static_cast<size_t>(FLAGS_max_target_window_size));
   string output;
   size_t input_size = 0;
   size_t output_size = 0;
@@ -533,8 +537,8 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
     if (bytes_read > 0) {
       input_size += bytes_read;
       if (!decoder.DecodeChunk(&input_buffer_[0], bytes_read, &output)) {
-        LOG(ERROR) << "Error trying to decode data chunk of length "
-                   << bytes_read << LOG_ENDL;
+        std::cerr << "Error trying to decode data chunk of length "
+                  << bytes_read << std::endl;
         return false;
       }
     }
@@ -545,8 +549,8 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
     output.clear();
   } while (!feof(input_file_));
   if (!decoder.FinishDecoding()) {
-    LOG(ERROR) << "Decode error; '" << FLAGS_delta
-               << " may not be a valid VCDIFF delta file" << LOG_ENDL;
+    std::cerr << "Decode error; '" << FLAGS_delta
+              << " may not be a valid VCDIFF delta file" << std::endl;
     return false;
   }
   if (!CompareOutput(output)) {
@@ -555,20 +559,20 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
   output_size += output.size();
   output.clear();
   if (fgetc(output_file_) != EOF) {
-    LOG(ERROR) << "Decoded target is shorter than original target file"
-               << LOG_ENDL;
+    std::cerr << "Decoded target is shorter than original target file"
+              << std::endl;
     return false;
   }
   if (ferror(output_file_)) {
-    LOG(ERROR) << "Error reading end-of-file indicator from target file"
-               << LOG_ENDL;
+    std::cerr << "Error reading end-of-file indicator from target file"
+              << std::endl;
     return false;
   }
   if (FLAGS_stats && (output_size > 0)) {
-    LOG(INFO) << "Decompressed size: " << output_size
+    std::cerr << "Decompressed size: " << output_size
               << "\tCompressed size: " << input_size << " ("
               << ((static_cast<double>(input_size) / output_size) * 100)
-              << "% of original)" << LOG_ENDL;
+              << "% of original)" << std::endl;
   }
   return true;
 }
@@ -580,22 +584,22 @@ int main(int argc, char** argv) {
   google::SetUsageMessage(kUsageString);
   google::ParseCommandLineFlags(&argc, &argv, true);
   if (argc != 2) {
-    LOG(ERROR) << command_name << ": Must specify exactly one command option"
-               << LOG_ENDL;
+    std::cerr << command_name << ": Must specify exactly one command option"
+              << std::endl;
     ShowUsageWithFlagsRestrict(command_name, "vcdiff");
     return 1;
   }
   const char* const command_option = argv[1];
   if (FLAGS_dictionary.empty()) {
-    LOG(ERROR) << command_name << " " << command_option
-               << ": Must specify --dictionary <file-name>" << LOG_ENDL;
+    std::cerr << command_name << " " << command_option
+              << ": Must specify --dictionary <file-name>" << std::endl;
     ShowUsageWithFlagsRestrict(command_name, "vcdiff");
     return 1;
   }
   if (!GetCommandLineFlagInfoOrDie("buffersize").is_default &&
        (FLAGS_buffersize == 0)) {
-    LOG(ERROR) << command_name << ": Option --buffersize cannot be 0"
-               << LOG_ENDL;
+    std::cerr << command_name << ": Option --buffersize cannot be 0"
+              << std::endl;
     ShowUsageWithFlagsRestrict(command_name, "vcdiff");
     return 1;
   }
@@ -621,9 +625,9 @@ int main(int argc, char** argv) {
     // and --delta file arguments must be specified, rather than using stdin
     // or stdout.  It produces a delta file just as for "vcdiff encode".
     if (FLAGS_target.empty() || FLAGS_delta.empty()) {
-      LOG(ERROR) << command_name
-                 << " test: Must specify both --target <file-name>"
-                    " and --delta <file-name>" << LOG_ENDL;
+      std::cerr << command_name
+                << " test: Must specify both --target <file-name>"
+                   " and --delta <file-name>" << std::endl;
       return 1;
     }
     const string original_target(FLAGS_target);
@@ -641,8 +645,8 @@ int main(int argc, char** argv) {
       }
     }
   } else {
-    LOG(ERROR) << command_name << ": Unrecognized command option "
-               << command_option << LOG_ENDL;
+    std::cerr << command_name << ": Unrecognized command option "
+              << command_option << std::endl;
     ShowUsageWithFlagsRestrict(command_name, "vcdiff");
     return 1;
   }

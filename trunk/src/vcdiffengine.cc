@@ -18,7 +18,7 @@
 #include <stdint.h>  // uint32_t
 #include <string.h>  // memcpy
 #include "blockhash.h"
-#include "encodetable.h"
+#include "codetablewriter_interface.h"
 #include "logging.h"
 #include "rolling_hash.h"
 
@@ -83,7 +83,7 @@ inline size_t VCDiffEngine::EncodeCopyForBestMatch(
     const char* unencoded_target_start,
     size_t unencoded_target_size,
     const BlockHash* target_hash,
-    VCDiffCodeTableWriter* coder) const {
+    CodeTableWriterInterface* coder) const {
   // When FindBestMatch() comes up with a match for a candidate block,
   // it will populate best_match with the size, source offset,
   // and target offset of the match.
@@ -127,7 +127,7 @@ inline size_t VCDiffEngine::EncodeCopyForBestMatch(
 inline void VCDiffEngine::AddUnmatchedRemainder(
     const char* unencoded_target_start,
     size_t unencoded_target_size,
-    VCDiffCodeTableWriter* coder) const {
+    CodeTableWriterInterface* coder) const {
   if (unencoded_target_size > 0) {
     coder->Add(unencoded_target_start, unencoded_target_size);
   }
@@ -135,9 +135,10 @@ inline void VCDiffEngine::AddUnmatchedRemainder(
 
 // This helper function tells the coder to finish the encoding and write
 // the results into the output string "diff".
-inline void VCDiffEngine::FinishEncoding(size_t target_size,
-                                         OutputStringInterface* diff,
-                                         VCDiffCodeTableWriter* coder) const {
+inline void VCDiffEngine::FinishEncoding(
+    size_t target_size,
+    OutputStringInterface* diff,
+    CodeTableWriterInterface* coder) const {
   if (target_size != static_cast<size_t>(coder->target_length())) {
     LOG(DFATAL) << "Internal error in VCDiffEngine::Encode: "
                    "original target size (" << target_size
@@ -151,7 +152,7 @@ template<bool look_for_target_matches>
 void VCDiffEngine::EncodeInternal(const char* target_data,
                                   size_t target_size,
                                   OutputStringInterface* diff,
-                                  VCDiffCodeTableWriter* coder) const {
+                                  CodeTableWriterInterface* coder) const {
   if (!hashed_dictionary_) {
     LOG(DFATAL) << "Internal error: VCDiffEngine::Encode() "
                    "called before VCDiffEngine::Init()" << LOG_ENDL;
@@ -159,11 +160,6 @@ void VCDiffEngine::EncodeInternal(const char* target_data,
   }
   if (target_size == 0) {
     return;  // Do nothing for empty target
-  }
-  if (!coder->Init(dictionary_size())) {
-    LOG(DFATAL) << "Internal error: "
-                   "Initialization of VCDiffCodeTableWriter failed" << LOG_ENDL;
-    return;
   }
   // Special case for really small input
   if (target_size < static_cast<size_t>(BlockHash::kBlockSize)) {
@@ -242,7 +238,7 @@ void VCDiffEngine::Encode(const char* target_data,
                           size_t target_size,
                           bool look_for_target_matches,
                           OutputStringInterface* diff,
-                          VCDiffCodeTableWriter* coder) const {
+                          CodeTableWriterInterface* coder) const {
   if (look_for_target_matches) {
     EncodeInternal<true>(target_data, target_size, diff, coder);
   } else {

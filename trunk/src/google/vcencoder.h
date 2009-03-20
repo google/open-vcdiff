@@ -82,6 +82,11 @@ class HashedDictionary {
 
  private:
   const VCDiffEngine* engine_;
+
+  // Make the copy constructor and assignment operator private
+  // so that they don't inadvertently get used.
+  HashedDictionary(const HashedDictionary&);  // NOLINT
+  void operator=(const HashedDictionary&);
 };
 
 // The standard streaming interface to the VCDIFF (RFC 3284) encoder.
@@ -242,7 +247,8 @@ class VCDiffEncoder {
   VCDiffEncoder(const char* dictionary_contents, size_t dictionary_size)
       : dictionary_(dictionary_contents, dictionary_size),
         encoder_(NULL),
-        flags_(VCD_STANDARD_FORMAT) { }
+        flags_(VCD_STANDARD_FORMAT),
+        look_for_target_matches_(true) { }
 
   ~VCDiffEncoder() {
     delete encoder_;
@@ -252,6 +258,14 @@ class VCDiffEncoder {
   // can be used before calling Encode(), to specify that interleaved format
   // and/or checksum format should be used.
   void SetFormatFlags(VCDiffFormatExtensionFlags flags) { flags_ = flags; }
+
+  // By default, VCDiffEncoder looks for matches in the dictionary and also in
+  // the previously encoded target data.  This function can be used before
+  // calling Encode(), to specify whether or not target matching should be
+  // enabled.
+  void SetTargetMatching(bool look_for_target_matches) {
+    look_for_target_matches_ = look_for_target_matches;
+  }
 
   // Replaces old contents of output_string with the encoded form of
   // target_data.
@@ -264,10 +278,6 @@ class VCDiffEncoder {
   }
 
  private:
-  // Always look for matches in both source and target.  This default value
-  // can be changed in this code if desired.
-  static const bool look_for_target_matches_ = true;
-
   bool EncodeToInterface(const char* target_data,
                          size_t target_len,
                          OutputStringInterface* output_string);
@@ -275,6 +285,7 @@ class VCDiffEncoder {
   HashedDictionary dictionary_;
   VCDiffStreamingEncoder* encoder_;
   VCDiffFormatExtensionFlags flags_;
+  bool look_for_target_matches_;
 
   // Make the copy constructor and assignment operator private
   // so that they don't inadvertently get used.

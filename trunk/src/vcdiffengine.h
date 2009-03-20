@@ -24,16 +24,20 @@ namespace open_vcdiff {
 
 class BlockHash;
 class OutputStringInterface;
-class VCDiffCodeTableWriter;
+class CodeTableWriterInterface;
 
-// The VCDiffEngine class is used to find the optimal encoding (in terms of
-// COPY and ADD instructions) for a given dictionary and target window.
-// To write the instructions for this encoding, it calls the Copy()
-// and Add() methods of the VCDiffCodeTableWriter object which is passed
-// as an argument to Encode().
-//
+// The VCDiffEngine class is used to find the optimal encoding (in terms of COPY
+// and ADD instructions) for a given dictionary and target window.  To write the
+// instructions for this encoding, it calls the Copy() and Add() methods of the
+// code table writer object which is passed as an argument to Encode().
 class VCDiffEngine {
  public:
+  // The minimum size of a string match that is worth putting into a COPY
+  // instruction.  Since this value is more than twice the block size, the
+  // encoder will always discover a match of this size, no matter whether it is
+  // aligned on block boundaries in the dictionary text.
+  static const size_t kMinimumMatchSize = 32;
+
   VCDiffEngine(const char* dictionary, size_t dictionary_size);
 
   ~VCDiffEngine();
@@ -57,6 +61,8 @@ class VCDiffEngine {
   // Because it is a const function, many threads
   // can call Encode() at once for the same VCDiffEngine object.
   // All thread-specific data will be stored in the coder and diff arguments.
+  // The coder object must have been fully initialized (by calling its Init()
+  // method, if any) before calling this function.
   //
   // look_for_target_matches determines whether to look for matches
   // within the previously encoded target data, or just within the source
@@ -66,16 +72,9 @@ class VCDiffEngine {
               size_t target_size,
               bool look_for_target_matches,
               OutputStringInterface* diff,
-              VCDiffCodeTableWriter* coder) const;
+              CodeTableWriterInterface* coder) const;
 
  private:
-  // The minimum size of a string match that is worth putting into
-  // a COPY instruction.  This value is taken from the RFC, which states:
-  // "The choice of the minimum size 4 for COPY instructions in the default
-  //  code table was made from experiments that showed that excluding small
-  //  matches (less than 4 bytes long) improved the compression rates."
-  static const size_t kMinimumMatchSize = 4;
-
   static bool ShouldGenerateCopyInstructionForMatchOfSize(size_t size) {
     return size >= kMinimumMatchSize;
   }
@@ -88,7 +87,7 @@ class VCDiffEngine {
   void EncodeInternal(const char* target_data,
                       size_t target_size,
                       OutputStringInterface* diff,
-                      VCDiffCodeTableWriter* coder) const;
+                      CodeTableWriterInterface* coder) const;
 
   // If look_for_target_matches is true, then target_hash must point to a valid
   // BlockHash object, and cannot be NULL.  If look_for_target_matches is
@@ -99,15 +98,15 @@ class VCDiffEngine {
                                 const char* unencoded_target_start,
                                 size_t unencoded_target_size,
                                 const BlockHash* target_hash,
-                                VCDiffCodeTableWriter* coder) const;
+                                CodeTableWriterInterface* coder) const;
 
   void AddUnmatchedRemainder(const char* unencoded_target_start,
                              size_t unencoded_target_size,
-                             VCDiffCodeTableWriter* coder) const;
+                             CodeTableWriterInterface* coder) const;
 
   void FinishEncoding(size_t target_size,
                       OutputStringInterface* diff,
-                      VCDiffCodeTableWriter* coder) const;
+                      CodeTableWriterInterface* coder) const;
 
   const char* dictionary_;  // A copy of the dictionary contents
 

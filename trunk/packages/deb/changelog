@@ -1,3 +1,36 @@
+open-vcdiff (0.5-1) unstable; urgency=low
+
+  * Issue #14: HashedDictionary may free memory twice if implicitly copied.
+    * Add private copy constructor and assignment operator for HashedDictionary.
+  * Issue #18: Building RPM package fails on Fedora 9: Installed (but
+    unpackaged) file vcdiff.1.gz.
+    * Some OS, including Fedora 9, automatically compress man pages that are
+      installed using /usr/bin/install.  This confuses the RPM packager, which
+      expects a file named "vcdiff.1" and finds one named "vcdiff.1.gz" instead.
+      Use a wild-card character to accept either of these two alternatives.
+  * Change the VCDIFF block size to 16, but have the encoder discard all matches
+    smaller than 32 bytes.  This doubles the CPU and memory needed by the
+    encoder, but finds better string matches, producing a more efficient
+    encoding.  Loosen the timing test limit in blockhash_test.cc for the debug
+    build only.
+  * Make the code table writer a virtual interface.
+  * Add an interface SetTargetMatching() to the simple encoder class
+    VCDEncoder.
+  * Remove all references to LOG and logging.h from the unit tests and
+    command-line client.
+  * Remove all special cases for kBlockSize < 4.  kBlockSize must be a multiple
+    of the machine word size (see blockhash.cc), so it will never be smaller
+    than 4.
+  * Use version 1.10 of Automake.
+  * Incorporate recent changes to gflags package
+    (http://code.google.com/p/google-gflags/)
+  * Fix Visual Studio type-mismatch warning in vcdecoder4_test.cc.
+  * Use address cache helper functions IsSameMode(), IsHereMode(), etc. to
+    simplify test code.
+  * Add contributor's name to THANKS file.
+
+ -- Google Inc. <opensource@google.com>  Wed, 18 Mar 2009 14:28:23 -0700
+
 open-vcdiff (0.4-1) unstable; urgency=low
 
   * Issue #15: open-vcdiff fails to compile on Fedora 9

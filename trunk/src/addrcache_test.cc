@@ -18,9 +18,9 @@
 #include <limits.h>  // INT_MAX, INT_MIN
 #include <stdint.h>  // uint32_t
 #include <stdlib.h>  // rand, srand
+#include <iostream>
 #include <string>
 #include <vector>
-#include "logging.h"
 #include "testing.h"
 #include "varint_bigendian.h"
 #include "vcdiff_defs.h"  // RESULT_ERROR
@@ -51,7 +51,7 @@ class VCDiffAddressCacheTest : public testing::Test {
   }
 
   // Benchmarks for timing encode/decode operations
-  void BM_Setup(int test_size, bool print_stats);
+  void BM_Setup(int test_size);
   void BM_CacheEncode(int iterations, int test_size);
   void BM_CacheDecode(int iterations, int test_size);
 
@@ -549,7 +549,7 @@ TEST_F(VCDiffAddressCacheTest, DecodeInvalidNearAddress) {
   ExpectDecodedSizeInBytes(0);
 }
 
-void VCDiffAddressCacheTest::BM_Setup(int test_size, bool print_stats) {
+void VCDiffAddressCacheTest::BM_Setup(int test_size) {
   mode_stream_.resize(test_size);
   verify_stream_.resize(test_size);
   VCDAddress here_address = 1;
@@ -559,41 +559,6 @@ void VCDiffAddressCacheTest::BM_Setup(int test_size, bool print_stats) {
     here_address += 4;
   }
   BM_CacheEncode(1, test_size);  // populate large_address_stream_, mode_stream_
-  const size_t encoded_size_ = large_address_stream_.size();
-  if (print_stats) {
-    // Count the percentages of modes used
-    int self_count = 0, here_count = 0, near_count = 0, same_count = 0;
-    for (int i = 0; i < test_size; ++i) {
-      if (mode_stream_[i] == VCD_SELF_MODE) {
-        ++self_count;
-      } else if (mode_stream_[i] == VCD_HERE_MODE) {
-        ++here_count;
-      } else if (mode_stream_[i] < cache_.FirstSameMode()) {
-        ++near_count;
-      } else {
-        ++same_count;
-      }
-    }
-    const int original_bytes = test_size * sizeof(verify_stream_[0]);
-    const int mode_bytes = test_size * sizeof(mode_stream_[0]);
-    double percent_compression =
-      ((1 - (static_cast<double>(encoded_size_ + mode_bytes) / original_bytes))
-          * 100);
-    LOG(INFO) << "Encoded " << test_size << " addresses ("
-              << original_bytes << " bytes) into "
-              << encoded_size_ << " address bytes + "
-              << mode_bytes << " mode bytes: "
-              << percent_compression << "% compression" << LOG_ENDL;
-    LOG(INFO) << "SELF mode: " << self_count << " ("
-              << ((static_cast<double>(self_count) / test_size) * 100) << "%); "
-              << "HERE mode: " << here_count << " ("
-              << ((static_cast<double>(here_count) / test_size) * 100) << "%); "
-              << "NEAR mode: " << near_count << " ("
-              << ((static_cast<double>(near_count) / test_size) * 100) << "%); "
-              << "SAME mode: " << same_count << " ("
-              << ((static_cast<double>(same_count) / test_size) * 100) << "%)"
-              << LOG_ENDL;
-  }
 }
 
 void VCDiffAddressCacheTest::BM_CacheEncode(int iterations, int test_size) {
@@ -644,7 +609,7 @@ void VCDiffAddressCacheTest::BM_CacheDecode(int iterations, int test_size) {
 TEST_F(VCDiffAddressCacheTest, PerformanceTest) {
   const int test_size = 20 * 1024;  // 20K random encode/decode operations
   const int num_iterations = 40;  // run test 40 times and take average
-  BM_Setup(test_size, true);
+  BM_Setup(test_size);
   {
     CycleTimer encode_timer;
     encode_timer.Start();
@@ -652,8 +617,8 @@ TEST_F(VCDiffAddressCacheTest, PerformanceTest) {
     encode_timer.Stop();
     double encode_time_in_ms =
         static_cast<double>(encode_timer.GetInUsec()) / 1000;
-    LOG(INFO) << "Time to encode: "
-              << (encode_time_in_ms / num_iterations) << " ms" << LOG_ENDL;
+    std::cout << "Time to encode: "
+              << (encode_time_in_ms / num_iterations) << " ms" << std::endl;
   }
   {
     CycleTimer decode_timer;
@@ -662,8 +627,8 @@ TEST_F(VCDiffAddressCacheTest, PerformanceTest) {
     decode_timer.Stop();
     double decode_time_in_ms =
         static_cast<double>(decode_timer.GetInUsec()) / 1000;
-    LOG(INFO) << "Time to decode: "
-              << (decode_time_in_ms / num_iterations) << " ms" << LOG_ENDL;
+    std::cout << "Time to decode: "
+              << (decode_time_in_ms / num_iterations) << " ms" << std::endl;
   }
 }
 
