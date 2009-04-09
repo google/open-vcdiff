@@ -205,6 +205,7 @@ bool VCDiffHeaderParser::ParseSourceSegmentLengthAndPosition(
 bool VCDiffHeaderParser::ParseWinIndicatorAndSourceSegment(
     size_t dictionary_size,
     size_t decoded_target_size,
+    bool allow_vcd_target,
     unsigned char* win_indicator,
     size_t* source_segment_length,
     size_t* source_segment_position) {
@@ -221,6 +222,12 @@ bool VCDiffHeaderParser::ParseWinIndicatorAndSourceSegment(
                                                  source_segment_length,
                                                  source_segment_position);
     case VCD_TARGET:
+      if (!allow_vcd_target) {
+        LOG(ERROR) << "Delta file contains VCD_TARGET flag, which is not "
+                      "allowed by current decoder settings" << LOG_ENDL;
+        return_code_ = RESULT_ERROR;
+        return false;
+      }
       return ParseSourceSegmentLengthAndPosition(decoded_target_size,
                                                  "current target position",
                                                  "target file",

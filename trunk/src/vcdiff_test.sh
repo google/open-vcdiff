@@ -433,10 +433,13 @@ echo "Test 33 ok";
 # open-vcdiff bug 8 (http://code.google.com/p/open-vcdiff/issues/detail?id=8)
 # A malicious encoding that tries to produce a 4GB target file made up of 64
 # windows, each window having a size of 64MB.
-# Start by limiting memory usage to 96MB per process, so the test doesn't take
-# forever to run out of memory.
-ulimit -d 98304
-ulimit -m 98304
+# Limit memory usage to 256MB per process, so the test doesn't take forever
+# to run out of memory.
+OLD_ULIMIT=$(ulimit -v)
+echo "Old ulimit: $OLD_ULIMIT"
+ulimit -S -v 262144
+echo "New ulimit: $(ulimit -v)"
+
 $VCDIFF $VCD_OPTIONS \
     decode -dictionary $DICTIONARY_FILE \
            -delta $MALICIOUS_ENCODING \
@@ -454,6 +457,8 @@ $VCDIFF $VCD_OPTIONS \
 && { echo "Decoding malicious file should fail, but succeeded"; \
      exit 1; }
 echo "Test 35 ok";
+
+ulimit -S -v $OLD_ULIMIT
 
 # Decoding a small target with the -max_target_file_size option should succeed.
 $VCDIFF $VCD_OPTIONS \
@@ -476,5 +481,48 @@ $VCDIFF $VCD_OPTIONS \
 echo "Test 37 ok";
 
 rm $DELTA_FILE
+
+# Test using -allow_vcd_target=false
+$VCDIFF $VCD_OPTIONS \
+        encode -dictionary $DICTIONARY_FILE \
+               -target $TARGET_FILE \
+               -delta $DELTA_FILE \
+               -allow_vcd_target=false \
+|| { echo "Encode with -allow_vcd_target=false failed"; \
+     exit 1; }
+$VCDIFF $VCD_OPTIONS \
+        decode -dictionary $DICTIONARY_FILE \
+               -delta $DELTA_FILE \
+               -target $OUTPUT_TARGET_FILE \
+               -allow_vcd_target=false \
+|| { echo "Decode with -allow_vcd_target=false failed"; \
+     exit 1; }
+cmp $TARGET_FILE $OUTPUT_TARGET_FILE \
+|| { echo "Decoded target does not match original"; \
+     exit 1; }
+echo "Test 38 ok";
+
+rm $DELTA_FILE
+rm $OUTPUT_TARGET_FILE
+
+# Test using -allow_vcd_target=true
+$VCDIFF $VCD_OPTIONS \
+        encode -dictionary $DICTIONARY_FILE \
+               -target $TARGET_FILE \
+               -delta $DELTA_FILE \
+               -allow_vcd_target=true \
+|| { echo "Encode with -allow_vcd_target=true failed"; \
+     exit 1; }
+$VCDIFF $VCD_OPTIONS \
+        decode -dictionary $DICTIONARY_FILE \
+               -delta $DELTA_FILE \
+               -target $OUTPUT_TARGET_FILE \
+               -allow_vcd_target=true \
+|| { echo "Decode with -allow_vcd_target=true failed"; \
+     exit 1; }
+cmp $TARGET_FILE $OUTPUT_TARGET_FILE \
+|| { echo "Decoded target does not match original"; \
+     exit 1; }
+echo "Test 39 ok";
 
 echo "PASS"

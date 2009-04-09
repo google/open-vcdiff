@@ -4,7 +4,7 @@
 # make sure we're interpreted by some minimal autoconf
 AC_PREREQ(2.57)
 
-AC_INIT(open-vcdiff, 0.5, opensource@google.com)
+AC_INIT(open-vcdiff, 0.6, opensource@google.com)
 AC_CONFIG_SRCDIR(README)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(src/config.h)
@@ -15,6 +15,12 @@ AC_PROG_CPP
 AC_PROG_CXX
 AM_CONDITIONAL(GCC, test "$GCC" = yes)   # let the Makefile know if we're gcc
 AC_CANONICAL_HOST
+
+# Issue #21:  Fail to test on MinGW 5.1.4
+# Disabling fast install keeps libtool from creating wrapper scripts around
+# the executables it builds.  Such scripts have caused failures on MinGW.
+# Using this option means an extra link step is executed during "make install".
+AC_DISABLE_FAST_INSTALL
 
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)

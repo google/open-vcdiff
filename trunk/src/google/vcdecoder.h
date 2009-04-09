@@ -118,44 +118,13 @@ class VCDiffStreamingDecoder {
   // than this limit, it will log an error and stop decoding.
   bool SetMaximumTargetWindowSize(size_t new_maximum_target_window_size);
 
-  // *** Diagnostic interfaces ***
-
-  // The decoder can create a version of the output target string with XML tags
-  // added to indicate where each section of the decoded text came from.  This
-  // can assist in debugging the decoder and/or determining the effectiveness of
-  // a particular dictionary.  The following XML tags will be added.  Despite
-  // the formatting of this example, newlines will not be added between tags.
-  //     <dmatch>This text matched with the dictionary</dmatch>
-  //     <bmatch>This text matched earlier target output</bmatch>
-  //     <literal>This text found no match</literal>
-  //
-  // Calling EnableAnnotatedOutput() will enable this feature.  The interface
-  // GetAnnotatedOutput() can be used to retrieve the annotated text.   It is
-  // recommended to use this feature only when the target data consists of HTML
-  // or other human-readable text.
-
-  // Enables the annotated output feature.  After this method is called, new
-  // target windows added to output_string by DecodeChunk() will also be added
-  // to the annotated output, and can be retrieved using GetAnnotatedOutput().
-  // If annotated output is already enabled, this function has no effect.
-  void EnableAnnotatedOutput();
-
-  // Disables the annotated output feature.  After calling this method,
-  // GetAnnotatedOutput() will produce an empty string until
-  // EnableAnnotatedOutput() is called again.
-  void DisableAnnotatedOutput();
-
-  // Replaces annotated_output with a copy of the annotated output string.
-  // Annotated output collection begins when EnableAnnotatedOutput() is called.
-  // The annotated output will be cleared each time StartDecoding() is called,
-  // but not when FinishDecoding() is called.
-  template<class OutputType>
-  void GetAnnotatedOutput(OutputType* annotated_output) {
-    OutputString<OutputType> output_string(annotated_output);
-    GetAnnotatedOutputToInterface(&output_string);
-  }
-
-  void GetAnnotatedOutputToInterface(OutputStringInterface* annotated_output);
+  // This interface must be called before StartDecoding().  If its argument
+  // is true, then the VCD_TARGET flag can be specified to allow the source
+  // segment to be chosen from the previously-decoded target data.  (This is the
+  // default behavior.)  If it is false, then specifying the VCD_TARGET flag is
+  // considered an error, and the decoder does not need to keep in memory any
+  // decoded target data prior to the current window.
+  void SetAllowVcdTarget(bool allow_vcd_target);
 
  private:
   VCDiffStreamingDecoderImpl* const impl_;

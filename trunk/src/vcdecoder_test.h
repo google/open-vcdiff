@@ -35,7 +35,6 @@ class VCDiffDecoderTest : public testing::Test {
 
   static const char kDictionary[];
   static const char kExpectedTarget[];
-  static const char kExpectedAnnotatedTarget[];
 
   VCDiffDecoderTest();
 
@@ -119,7 +118,6 @@ class VCDiffDecoderTest : public testing::Test {
   // kDictionary, kExpectedTarget, etc.)
   string dictionary_;
   string expected_target_;
-  string expected_annotated_target_;
 
   // The components that will be used to construct delta_file_.
   string delta_file_header_;

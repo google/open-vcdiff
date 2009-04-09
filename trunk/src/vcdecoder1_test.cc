@@ -131,18 +131,6 @@ TEST_F(VCDiffStandardDecoderTest, FuzzBits) {
   }
 }
 
-TEST_F(VCDiffStandardDecoderTest, CheckAnnotatedOutput) {
-  decoder_.EnableAnnotatedOutput();
-  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
-  EXPECT_TRUE(decoder_.DecodeChunk(delta_file_.data(),
-                                   delta_file_.size(),
-                                   &output_));
-  EXPECT_TRUE(decoder_.FinishDecoding());
-  string annotated_output;
-  decoder_.GetAnnotatedOutput(&annotated_output);
-  EXPECT_EQ(expected_annotated_target_, annotated_output);
-}
-
 // Change each element of the delta file window to an erroneous value
 // and make sure it's caught as an error.
 

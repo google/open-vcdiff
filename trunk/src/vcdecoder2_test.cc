@@ -46,6 +46,16 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, Decode) {
   EXPECT_EQ(expected_target_, output_);
 }
 
+TEST_F(VCDiffStandardDecoderTestByteByByte, DecodeNoVcdTarget) {
+  decoder_.SetAllowVcdTarget(false);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  for (size_t i = 0; i < delta_file_.size(); ++i) {
+    EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
+  }
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
 // Remove one byte from the length of the chunk to process, and
 // verify that an error is returned for FinishDecoding().
 TEST_F(VCDiffStandardDecoderTestByteByByte, FinishAfterDecodingPartialWindow) {
@@ -162,18 +172,6 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, FuzzBits) {
     InitializeDeltaFile();
     output_.clear();
   }
-}
-
-TEST_F(VCDiffStandardDecoderTestByteByByte, CheckAnnotatedOutput) {
-  decoder_.EnableAnnotatedOutput();
-  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
-  for (size_t i = 0; i < delta_file_.size(); ++i) {
-    EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
-  }
-  EXPECT_TRUE(decoder_.FinishDecoding());
-  string annotated_output;
-  decoder_.GetAnnotatedOutput(&annotated_output);
-  EXPECT_EQ(expected_annotated_target_, annotated_output);
 }
 
 // Change each element of the delta file window to an erroneous value

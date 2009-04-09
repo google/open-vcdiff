@@ -121,7 +121,6 @@ class VCDiffStandardWindowDecoderTest : public VCDiffDecoderTest {
   virtual ~VCDiffStandardWindowDecoderTest() {}
 
  private:
-  static const char kExpectedAnnotatedTarget[];
   static const char kWindowBody[];
 };
 
@@ -241,26 +240,8 @@ const char VCDiffStandardWindowDecoderTest::kWindowBody[] = {
     // No addresses for COPYs
   };
 
-// The window encoding should produce the same target file as the standard
-// encoding, but the annotated target will be different because some of the
-// <bmatch> tags (copying from the previously decoded data in the current target
-// window) are changed to <dmatch> (copying from the previously decoded data in
-// another target window, which is used as the source window for the current
-// delta window.)
-const char VCDiffStandardWindowDecoderTest::kExpectedAnnotatedTarget[] =
-    "<dmatch>\"Just the place for a Snark!</dmatch>"
-    "<literal> I have said it twice:\n"
-    "That alone should encourage the crew.\n</literal>"
-    "<dmatch>Just the place for a Snark! I have said it t</dmatch>"
-    "<literal>hr</literal>"
-    "<dmatch>ice:\n</dmatch>"
-    "<literal>What I te</literal>"
-    "<literal>ll</literal>"
-    "<literal> you three times is true.\"\n</literal>";
-
 VCDiffStandardWindowDecoderTest::VCDiffStandardWindowDecoderTest() {
   UseStandardFileHeader();
-  expected_annotated_target_.assign(kExpectedAnnotatedTarget);
   delta_window_body_.assign(kWindowBody, sizeof(kWindowBody));
 }
 
@@ -299,6 +280,21 @@ TEST_F(VCDiffStandardWindowDecoderTest, DecodeBreakInFourthWindowHeader) {
                                    &output_chunk3));
   EXPECT_TRUE(decoder_.FinishDecoding());
   EXPECT_EQ(expected_target_, output_chunk1 + output_chunk2 + output_chunk3);
+}
+
+TEST_F(VCDiffStandardWindowDecoderTest, DecodeChunkNoVcdTargetAllowed) {
+  decoder_.SetAllowVcdTarget(false);
+  // Parse file header + first two windows.
+  const size_t chunk_1_size = delta_file_header_.size() + 83;
+  // The third window begins with Win_Indicator = VCD_TARGET which is not
+  // allowed.
+  CHECK_EQ(VCD_TARGET, static_cast<unsigned char>(delta_file_[chunk_1_size]));
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[0], chunk_1_size, &output_));
+  // Just parsing one more byte (the VCD_TARGET) should result in an error.
+  EXPECT_FALSE(decoder_.DecodeChunk(&delta_file_[chunk_1_size], 1, &output_));
+  // The target data for the first two windows should have been output.
+  EXPECT_EQ(expected_target_.substr(0, 89), output_);
 }
 
 TEST_F(VCDiffStandardWindowDecoderTest, DecodeInTwoParts) {
@@ -382,6 +378,7 @@ TEST_F(VCDiffStandardWindowDecoderTest, TargetExceedsFileSizeLimit) {
 
 typedef VCDiffStandardWindowDecoderTest
     VCDiffStandardWindowDecoderTestByteByByte;
+
 TEST_F(VCDiffStandardWindowDecoderTestByteByByte, Decode) {
   decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
   for (size_t i = 0; i < delta_file_.size(); ++i) {
@@ -389,6 +386,32 @@ TEST_F(VCDiffStandardWindowDecoderTestByteByByte, Decode) {
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
   EXPECT_EQ(expected_target_, output_);
+}
+
+TEST_F(VCDiffStandardWindowDecoderTestByteByByte, DecodeExplicitVcdTarget) {
+  decoder_.SetAllowVcdTarget(true);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  for (size_t i = 0; i < delta_file_.size(); ++i) {
+    EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
+  }
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
+// Windows 3 and 4 use the VCD_TARGET flag, so decoder should signal an error.
+TEST_F(VCDiffStandardWindowDecoderTestByteByByte, DecodeNoVcdTarget) {
+  decoder_.SetAllowVcdTarget(false);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  size_t i = 0;
+  for (; i < delta_file_.size(); ++i) {
+    if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
+      break;
+    }
+  }
+  // The failure should occur just at the position of the first VCD_TARGET.
+  EXPECT_EQ(delta_file_header_.size() + 83, i);
+  // The target data for the first two windows should have been output.
+  EXPECT_EQ(expected_target_.substr(0, 89), output_);
 }
 
 // Divides up the interleaved encoding into eight separate delta file windows.
@@ -561,6 +584,22 @@ TEST_F(VCDiffInterleavedWindowDecoderTestByteByByte, Decode) {
   EXPECT_EQ(expected_target_, output_);
 }
 
+// Windows 3 and 4 use the VCD_TARGET flag, so decoder should signal an error.
+TEST_F(VCDiffInterleavedWindowDecoderTestByteByByte, DecodeNoVcdTarget) {
+  decoder_.SetAllowVcdTarget(false);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  size_t i = 0;
+  for (; i < delta_file_.size(); ++i) {
+    if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
+      break;
+    }
+  }
+  // The failure should occur just at the position of the first VCD_TARGET.
+  EXPECT_EQ(delta_file_header_.size() + 83, i);
+  // The target data for the first two windows should have been output.
+  EXPECT_EQ(expected_target_.substr(0, 89), output_);
+}
+
 // The original version of VCDiffDecoder did not allow the caller to modify the
 // contents of output_string between calls to DecodeChunk().  That restriction
 // has been removed.  Verify that the same result is still produced if the
@@ -596,7 +635,6 @@ TEST_F(VCDiffInterleavedWindowDecoderTest, OutputStringIsPreserved) {
 class VCDiffStandardCrossDecoderTest : public VCDiffDecoderTest {
  protected:
   static const char kExpectedTarget[];
-  static const char kExpectedAnnotatedTarget[];
   static const char kWindowHeader[];
   static const char kWindowBody[];
 
@@ -637,19 +675,11 @@ const char VCDiffStandardCrossDecoderTest::kExpectedTarget[] =
     "Spiders in his hair.\n"
     "Spiders in the air.\n";
 
-const char VCDiffStandardCrossDecoderTest::kExpectedAnnotatedTarget[] =
-    "<literal>Spiders</literal>"
-    "<dmatch> in his hair.\n</dmatch>"  // crosses source-target boundary
-    "<bmatch>Spiders in </bmatch>"
-    "<dmatch>the </dmatch>"
-    "<bmatch>air.\n</bmatch>";
-
 VCDiffStandardCrossDecoderTest::VCDiffStandardCrossDecoderTest() {
   UseStandardFileHeader();
   delta_window_header_.assign(kWindowHeader, sizeof(kWindowHeader));
   delta_window_body_.assign(kWindowBody, sizeof(kWindowBody));
   expected_target_.assign(kExpectedTarget);
-  expected_annotated_target_.assign(kExpectedAnnotatedTarget);
 }
 
 TEST_F(VCDiffStandardCrossDecoderTest, Decode) {
@@ -979,6 +1009,16 @@ TEST_F(VCDiffCustomCodeTableDecoderTestByteByByte, IncompleteCustomCodeTable) {
   EXPECT_EQ("", output_);
 }
 
+TEST_F(VCDiffCustomCodeTableDecoderTestByteByByte, CustomTableNoVcdTarget) {
+  decoder_.SetAllowVcdTarget(false);
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  for (size_t i = 0; i < delta_file_.size(); ++i) {
+    EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
+  }
+  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_EQ(expected_target_, output_);
+}
+
 #ifdef GTEST_HAS_DEATH_TEST
 typedef VCDiffCustomCodeTableDecoderTest VCDiffCustomCodeTableDecoderDeathTest;
 
@@ -998,6 +1038,25 @@ TEST_F(VCDiffCustomCodeTableDecoderDeathTest, BadCustomCacheSizes) {
                      "cache");
   EXPECT_EQ("", output_);
 }
+
+TEST_F(VCDiffCustomCodeTableDecoderDeathTest, BadCustomCacheSizesNoVcdTarget) {
+  decoder_.SetAllowVcdTarget(false);
+  delta_file_header_.assign(kFileHeader, sizeof(kFileHeader));
+  delta_file_header_.push_back(0x81);  // NEAR cache size (top bit)
+  delta_file_header_.push_back(0x10);  // NEAR cache size (custom value 0x90)
+  delta_file_header_.push_back(0x81);  // SAME cache size (top bit)
+  delta_file_header_.push_back(0x10);  // SAME cache size (custom value 0x90)
+  delta_file_header_.append(kEncodedCustomCodeTable,
+                            sizeof(kEncodedCustomCodeTable));
+  InitializeDeltaFile();
+  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+  EXPECT_DEBUG_DEATH(EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
+                                                       delta_file_.size(),
+                                                       &output_)),
+                     "cache");
+  EXPECT_EQ("", output_);
+}
+
 #endif  // GTEST_HAS_DEATH_TEST
 
 }  // namespace open_vcdiff

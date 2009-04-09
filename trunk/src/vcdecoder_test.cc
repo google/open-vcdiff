@@ -52,21 +52,9 @@ const char VCDiffDecoderTest::kExpectedTarget[] =
   "Just the place for a Snark! I have said it thrice:\n"
   "What I tell you three times is true.\"\n";
 
-const char VCDiffDecoderTest::kExpectedAnnotatedTarget[] =
-  "<dmatch>\"Just the place for a Snark!</dmatch>"
-  "<literal> I have said it twice:\n"
-  "That alone should encourage the crew.\n</literal>"
-  "<bmatch>Just the place for a Snark! I have said it t</bmatch>"
-  "<literal>hr</literal>"
-  "<bmatch>ice:\n</bmatch>"
-  "<literal>What I te</literal>"
-  "<literal>ll</literal>"
-  "<literal> you three times is true.\"\n</literal>";
-
 VCDiffDecoderTest::VCDiffDecoderTest() : fuzzer_(0), fuzzed_byte_position_(0) {
   dictionary_ = kDictionary;
   expected_target_ = kExpectedTarget;
-  expected_annotated_target_ = kExpectedAnnotatedTarget;
 }
 
 void VCDiffDecoderTest::SetUp() {

@@ -1,3 +1,35 @@
+Thu, 09 Apr 2009 09:16:58 -0700  Google Inc. <opensource@google.com>
+
+  Release version 0.6 with the following changes:
+  * Issue #9: Add option to optimize VCDIFF decoder when VCD_TARGET will not be
+              used as source segment.
+    Add new interface SetAllowVcdTarget to control whether the VCD_TARGET flag
+    may be used.  If this option is set to false and the decoder finds a
+    VCD_TARGET flag, it will issue an error and refuse to continue decoding.
+  * Issue #19: ERROR: Length of target window (100001916) exceeds limit of
+               67108864 bytes
+    Remove the limit of INT32_MAX on the value of --max_target_file_size, since
+    the new SetAllowVcdTarget feature means that the entire target file will not
+    need to be kept in memory.  Separate vcdecoder_test into five test targets,
+    one of which is devoted to the new SetAllowVcdTarget feature.  Get rid of
+    kMaxBufferSize and kDefaultBufferSize, which were used ambiguously.  A new
+    constant kDefaultMaxTargetSize provides the default values for the
+    --max_target_file_size and --max_target_window_size options.  The
+    --buffersize option, if specified, should control the buffer size used,
+    without limits on its value.
+  * Issue #21: Fail to test on MinGW 5.1.4
+    The wrapper executables produced by libtool failed on MinGW with the error
+    "File /bin/sh not found".  Add the option AC_DISABLE_FAST_INSTALL to avoid
+    creating wrapper executables.  The option implies an extra link step during
+    "make install", but the package is small enough that this does not take
+    long.
+  * Remove the annotated-output feature from the decoder.
+  * Automatically detect and work around a Solaris 10 bug which causes the error
+    "libstdc++.la is not a valid libtool archive".
+        http://whocares.de/2006/05/solaris-10-fixup-for-libstdcla-is-not-a-valid-libtool-archive/
+  * Update with latest changes to gflags package.
+  * Fix type-conversion warning in vcdiff_main.cc in 32-bit Visual Studio build.
+
 Wed, 18 Mar 2009 14:28:23 -0700  Google Inc. <opensource@google.com>
 
   * Issue #14: HashedDictionary may free memory twice if implicitly copied.

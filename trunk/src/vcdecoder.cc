@@ -46,28 +46,6 @@
 
 namespace open_vcdiff {
 
-namespace {
-
-enum VCDiffAnnotationType {
-  VCD_ANNOTATION_LITERAL,
-  VCD_ANNOTATION_DMATCH,
-  VCD_ANNOTATION_BMATCH
-};
-
-static const char* kAnnotationStartTags[] = {
-    "<literal>",
-    "<dmatch>",
-    "<bmatch>"
-};
-
-static const char* kAnnotationEndTags[] = {
-    "</literal>",
-    "</dmatch>",
-    "</bmatch>"
-};
-
-}  // anonymous namespace
-
 // This class is used to parse delta file windows as described
 // in RFC sections 4.2 and 4.3.  Its methods are not thread-safe.
 //
@@ -133,10 +111,9 @@ class VCDiffDeltaFileWindow {
 
   // Decodes as many delta windows as possible using the input data from
   // *parseable_chunk.  Appends the decoded target windows to
-  // parent_->decoded_target().  If annotated output is enabled, appends
-  // annotated output to parent_->annotated_output().  Returns RESULT_SUCCESS on
-  // success, or RESULT_END_OF_DATA if the end of input was reached before the
-  // entire window could be decoded and more input is expected (only possible if
+  // parent_->decoded_target().  Returns RESULT_SUCCESS on success, or
+  // RESULT_END_OF_DATA if the end of input was reached before the entire window
+  // could be decoded and more input is expected (only possible if
   // IsInterleaved() is true), or RESULT_ERROR if an error occurred during
   // decoding.  In the RESULT_ERROR case, the value of parseable_chunk->pointer_
   // is undefined; otherwise, parseable_chunk->Advance() is called to point to
@@ -166,19 +143,15 @@ class VCDiffDeltaFileWindow {
     return IsInterleaved() && (interleaved_bytes_expected_ > 0);
   }
 
+  size_t target_window_start_pos() const { return target_window_start_pos_; }
+
+  void set_target_window_start_pos(size_t new_start_pos) {
+    target_window_start_pos_ = new_start_pos;
+  }
+
   // Returns the number of bytes remaining to be decoded in the target window.
   // If not in the process of decoding a window, returns 0.
   size_t TargetBytesRemaining();
-
-  void EnableAnnotatedOutput() {
-    if (!annotated_output_.get()) {
-      annotated_output_.reset(new string);
-    }
-  }
-
-  void DisableAnnotatedOutput() {
-    annotated_output_.reset(NULL);
-  }
 
  private:
   // Reads the header of the window section as described in RFC sections 4.2 and
@@ -271,19 +244,11 @@ class VCDiffDeltaFileWindow {
 
   // Executes a single COPY or ADD instruction, appending data to
   // parent_->decoded_target().
-  void CopyBytes(const char* data,
-                 size_t size,
-                 VCDiffAnnotationType annotation_type);
+  void CopyBytes(const char* data, size_t size);
 
   // Executes a single RUN instruction, appending data to
   // parent_->decoded_target().
   void RunByte(unsigned char byte, size_t size);
-
-  void AppendAnnotatedOutput(string* annotated_output) {
-    if (annotated_output_.get()) {
-      annotated_output->append(*annotated_output_.get());
-    }
-  }
 
   // Advance *parseable_chunk to point to the current position in the
   // instructions/sizes section.  If interleaved format is used, then
@@ -335,12 +300,6 @@ class VCDiffDeltaFileWindow {
 
   VCDiffCodeTableReader reader_;
 
-  // This value is initialized to NULL, which means that annotated output is
-  // disabled.  If EnableAnnotatedOutput() is called, it will be set to point
-  // to a new string object, and annotated output will be gathered into that
-  // string.
-  std::auto_ptr<string> annotated_output_;
-
   // Making these private avoids implicit copy constructor & assignment operator
   VCDiffDeltaFileWindow(const VCDiffDeltaFileWindow&);  // NOLINT
   void operator=(const VCDiffDeltaFileWindow&);
@@ -368,9 +327,8 @@ class VCDiffStreamingDecoderImpl {
   // SetMaximumTargetFileSize() is not called.
   static const size_t kDefaultMaximumTargetFileSize = 67108864U;  // 64 MB
 
-  // The largest value that can be passed to SetMaximumTargetFileSize() or
-  // SetMaximumTargetWindowSize().  Using a larger value will result in an
-  // error.
+  // The largest value that can be passed to SetMaximumTargetWindowSize().
+  // Using a larger value will result in an error.
   static const size_t kTargetSizeLimit = 2147483647U;  // INT32_MAX
 
   // A constant that is the default value for planned_target_file_size_,
@@ -419,12 +377,6 @@ class VCDiffStreamingDecoderImpl {
   bool AllowChecksum() const { return vcdiff_version_code_ == 'S'; }
 
   bool SetMaximumTargetFileSize(size_t new_maximum_target_file_size) {
-    if (new_maximum_target_file_size > kTargetSizeLimit) {
-      LOG(ERROR) << "Specified maximum target file size "
-                 << new_maximum_target_file_size << " exceeds limit of "
-                 << kTargetSizeLimit << " bytes" << LOG_ENDL;
-      return false;
-    }
     maximum_target_file_size_ = new_maximum_target_file_size;
     return true;
   }
@@ -449,6 +401,10 @@ class VCDiffStreamingDecoderImpl {
     planned_target_file_size_ = planned_target_file_size;
   }
 
+  void AddToTotalTargetWindowSize(size_t window_size) {
+    total_of_target_window_sizes_ += window_size;
+  }
+
   // Checks to see whether the decoded target data has reached its planned size.
   bool ReachedPlannedTargetFileSize() const {
     if (!HasPlannedTargetFileSize()) {
@@ -459,14 +415,14 @@ class VCDiffStreamingDecoderImpl {
     // each target window would not make the target file exceed that limit, and
     // DecodeBody() will return RESULT_ERROR if the actual decoded output ever
     // exceeds the advertised target window size.
-    if (decoded_target_.size() > planned_target_file_size_) {
+    if (total_of_target_window_sizes_ > planned_target_file_size_) {
       LOG(DFATAL) << "Internal error: Decoded data size "
-                  << decoded_target_.size()
+                  << total_of_target_window_sizes_
                   << " exceeds planned target file size "
                   << planned_target_file_size_ << LOG_ENDL;
       return true;
     }
-    return decoded_target_.size() == planned_target_file_size_;
+    return total_of_target_window_sizes_ == planned_target_file_size_;
   }
 
   // Checks to see whether adding a new target window of the specified size
@@ -521,27 +477,20 @@ class VCDiffStreamingDecoderImpl {
 
   string* decoded_target() { return &decoded_target_; }
 
-  string* annotated_output() { return &annotated_output_; }
+  bool allow_vcd_target() const { return allow_vcd_target_; }
 
-  // The variable that determines whether annotated output is enabled is
-  // delta_window_.annotated_output_.  If that member is NULL, then the feature
-  // is disabled.
-  void EnableAnnotatedOutput() {
-    delta_window_.EnableAnnotatedOutput();
+  void SetAllowVcdTarget(bool allow_vcd_target) {
+    if (start_decoding_was_called_) {
+      LOG(DFATAL) << "SetAllowVcdTarget() called after StartDecoding()"
+                  << LOG_ENDL;
+      return;
+    }
+    allow_vcd_target_ = allow_vcd_target;
   }
 
-  void DisableAnnotatedOutput() {
-    delta_window_.DisableAnnotatedOutput();
-  }
-
-  void GetAnnotatedOutput(OutputStringInterface* annotated_output) {
-    // We could use annotated_output->assign(), but that method is not defined
-    // for some output string types, so use clear() + append() to accomplish the
-    // same thing.
-    annotated_output->clear();
-    annotated_output->append(annotated_output_.data(),
-                             annotated_output_.size());
-  }
+  // Removes the contents of decoded_target_ that precede the beginning of the
+  // current window.
+  void TruncateToBeginningOfWindow();
 
  private:
   // Reads the VCDiff delta file header section as described in RFC section 4.1,
@@ -634,17 +583,23 @@ class VCDiffStreamingDecoderImpl {
 
   size_t maximum_target_window_size_;
 
-  // This string will always be empty until EnableAnnotatedOutput() is called,
-  // at which point it will start to accumulate annotated delta windows each
-  // time DecodeChunk() finishes a window.  It will be cleared each time that
-  // StartDecoding() is called.
-  string annotated_output_;
+  // Contains the sum of the decoded sizes of all target windows seen so far,
+  // including the expected total size of the current target window in progress
+  // (even if some of the current target window has not yet been decoded.)
+  size_t total_of_target_window_sizes_;
 
   // This value is used to ensure the correct order of calls to the interface
   // functions, i.e., a single call to StartDecoding(), followed by zero or
   // more calls to DecodeChunk(), followed by a single call to
   // FinishDecoding().
   bool start_decoding_was_called_;
+
+  // If this value is true then the VCD_TARGET flag can be specified to allow
+  // the source segment to be chosen from the previously-decoded target data.
+  // (This is the default behavior.)  If it is false, then specifying the
+  // VCD_TARGET flag is considered an error, and the decoder does not need to
+  // keep in memory any decoded target data prior to the current window.
+  bool allow_vcd_target_;
 
   // Making these private avoids implicit copy constructor & assignment operator
   VCDiffStreamingDecoderImpl(const VCDiffStreamingDecoderImpl&);  // NOLINT
@@ -658,7 +613,8 @@ const size_t VCDiffStreamingDecoderImpl::kUnlimitedBytes;
 
 VCDiffStreamingDecoderImpl::VCDiffStreamingDecoderImpl()
     : maximum_target_file_size_(kDefaultMaximumTargetFileSize),
-      maximum_target_window_size_(kDefaultMaximumTargetFileSize) {
+      maximum_target_window_size_(kDefaultMaximumTargetFileSize),
+      allow_vcd_target_(true) {
   delta_window_.Init(this);
   Reset();
 }
@@ -672,10 +628,17 @@ void VCDiffStreamingDecoderImpl::Reset() {
   dictionary_size_ = 0;
   vcdiff_version_code_ = '\0';
   planned_target_file_size_ = kUnlimitedBytes;
+  total_of_target_window_sizes_ = 0;
   addr_cache_.reset();
   custom_code_table_.reset();
   custom_code_table_decoder_.reset();
   delta_window_.Reset();
+}
+
+void VCDiffStreamingDecoderImpl::TruncateToBeginningOfWindow() {
+  // Conserve the data for the current window that has been partially decoded.
+  decoded_target_.erase(0, delta_window_.target_window_start_pos());
+  delta_window_.set_target_window_start_pos(0);
 }
 
 void VCDiffStreamingDecoderImpl::StartDecoding(const char* dictionary_ptr,
@@ -687,7 +650,6 @@ void VCDiffStreamingDecoderImpl::StartDecoding(const char* dictionary_ptr,
   }
   unparsed_bytes_.clear();
   decoded_target_.clear();  // delta_window_.Reset() depends on this
-  annotated_output_.clear();
   Reset();
   dictionary_ptr_ = dictionary_ptr;
   dictionary_size_ = dictionary_size;
@@ -933,6 +895,11 @@ bool VCDiffStreamingDecoderImpl::DecodeChunk(
                          parseable_chunk.UnparsedSize());
   output_tracker.AppendNewOutputText(delta_window_.TargetBytesRemaining(),
                                      output_string);
+  if (!allow_vcd_target()) {
+    // VCD_TARGET will never be used to reference target data beyond the start
+    // of the current window, so throw away any earlier target data.
+    TruncateToBeginningOfWindow();
+  }
   return true;
 }
 
@@ -966,26 +933,28 @@ bool VCDiffStreamingDecoderImpl::TargetWindowWouldExceedSizeLimits(
   if (HasPlannedTargetFileSize()) {
     // The logical expression to check would be:
     //
-    //   decoded_target_.size() + window_size > planned_target_file_size_
+    //   total_of_target_window_sizes_ + window_size > planned_target_file_size_
     //
     // but the addition might cause an integer overflow if target_bytes_to_add
     // is very large.  So it is better to check target_bytes_to_add against
     // the remaining planned target bytes.
     size_t remaining_planned_target_file_size =
-        planned_target_file_size_ - decoded_target_.size();
+        planned_target_file_size_ - total_of_target_window_sizes_;
     if (window_size > remaining_planned_target_file_size) {
       LOG(ERROR) << "Length of target window (" << window_size
-                 << " bytes) plus previous windows (" << decoded_target_.size()
+                 << " bytes) plus previous windows ("
+                 << total_of_target_window_sizes_
                  << " bytes) would exceed planned size of "
                  << planned_target_file_size_ << " bytes" << LOG_ENDL;
       return true;
     }
   }
   size_t remaining_maximum_target_bytes =
-      maximum_target_file_size_ - decoded_target_.size();
+      maximum_target_file_size_ - total_of_target_window_sizes_;
   if (window_size > remaining_maximum_target_bytes) {
     LOG(ERROR) << "Length of target window (" << window_size
-               << " bytes) plus previous windows (" << decoded_target_.size()
+               << " bytes) plus previous windows ("
+               << total_of_target_window_sizes_
                << " bytes) would exceed maximum target file size of "
                << maximum_target_file_size_ << " bytes" << LOG_ENDL;
     return true;
@@ -1013,9 +982,6 @@ void VCDiffDeltaFileWindow::Reset() {
 
   has_checksum_ = false;
   expected_checksum_ = 0;
-  if (annotated_output_.get()) {
-    annotated_output_->clear();
-  }
 }
 
 VCDiffResult VCDiffDeltaFileWindow::SetUpWindowSections(
@@ -1093,6 +1059,7 @@ VCDiffResult VCDiffDeltaFileWindow::ReadHeader(
   if (!header_parser.ParseWinIndicatorAndSourceSegment(
           parent_->dictionary_size(),
           decoded_target->size(),
+          parent_->allow_vcd_target(),
           &win_indicator,
           &source_segment_length_,
           &source_segment_position)) {
@@ -1125,6 +1092,7 @@ VCDiffResult VCDiffDeltaFileWindow::ReadHeader(
   // The whole window header was found and parsed successfully.
   found_header_ = true;
   parseable_chunk->Advance(header_parser.ParsedSize());
+  parent_->AddToTotalTargetWindowSize(target_window_length_);
   return RESULT_SUCCESS;
 }
 
@@ -1138,7 +1106,7 @@ void VCDiffDeltaFileWindow::UpdateInstructionPointer(
   }
 }
 
-size_t VCDiffDeltaFileWindow::TargetBytesDecoded() {
+inline size_t VCDiffDeltaFileWindow::TargetBytesDecoded() {
   return parent_->decoded_target()->size() - target_window_start_pos_;
 }
 
@@ -1151,24 +1119,12 @@ size_t VCDiffDeltaFileWindow::TargetBytesRemaining() {
   }
 }
 
-void VCDiffDeltaFileWindow::CopyBytes(const char* data,
-                                      size_t size,
-                                      VCDiffAnnotationType annotation_type) {
+inline void VCDiffDeltaFileWindow::CopyBytes(const char* data, size_t size) {
   parent_->decoded_target()->append(data, size);
-  if (annotated_output_.get()) {
-    annotated_output_->append(kAnnotationStartTags[annotation_type]);
-    annotated_output_->append(data, size);
-    annotated_output_->append(kAnnotationEndTags[annotation_type]);
-  }
 }
 
-void VCDiffDeltaFileWindow::RunByte(unsigned char byte, size_t size) {
+inline void VCDiffDeltaFileWindow::RunByte(unsigned char byte, size_t size) {
   parent_->decoded_target()->append(size, byte);
-  if (annotated_output_.get()) {
-    annotated_output_->append(kAnnotationStartTags[VCD_ANNOTATION_LITERAL]);
-    annotated_output_->append(size, byte);
-    annotated_output_->append(kAnnotationEndTags[VCD_ANNOTATION_LITERAL]);
-  }
 }
 
 VCDiffResult VCDiffDeltaFileWindow::DecodeAdd(size_t size) {
@@ -1176,7 +1132,7 @@ VCDiffResult VCDiffDeltaFileWindow::DecodeAdd(size_t size) {
     return RESULT_END_OF_DATA;
   }
   // Write the next "size" data bytes
-  CopyBytes(data_for_add_and_run_.UnparsedData(), size, VCD_ANNOTATION_LITERAL);
+  CopyBytes(data_for_add_and_run_.UnparsedData(), size);
   data_for_add_and_run_.Advance(size);
   return RESULT_SUCCESS;
 }
@@ -1221,16 +1177,14 @@ VCDiffResult VCDiffDeltaFileWindow::DecodeCopy(size_t size,
   size_t address = static_cast<size_t>(decoded_address);
   if ((address + size) <= source_segment_length_) {
     // Copy all data from source segment
-    CopyBytes(&source_segment_ptr_[address], size, VCD_ANNOTATION_DMATCH);
+    CopyBytes(&source_segment_ptr_[address], size);
     return RESULT_SUCCESS;
   }
   // Copy some data from target window...
   if (address < source_segment_length_) {
     // ... plus some data from source segment
     const size_t partial_copy_size = source_segment_length_ - address;
-    CopyBytes(&source_segment_ptr_[address],
-              partial_copy_size,
-              VCD_ANNOTATION_DMATCH);
+    CopyBytes(&source_segment_ptr_[address], partial_copy_size);
     target_bytes_decoded += partial_copy_size;
     address += partial_copy_size;
     size -= partial_copy_size;
@@ -1242,14 +1196,12 @@ VCDiffResult VCDiffDeltaFileWindow::DecodeCopy(size_t size,
   while (size > (target_bytes_decoded - address)) {
     // Recursive copy that extends into the yet-to-be-copied target data
     const size_t partial_copy_size = target_bytes_decoded - address;
-    CopyBytes(&target_segment_ptr[address],
-              partial_copy_size,
-              VCD_ANNOTATION_BMATCH);
+    CopyBytes(&target_segment_ptr[address], partial_copy_size);
     target_bytes_decoded += partial_copy_size;
     address += partial_copy_size;
     size -= partial_copy_size;
   }
-  CopyBytes(&target_segment_ptr[address], size, VCD_ANNOTATION_BMATCH);
+  CopyBytes(&target_segment_ptr[address], size);
   return RESULT_SUCCESS;
 }
 
@@ -1353,8 +1305,7 @@ int VCDiffDeltaFileWindow::DecodeBody(ParseableChunk* parseable_chunk) {
     // end of the addresses section, which is the last section in the window.
     parseable_chunk->SetPosition(addresses_for_copy_.End());
   } else {
-    // Interleaved format is being used.  The window may have been only
-    // partially decoded.
+    // Interleaved format is being used.
     UpdateInstructionPointer(parseable_chunk);
   }
   return RESULT_SUCCESS;
@@ -1409,7 +1360,6 @@ VCDiffResult VCDiffDeltaFileWindow::DecodeWindows(
       default:
         break;  // DecodeBody succeeded
     }
-    AppendAnnotatedOutput(parent_->annotated_output());
     // Get ready to read a new delta window
     Reset();
     if (parent_->ReachedPlannedTargetFileSize()) {
@@ -1452,17 +1402,8 @@ bool VCDiffStreamingDecoder::SetMaximumTargetWindowSize(
   return impl_->SetMaximumTargetWindowSize(new_maximum_target_window_size);
 }
 
-void VCDiffStreamingDecoder::EnableAnnotatedOutput() {
-  impl_->EnableAnnotatedOutput();
-}
-
-void VCDiffStreamingDecoder::DisableAnnotatedOutput() {
-  impl_->DisableAnnotatedOutput();
-}
-
-void VCDiffStreamingDecoder::GetAnnotatedOutputToInterface(
-    OutputStringInterface* annotated_output) {
-  impl_->GetAnnotatedOutput(annotated_output);
+void VCDiffStreamingDecoder::SetAllowVcdTarget(bool allow_vcd_target) {
+  impl_->SetAllowVcdTarget(allow_vcd_target);
 }
 
 bool VCDiffDecoder::DecodeToInterface(const char* dictionary_ptr,

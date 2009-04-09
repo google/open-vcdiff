@@ -83,6 +83,11 @@ noinst_LTLIBRARIES += libgtest_main.la
 libgtest_main_la_SOURCES = src/gtest/gtest_main.cc
 libgtest_main_la_LIBADD = libgtest.la
 
+noinst_LTLIBRARIES += libvcdecoder_test_common.la
+libvcdecoder_test_common_la_SOURCES = src/vcdecoder_test.h \
+				      src/vcdecoder_test.cc
+libvcdecoder_test_common_la_LIBADD = libvcddec.la libgtest_main.la
+
 # libvcdcom: The open-vcdiff *common* library
 lib_LTLIBRARIES += libvcdcom.la
 libvcdcom_la_SOURCES = src/google/output_string.h \
@@ -172,11 +177,25 @@ check_PROGRAMS += varint_bigendian_test
 varint_bigendian_test_SOURCES = src/varint_bigendian_test.cc
 varint_bigendian_test_LDADD = libvcdcom.la libgtest_main.la
 
-check_PROGRAMS += vcdecoder_test
-vcdecoder_test_SOURCES = src/vcdecoder_test.h src/vcdecoder_test.cc \
-			 src/vcdecoder1_test.cc src/vcdecoder2_test.cc \
-			 src/vcdecoder3_test.cc src/vcdecoder4_test.cc
-vcdecoder_test_LDADD = libvcddec.la libgtest_main.la
+check_PROGRAMS += vcdecoder1_test
+vcdecoder1_test_SOURCES = src/vcdecoder1_test.cc
+vcdecoder1_test_LDADD = libvcdecoder_test_common.la
+
+check_PROGRAMS += vcdecoder2_test
+vcdecoder2_test_SOURCES = src/vcdecoder2_test.cc
+vcdecoder2_test_LDADD = libvcdecoder_test_common.la
+
+check_PROGRAMS += vcdecoder3_test
+vcdecoder3_test_SOURCES = src/vcdecoder3_test.cc
+vcdecoder3_test_LDADD = libvcdecoder_test_common.la
+
+check_PROGRAMS += vcdecoder4_test
+vcdecoder4_test_SOURCES = src/vcdecoder4_test.cc
+vcdecoder4_test_LDADD = libvcdecoder_test_common.la
+
+check_PROGRAMS += vcdecoder5_test
+vcdecoder5_test_SOURCES = src/vcdecoder5_test.cc
+vcdecoder5_test_LDADD = libvcdecoder_test_common.la
 
 check_PROGRAMS += vcdiffengine_test
 vcdiffengine_test_SOURCES = src/vcdiffengine_test.cc
@@ -232,7 +251,11 @@ EXTRA_DIST = $(check_SCRIPTS) \
 	     vsprojects/varint_bigendian_test/varint_bigendian_test.vcproj \
 	     vsprojects/vcdcom/vcdcom.vcproj \
 	     vsprojects/vcddec/vcddec.vcproj \
-	     vsprojects/vcdecoder_test/vcdecoder_test.vcproj \
+	     vsprojects/vcdecoder1_test/vcdecoder1_test.vcproj \
+	     vsprojects/vcdecoder2_test/vcdecoder2_test.vcproj \
+	     vsprojects/vcdecoder3_test/vcdecoder3_test.vcproj \
+	     vsprojects/vcdecoder4_test/vcdecoder4_test.vcproj \
+	     vsprojects/vcdecoder5_test/vcdecoder5_test.vcproj \
 	     vsprojects/vcdenc/vcdenc.vcproj \
 	     vsprojects/vcdiff/vcdiff.vcproj \
 	     vsprojects/vcdiffengine_test/vcdiffengine_test.vcproj \
