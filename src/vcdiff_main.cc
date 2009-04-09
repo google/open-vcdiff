@@ -38,12 +38,7 @@ using std::string;
 using google::GetCommandLineFlagInfoOrDie;
 using google::ShowUsageWithFlagsRestrict;
 
-// The buffer size, which determines the maximum allowable size
-// of a target window, based on how much memory can be allocated.
-// Both of these can be increased (and the default can be decreased)
-// using the --buffersize flag.
-static const size_t kDefaultBufferSize = 1 << 20;  // 1 MB
-static const size_t kMaxBufferSize = 1 << 26;      // 64 MB
+static const size_t kDefaultMaxTargetSize = 1 << 26;      // 64 MB
 
 // Definitions of command-line flags
 DEFINE_string(dictionary, "",
@@ -53,17 +48,22 @@ DEFINE_string(target, "",
 DEFINE_string(delta, "",
               "Encoded delta file (default is stdout for encode, "
               "stdin for decode");
-DEFINE_uint64(buffersize, kDefaultBufferSize,
+// --buffersize is the maximum allowable size of a target window.
+// This value may be increased if there is sufficient memory available.
+DEFINE_uint64(buffersize, 1 << 20,  // 1 MB
               "Buffer size for reading input file");
+DEFINE_bool(allow_vcd_target, true,
+            "If false, the decoder issues an error when the VCD_TARGET flag "
+            "is encountered");
 DEFINE_bool(checksum, false,
             "Include an Adler32 checksum of the target data when encoding");
 DEFINE_bool(interleaved, false, "Use interleaved format");
 DEFINE_bool(stats, false, "Report compression percentage");
 DEFINE_bool(target_matches, false, "Find duplicate strings in target data"
                                    " as well as dictionary data");
-DEFINE_uint64(max_target_file_size, kMaxBufferSize,
+DEFINE_uint64(max_target_file_size, kDefaultMaxTargetSize,
               "Maximum target file size allowed by decoder");
-DEFINE_uint64(max_target_window_size, kMaxBufferSize,
+DEFINE_uint64(max_target_window_size, kDefaultMaxTargetSize,
               "Maximum target window size allowed by decoder");
 
 static const char* const kUsageString =
@@ -177,8 +177,7 @@ class VCDiffFileBasedCoder {
   // input_buffer_ will be the value specified by the --buffersize option.
   // If the input comes from a file, then the buffer will be allocated to match
   // the file size, if possible.  However, the buffer will not exceed
-  // kMaxBufferSize bytes in length, unless the user specifies the --buffersize
-  // option to override that limit.
+  // --buffersize bytes in length.
   std::vector<char> input_buffer_;
 
   // A memory buffer used to load the output file into memory for comparison
@@ -276,10 +275,7 @@ bool VCDiffFileBasedCoder::OpenFileForReading(const string& file_name,
                 << file_name << "': " << strerror(errno) << std::endl;
       return false;
     }
-    buffer_size = kMaxBufferSize;
-    if (FLAGS_buffersize > buffer_size) {
-      buffer_size = static_cast<size_t>(FLAGS_buffersize);
-    }
+    buffer_size = static_cast<size_t>(FLAGS_buffersize);
     if (file_size < buffer_size) {
       // Allocate just enough memory to store the entire file
       buffer_size = file_size;
@@ -455,6 +451,7 @@ bool VCDiffFileBasedCoder::Decode() {
       static_cast<size_t>(FLAGS_max_target_file_size));
   decoder.SetMaximumTargetWindowSize(
       static_cast<size_t>(FLAGS_max_target_window_size));
+  decoder.SetAllowVcdTarget(FLAGS_allow_vcd_target);
   string output;
   size_t input_size = 0;
   size_t output_size = 0;
@@ -518,6 +515,7 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
       static_cast<size_t>(FLAGS_max_target_file_size));
   decoder.SetMaximumTargetWindowSize(
       static_cast<size_t>(FLAGS_max_target_window_size));
+  decoder.SetAllowVcdTarget(FLAGS_allow_vcd_target);
   string output;
   size_t input_size = 0;
   size_t output_size = 0;

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="vcdecoder_test"
+	Name="vcdecoder1_test"
 	ProjectGUID="{BA30F970-A2B3-4D04-81D5-B5C73794BEDE}"
-	RootNamespace="vcdecoder_test"
+	RootNamespace="vcdecoder1_test"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -64,6 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="$(OutDir)\vcddec.lib $(OutDir)\vcdcom.lib $(OutDir)\vcdecoder_test_common.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
@@ -143,6 +144,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="$(OutDir)\vcddec.lib $(OutDir)\vcdcom.lib $(OutDir)\vcdecoder_test_common.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
@@ -187,23 +189,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\src\vcdecoder_test.cc"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\vcdecoder1_test.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\vcdecoder2_test.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\vcdecoder3_test.cc"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\vcdecoder4_test.cc"
 				>
 			</File>
 		</Filter>
@@ -212,10 +198,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\src\vcdecoder_test.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

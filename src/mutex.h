@@ -167,7 +167,7 @@ class Mutex {
   inline void SetIsSafe() { is_safe_ = true; }
 
   // Catch the error of writing Mutex when intending MutexLock.
-  Mutex(Mutex *ignored) {}
+  Mutex(Mutex* /*ignored*/) {}
   // Disallow "evil" constructors
   Mutex(const Mutex&);
   void operator=(const Mutex&);
@@ -226,7 +226,8 @@ void Mutex::Lock()         { SAFE_PTHREAD(pthread_rwlock_wrlock); }
 void Mutex::Unlock()       { SAFE_PTHREAD(pthread_rwlock_unlock); }
 #ifdef GMUTEX_TRYLOCK
 bool Mutex::TryLock()      { return is_safe_ ?
-                                 pthread_rwlock_trywrlock(&mutex_) == 0 : true; }
+                                    pthread_rwlock_trywrlock(&mutex_) == 0 :
+                                    true; }
 #endif
 void Mutex::ReaderLock()   { SAFE_PTHREAD(pthread_rwlock_rdlock); }
 void Mutex::ReaderUnlock() { SAFE_PTHREAD(pthread_rwlock_unlock); }

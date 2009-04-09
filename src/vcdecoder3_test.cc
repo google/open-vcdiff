@@ -235,18 +235,6 @@ TEST_F(VCDiffInterleavedDecoderTest, FuzzBitsWithChecksum) {
   }
 }
 
-TEST_F(VCDiffInterleavedDecoderTest, CheckAnnotatedOutput) {
-  decoder_.EnableAnnotatedOutput();
-  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
-  EXPECT_TRUE(decoder_.DecodeChunk(delta_file_.data(),
-                                   delta_file_.size(),
-                                   &output_));
-  EXPECT_TRUE(decoder_.FinishDecoding());
-  string annotated_output;
-  decoder_.GetAnnotatedOutput(&annotated_output);
-  EXPECT_EQ(expected_annotated_target_, annotated_output);
-}
-
 TEST_F(VCDiffInterleavedDecoderTest, CopyMoreThanExpectedTarget) {
   delta_file_[delta_file_header_.size() + 0x0C] =
       FirstByteOfStringLength(kExpectedTarget);
@@ -791,18 +779,6 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, FuzzBitsWithChecksum) {
     InitializeDeltaFile();
     output_.clear();
   }
-}
-
-TEST_F(VCDiffInterleavedDecoderTestByteByByte, CheckAnnotatedOutput) {
-  decoder_.EnableAnnotatedOutput();
-  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
-  for (size_t i = 0; i < delta_file_.size(); ++i) {
-    EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
-  }
-  EXPECT_TRUE(decoder_.FinishDecoding());
-  string annotated_output;
-  decoder_.GetAnnotatedOutput(&annotated_output);
-  EXPECT_EQ(expected_annotated_target_, annotated_output);
 }
 
 TEST_F(VCDiffInterleavedDecoderTestByteByByte,

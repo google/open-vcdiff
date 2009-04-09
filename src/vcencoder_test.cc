@@ -348,6 +348,18 @@ TEST_F(VCDiffEncoderTest, EncodeDecodeFixedChunkSizes) {
   }
 }
 
+// If --allow_vcd_target=false is specified, the decoder will throw away some of
+// the internally-stored decoded target beyond the current window.  Try
+// different numbers of encoded window sizes to make sure that this behavior
+// does not affect the results.
+TEST_F(VCDiffEncoderTest, EncodeDecodeFixedChunkSizesNoVcdTarget) {
+  decoder_.SetAllowVcdTarget(false);
+  // Loop through all possible chunk sizes
+  for (size_t chunk_size = 1; chunk_size < strlen(kTarget); ++chunk_size) {
+    TestWithFixedChunkSize(chunk_size);
+  }
+}
+
 // Splits the text to be encoded into fixed-size chunks.  Encodes each
 // chunk and puts it into a vector of strings.  Then decodes each string
 // in the vector and appends the result into result_target_.

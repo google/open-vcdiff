@@ -257,6 +257,9 @@ class VCDiffHeaderParser {
   //     source_segment_length and source_segment_position if the source segment
   //     is taken from the target (i.e., if the parsed *win_indicator equals
   //     VCD_TARGET.)
+  // allow_vcd_target: If this argument is false, and the parsed *win_indicator
+  //     is VCD_TARGET, then an error is produced; if true, VCD_TARGET is
+  //     allowed.
   // win_indicator (output): Points to a single unsigned char (not an array)
   //     that will receive the parsed value of Win_Indicator.
   // source_segment_length (output): The parsed length of the source segment.
@@ -264,6 +267,7 @@ class VCDiffHeaderParser {
   //     source/target file from which the source segment is to be taken.
   bool ParseWinIndicatorAndSourceSegment(size_t dictionary_size,
                                          size_t decoded_target_size,
+                                         bool allow_vcd_target,
                                          unsigned char* win_indicator,
                                          size_t* source_segment_length,
                                          size_t* source_segment_position);
