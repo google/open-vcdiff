@@ -34,9 +34,7 @@ namespace {
 
 class VCDiffEngineTestBase : public testing::Test {
  protected:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   // Some common definitions and helper functions used in the various tests
   // for VCDiffEngine.

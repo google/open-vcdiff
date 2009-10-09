@@ -26,9 +26,7 @@ namespace {
 
 class VarintBETestCommon : public testing::Test {
  protected:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   VarintBETestCommon()
       : varint_buf_(VarintBE<int64_t>::kMaxBytes),
@@ -90,13 +88,13 @@ class VarintBETestTemplate : public VarintBETestCommon {
   void TemplateTestParseNullPointer();
   void TemplateTestEndPointerPrecedesBeginning();
   void TemplateTestParseVarintTooLong();
-  void TemplateTestParseIncompleteVarint();
   void TemplateTestParseZero();
   void TemplateTestParseCADA1();
   void TemplateTestParseEmpty();
   void TemplateTestParse123456789();
   void TemplateTestDecode31Bits();
   void TemplateTestEncodeDecodeRandom();
+  void TemplateTestContinuationBytesPastEndOfInput();
 };
 
 typedef VarintBETestTemplate<int32_t> VarintBEInt32Test;
@@ -221,10 +219,26 @@ TEMPLATE_TEST_F(Test, ParseVarintTooLong) {
                               &parse_data_ptr_));
 }
 
-TEMPLATE_TEST_F(Test, ParseIncompleteVarint) {
-  EXPECT_EQ(RESULT_END_OF_DATA,
-            VarintType::Parse(parse_data_ptr_ + VarintType::kMaxBytes - 1,
-                              &parse_data_ptr_));
+TEST_F(VarintBEInt32Test, ParseFourFFs) {
+  // For a 31-bit non-negative VarintBE, the sequence FF FF FF FF is invalid.
+  // Even though the largest allowable 31-bit value occupies 5 bytes as a
+  // Varint, it shouldn't have the highest bits set and so can't begin with FF.
+  EXPECT_EQ(RESULT_ERROR, VarintType::Parse(parse_data_ptr_ + 4,
+                                            &parse_data_ptr_));
+}
+
+TEST_F(VarintBEInt32Test, ParseThreeFFs) {
+  EXPECT_EQ(RESULT_END_OF_DATA, VarintType::Parse(parse_data_ptr_ + 3,
+                                                  &parse_data_ptr_));
+}
+
+TEST_F(VarintBEInt64Test, ParseEightFFs) {
+  // For a 63-bit non-negative VarintBE, a series of eight FFs is valid, because
+  // the largest allowable 63-bit value is expressed as eight FF bytes followed
+  // by a 7F byte.  This is in contrast to the 32-bit case (see ParseFourFFs,
+  // above.)
+  EXPECT_EQ(RESULT_END_OF_DATA, VarintType::Parse(parse_data_ptr_ + 8,
+                                                  &parse_data_ptr_));
 }
 
 TEMPLATE_TEST_F(Test, ParseZero) {
@@ -242,18 +256,17 @@ TEMPLATE_TEST_F(Test, ParseCADA1) {
   EXPECT_EQ(parse_data_CADA1 + 3, parse_data_ptr_);
 }
 
-#ifdef GTEST_HAS_DEATH_TEST
-TEMPLATE_TEST_F(DeathTest, ParseNullPointer) {
-  // limit == NULL is not an error
+TEMPLATE_TEST_F(Test, ParseNullPointer) {
   parse_data_ptr_ = parse_data_CADA1;
-  EXPECT_EQ(0x12AD01, VarintType::Parse((const char*) NULL, &parse_data_ptr_));
+  EXPECT_EQ(RESULT_ERROR,
+            VarintType::Parse((const char*) NULL, &parse_data_ptr_));
 }
-#endif  // GTEST_HAS_DEATH_TEST
 
 TEMPLATE_TEST_F(Test, EndPointerPrecedesBeginning) {
   // This is not an error.
   parse_data_ptr_ = parse_data_CADA1;
-  EXPECT_EQ(0x12AD01, VarintType::Parse(parse_data_ptr_ - 1, &parse_data_ptr_));
+  EXPECT_EQ(RESULT_END_OF_DATA,
+            VarintType::Parse(parse_data_ptr_ - 1, &parse_data_ptr_));
 }
 
 TEMPLATE_TEST_F(Test, ParseEmpty) {
@@ -318,6 +331,21 @@ TEMPLATE_TEST_F(Test, EncodeDecodeRandom) {
     EXPECT_EQ(value, VarintType::Parse(buffer_end_pointer, &parse_pointer));
     EXPECT_EQ(buffer_end_pointer, parse_pointer);
   }
+}
+
+// If only 10 bytes of data are available, but there are 20 continuation
+// bytes, Parse() should not read to the end of the continuation bytes.  It is
+// legal (according to the RFC3284 spec) to use any number of continuation
+// bytes, but they should not cause us to read past the end of available input.
+TEMPLATE_TEST_F(Test, ContinuationBytesPastEndOfInput) {
+  const char parse_data_20_continuations[] =
+    { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+      0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+      0x00 };
+  parse_data_ptr_ = parse_data_20_continuations;
+  EXPECT_EQ(RESULT_END_OF_DATA,
+            VarintType::Parse(parse_data_20_continuations + 10,
+                              &parse_data_ptr_));
 }
 
 }  // anonymous namespace

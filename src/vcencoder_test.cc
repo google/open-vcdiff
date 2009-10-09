@@ -22,7 +22,6 @@
 #include <vector>
 #include "blockhash.h"
 #include "checksum.h"
-#include "google/output_string.h"
 #include "testing.h"
 #include "varint_bigendian.h"
 #include "google/vcdecoder.h"
@@ -65,9 +64,7 @@ static const size_t kWindowHeaderSize = 21;
 
 class VerifyEncodedBytesTest : public testing::Test {
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   VerifyEncodedBytesTest() : delta_index_(0) { }
   virtual ~VerifyEncodedBytesTest() { }

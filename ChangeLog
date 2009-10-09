@@ -1,3 +1,14 @@
+Fri, 09 Oct 2009 10:32:10 -0700  Google Inc. <opensource@google.com>
+
+  Release version 0.7 with the following changes:
+  * Fix a case in which VarintBE::Parse would read off the end of available
+    input if the variable-length integer began with leading zero bytes
+    with their continuation bits set (0x80 bytes.)
+  * Define std::string as string only within namespaces and class definitions
+    in case there is a string class defined at the outermost scope.  If that
+    is the case, the HAS_GLOBAL_STRING label should be defined manually.
+  * Update with changes to gflags package as of 2009/07/23.
+
 Thu, 09 Apr 2009 09:16:58 -0700  Google Inc. <opensource@google.com>
 
   Release version 0.6 with the following changes:

@@ -32,9 +32,9 @@
 #include "google/vcdecoder.h"
 #include "google/vcencoder.h"
 
-#ifndef VCDIFF_HAS_GLOBAL_STRING
+#ifndef HAS_GLOBAL_STRING
 using std::string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
+#endif  // !HAS_GLOBAL_STRING
 using google::GetCommandLineFlagInfoOrDie;
 using google::ShowUsageWithFlagsRestrict;
 

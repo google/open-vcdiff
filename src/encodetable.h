@@ -107,9 +107,7 @@ class VCDiffCodeTableWriter : public CodeTableWriterInterface {
   const std::vector<int>& match_counts() const { return match_counts_; }
 
  private:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   // This is an estimate of the longest match size the encoder expects to find.
   // It is used to determine the initial size of the vector match_counts_.

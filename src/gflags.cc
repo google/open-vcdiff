@@ -143,7 +143,6 @@
 # define PRIu64 "llu"
 #endif
 
-using std::string;
 using std::map;
 using std::vector;
 using std::pair;
@@ -167,6 +166,8 @@ DEFINE_string(undefok, "",
               "arguments MUST use the flag=value format");
 
 namespace google {
+
+using std::string;
 
 // The help message indicating that the commandline flag has been
 // 'stripped'. It will not show up when doing "-help" and its
@@ -1036,6 +1037,25 @@ uint32 CommandLineFlagParser::ParseNewCommandLineFlags(int* argc, char*** argv,
         break;    // we treat this as an unrecoverable error
       } else {
         value = (*argv)[++i];                   // read next arg for value
+
+        // Heuristic to detect the case where someone treats a string arg
+        // like a bool:
+        // --my_string_var --foo=bar
+        // We look for a flag of string type, whose value begins with a
+        // dash, and where the flag-name and value are separated by a
+        // space rather than an '='.
+        // To avoid false positives, we also require the word "true"
+        // or "false" in the help string.  Without this, a valid usage
+        // "-lat -30.5" would trigger the warning.  The common cases we
+        // want to solve talk about true and false as values.
+        if (value[0] == '-'
+            && strcmp(flag->type_name(), "string") == 0
+            && (strstr(flag->help(), "true")
+                || strstr(flag->help(), "false"))) {
+          fprintf(stderr, "Did you really mean to set flag '%s'"
+                  " to the value '%s'?\n",
+                  flag->name(), value);
+        }
       }
     }
 

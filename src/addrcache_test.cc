@@ -34,9 +34,7 @@ namespace {
 //
 class VCDiffAddressCacheTest : public testing::Test {
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   VCDiffAddressCacheTest() : decode_position_(NULL),
                              decode_position_end_(NULL),

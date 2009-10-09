@@ -28,9 +28,7 @@ using std::vector;
 
 class VCDiffHeaderParserTest : public testing::Test {
  protected:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   static const int kTestSize = 1024;
 
