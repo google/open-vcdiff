@@ -1,0 +1,41 @@
+open-vcdiff (0.7-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Google Inc. <opensource@google.com>  Fri, 09 Oct 2009 10:32:10 -0700
+
+open-vcdiff (0.6-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Google Inc. <opensource@google.com>  Thu, 09 Apr 2009 09:16:58 -0700
+
+open-vcdiff (0.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Google Inc. <opensource@google.com>  Wed, 18 Mar 2009 14:28:23 -0700
+
+open-vcdiff (0.4-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Google Inc. <opensource@google.com>  Thu, 23 Oct 2008 09:03:56 -0700
+
+open-vcdiff (0.3-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Google Inc. <opensource@google.com>  Fri, 10 Oct 2008 11:16:23 -0700
+
+open-vcdiff (0.2-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Google Inc. <opensource@google.com>  Tue,  2 Sep 2008 09:20:20 -0700
+
+open-vcdiff (0.1-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Google Inc. <opensource@google.com>  Mon, 16 Jun 2008 15:15:51 -0700
