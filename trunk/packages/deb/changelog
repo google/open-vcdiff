@@ -1,3 +1,9 @@
+open-vcdiff (0.7-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Google Inc. <opensource@google.com>  Fri, 09 Oct 2009 10:32:10 -0700
+
 open-vcdiff (0.6-1) unstable; urgency=low
 
   * New upstream release.

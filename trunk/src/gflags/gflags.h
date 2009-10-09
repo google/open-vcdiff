@@ -415,7 +415,7 @@ class FlagRegisterer {
                  void* current_storage, void* defvalue_storage);
 };
 
-#ifndef SWIG  // In swig, ignore the main flag declarations
+extern bool FlagsTypeWarn(const char *name);
 
 // If your application #defines STRIP_FLAG_HELP to a non-zero value
 // before #including this file, we remove the help message from the
@@ -423,6 +423,10 @@ class FlagRegisterer {
 // somewhat, and may also be useful for security reasons.
 
 extern const char kStrippedFlagHelp[];
+
+}  // namespace google
+
+#ifndef SWIG  // In swig, ignore the main flag declarations
 
 #if defined(STRIP_FLAG_HELP) && STRIP_FLAG_HELP > 0
 // Need this construct to avoid the 'defined but not used' warning.
@@ -468,13 +472,12 @@ namespace fLB {
 template<typename From> double IsBoolFlag(const From& from);
 bool IsBoolFlag(bool from);
 }
-extern bool FlagsTypeWarn(const char *name);
 
 #define DECLARE_bool(name)          DECLARE_VARIABLE(bool,B, name)
 // We have extra code here to make sure 'val' is actually a boolean.
 #define DEFINE_bool(name,val,txt)   namespace fLB { \
                                       const bool FLAGS_nonono##name = \
-                                        (sizeof(::google::fLB::IsBoolFlag(val)) \
+                                        (sizeof(::fLB::IsBoolFlag(val)) \
                                         == sizeof(double)) \
                                         ? ::google::FlagsTypeWarn(#name) : true; \
                                     } \
@@ -510,7 +513,7 @@ extern bool FlagsTypeWarn(const char *name);
 #define DEFINE_string(name, val, txt)                                     \
   namespace fLS {                                                         \
     static union { void* align; char s[sizeof(std::string)]; } s_##name[2]; \
-    const string* const FLAGS_no##name = new (s_##name[0].s) std::string(val); \
+    const std::string* const FLAGS_no##name = new (s_##name[0].s) std::string(val); \
     static ::google::FlagRegisterer o_##name(                \
       #name, "string", MAYBE_STRIPPED_HELP(txt), __FILE__,                \
       s_##name[0].s, new (s_##name[1].s) std::string(*FLAGS_no##name));   \
@@ -521,7 +524,5 @@ extern bool FlagsTypeWarn(const char *name);
   using fLS::FLAGS_##name
 
 #endif  // SWIG
-
-}  // namespace google
 
 #endif  // GOOGLE_GFLAGS_H_

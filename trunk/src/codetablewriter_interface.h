@@ -7,8 +7,8 @@
 // series of Add, Copy, and Run instructions and produces an output file in the
 // desired format.
 
-#ifndef FASTNET_DELTAFORCE_VCDIFF_RFC3284_CODETABLEWRITER_INTERFACE_H_
-#define FASTNET_DELTAFORCE_VCDIFF_RFC3284_CODETABLEWRITER_INTERFACE_H_
+#ifndef OPEN_VCDIFF_CODETABLEWRITER_INTERFACE_H_
+#define OPEN_VCDIFF_CODETABLEWRITER_INTERFACE_H_
 
 #include <stddef.h>  // size_t
 
@@ -50,4 +50,4 @@ class CodeTableWriterInterface {
 
 }  // namespace open_vcdiff
 
-#endif  // FASTNET_DELTAFORCE_VCDIFF_RFC3284_CODETABLEWRITER_INTERFACE_H_
+#endif  // OPEN_VCDIFF_CODETABLEWRITER_INTERFACE_H_

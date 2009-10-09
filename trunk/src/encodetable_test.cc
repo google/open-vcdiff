@@ -33,9 +33,7 @@ namespace {
 
 class CodeTableWriterTest : public testing::Test {
  protected:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   CodeTableWriterTest()
       : standard_writer(false),

@@ -61,7 +61,6 @@
 #define PATH_SEPARATOR  '/'
 #endif
 
-using std::string;
 using std::vector;
 
 // The 'reporting' flags.  They all call exit().
@@ -83,6 +82,8 @@ DEFINE_bool(version, false,
             "show version and build info and exit");
 
 namespace google {
+
+using std::string;
 
 // --------------------------------------------------------------------
 // DescribeOneFlag()
@@ -191,18 +192,29 @@ static string XMLText(const string& txt) {
   return ans;
 }
 
+static void AddXMLTag(string* r, const char* tag, const string& txt) {
+  *r += ('<');
+  *r += (tag);
+  *r += ('>');
+  *r += (XMLText(txt));
+  *r += ("</");
+  *r += (tag);
+  *r += ('>');
+}
+
 static string DescribeOneFlagInXML(const CommandLineFlagInfo& flag) {
   // The file and flagname could have been attributes, but default
   // and meaning need to avoid attribute normalization.  This way it
   // can be parsed by simple programs, in addition to xml parsers.
-  return (string("<flag>") +
-          "<file>" + XMLText(flag.filename) + "</file>" +
-          "<name>" + XMLText(flag.name) + "</name>" +
-          "<meaning>" + XMLText(flag.description) + "</meaning>" +
-          "<default>" + XMLText(flag.default_value) + "</default>" +
-          "<current>" + XMLText(flag.current_value) + "</current>" +
-          "<type>" + XMLText(flag.type) + "</type>" +
-          string("</flag>"));
+  string r("<flag>");
+  AddXMLTag(&r, "file", flag.filename);
+  AddXMLTag(&r, "name", flag.name);
+  AddXMLTag(&r, "meaning", flag.description);
+  AddXMLTag(&r, "default", flag.default_value);
+  AddXMLTag(&r, "current", flag.current_value);
+  AddXMLTag(&r, "type", flag.type);
+  r += "</flag>";
+  return r;
 }
 
 // --------------------------------------------------------------------
@@ -341,6 +353,15 @@ static void ShowVersion() {
 # endif
 }
 
+static void AppendPrognameStrings(vector<string>* substrings,
+                                  const char* progname) {
+  string r("/");
+  r += progname;
+  substrings->push_back(r + ".");
+  substrings->push_back(r + "-main.");
+  substrings->push_back(r + "_main.");
+}
+
 // --------------------------------------------------------------------
 // HandleCommandLineHelpFlags()
 //    Checks all the 'reporting' commandline flags to see if any
@@ -353,13 +374,12 @@ void HandleCommandLineHelpFlags() {
   const char* progname = ProgramInvocationShortName();
   extern void (*commandlineflags_exitfunc)(int);   // in gflags.cc
 
+  vector<string> substrings;
+  AppendPrognameStrings(&substrings, progname);
+
   if (FLAGS_helpshort) {
     // show only flags related to this binary:
     // E.g. for fileutil.cc, want flags containing   ... "/fileutil." cc
-    vector<string> substrings;
-    substrings.push_back(string("/") + progname + ".");
-    substrings.push_back(string("/") + progname + "-main.");
-    substrings.push_back(string("/") + progname + "_main.");
     ShowUsageWithFlagsMatching(progname, substrings);
     commandlineflags_exitfunc(1);   // almost certainly exit()
 
@@ -385,10 +405,6 @@ void HandleCommandLineHelpFlags() {
     // filename like "/progname.cc", and take the dirname of that.
     vector<CommandLineFlagInfo> flags;
     GetAllFlags(&flags);
-    vector<string> substrings;
-    substrings.push_back(string("/") + progname + ".");
-    substrings.push_back(string("/") + progname + "-main.");
-    substrings.push_back(string("/") + progname + "_main.");
     string last_package;
     for (vector<CommandLineFlagInfo>::const_iterator flag = flags.begin();
          flag != flags.end();

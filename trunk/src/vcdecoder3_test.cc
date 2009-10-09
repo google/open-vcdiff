@@ -896,7 +896,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, CopySizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail at the position that was altered
-      EXPECT_EQ(delta_file_header_.size() + 0x10, i);
+      EXPECT_EQ(delta_file_header_.size() + 0x0F, i);
       break;
     }
   }
@@ -967,7 +967,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, CopyAddressNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail at the position that was altered
-      EXPECT_EQ(delta_file_header_.size() + 0x11, i);
+      EXPECT_EQ(delta_file_header_.size() + 0x10, i);
       break;
     }
   }
@@ -1088,7 +1088,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, AddSizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail at the position that was altered
-      EXPECT_EQ(delta_file_header_.size() + 0x13, i);
+      EXPECT_EQ(delta_file_header_.size() + 0x12, i);
       break;
     }
   }
@@ -1209,7 +1209,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, RunSizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail at the position that was altered
-      EXPECT_EQ(delta_file_header_.size() + 0x63, i);
+      EXPECT_EQ(delta_file_header_.size() + 0x62, i);
       break;
     }
   }

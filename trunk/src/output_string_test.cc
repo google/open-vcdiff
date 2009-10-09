@@ -28,9 +28,7 @@ namespace {
 
 class OutputStringTest : public testing::Test {
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   OutputStringTest() : string_("ab"), output_string_(&string_) { }
 

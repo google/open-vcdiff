@@ -89,10 +89,6 @@ namespace open_vcdiff {
 //
 class VCDiffDeltaFileWindow {
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
-  typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
-
   VCDiffDeltaFileWindow();
   ~VCDiffDeltaFileWindow();
 
@@ -319,9 +315,7 @@ inline void VCDiffDeltaFileWindow::Init(VCDiffStreamingDecoderImpl* parent) {
 
 class VCDiffStreamingDecoderImpl {
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   // The default maximum target file size (and target window size) if
   // SetMaximumTargetFileSize() is not called.
@@ -830,9 +824,7 @@ namespace {
 
 class TrackNewOutputText {
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   explicit TrackNewOutputText(const string& decoded_target)
       : decoded_target_(decoded_target),
@@ -1051,7 +1043,7 @@ VCDiffResult VCDiffDeltaFileWindow::SetUpWindowSections(
 //
 VCDiffResult VCDiffDeltaFileWindow::ReadHeader(
     ParseableChunk* parseable_chunk) {
-  string* decoded_target = parent_->decoded_target();
+  std::string* decoded_target = parent_->decoded_target();
   VCDiffHeaderParser header_parser(parseable_chunk->UnparsedData(),
                                    parseable_chunk->End());
   size_t source_segment_position = 0;

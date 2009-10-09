@@ -268,7 +268,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, SourceSegmentSizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail after decoding the source segment size
-      EXPECT_EQ(delta_file_header_.size() + 5, i);
+      EXPECT_EQ(delta_file_header_.size() + 4, i);
       break;
     }
   }
@@ -333,7 +333,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, SourceSegmentPosNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail after decoding the source segment pos
-      EXPECT_EQ(delta_file_header_.size() + 7, i);
+      EXPECT_EQ(delta_file_header_.size() + 6, i);
       break;
     }
   }
@@ -430,7 +430,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, DeltaEncodingLengthNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail after decoding the delta encoding length
-      EXPECT_EQ(delta_file_header_.size() + 8, i);
+      EXPECT_EQ(delta_file_header_.size() + 7, i);
       break;
     }
   }
@@ -523,7 +523,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, TargetWindowSizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail after decoding the target window size
-      EXPECT_EQ(delta_file_header_.size() + 9, i);
+      EXPECT_EQ(delta_file_header_.size() + 8, i);
       break;
     }
   }
@@ -680,7 +680,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, AddRunDataSizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail after decoding the add/run data segment size
-      EXPECT_EQ(delta_file_header_.size() + 12, i);
+      EXPECT_EQ(delta_file_header_.size() + 11, i);
       break;
     }
   }
@@ -777,7 +777,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, InstructionsSizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail after decoding the instructions segment size
-      EXPECT_EQ(delta_file_header_.size() + 13, i);
+      EXPECT_EQ(delta_file_header_.size() + 12, i);
       break;
     }
   }
@@ -873,7 +873,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, CopyAddressSizeNegative) {
     if (!decoder_.DecodeChunk(&delta_file_[i], 1, &output_)) {
       failed = true;
       // It should fail after decoding the copy address segment size
-      EXPECT_EQ(delta_file_header_.size() + 14, i);
+      EXPECT_EQ(delta_file_header_.size() + 13, i);
       break;
     }
   }

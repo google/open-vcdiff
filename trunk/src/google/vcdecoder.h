@@ -140,9 +140,7 @@ class VCDiffStreamingDecoder {
 //
 class VCDiffDecoder {
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   VCDiffDecoder() { }
   ~VCDiffDecoder() { }

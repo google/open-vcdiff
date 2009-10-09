@@ -74,9 +74,7 @@ template<> class VarintMaxBytes<int64_t> {
 template <typename SignedIntegerType>
 class VarintBE {  // BE stands for Big-Endian
  public:
-#ifndef VCDIFF_HAS_GLOBAL_STRING
   typedef std::string string;
-#endif  // !VCDIFF_HAS_GLOBAL_STRING
 
   // The maximum positive value represented by a SignedIntegerType.
   static const SignedIntegerType kMaxVal;
@@ -87,15 +85,14 @@ class VarintBE {  // BE stands for Big-Endian
 
   // Attempts to parse a big-endian varint from a prefix of the bytes
   // in [ptr,limit-1] and convert it into a signed, non-negative 32-bit
-  // integer.  Never reads a character at or beyond limit, and never reads
-  // a character at or beyond (*ptr + kMaxBytes).
+  // integer.  Never reads a character at or beyond limit.
   // If a parsed varint would exceed the maximum value of
   // a <SignedIntegerType>, returns RESULT_ERROR and does not modify *ptr.
   // If parsing a varint at *ptr (without exceeding the capacity of
   // a <SignedIntegerType>) would require reading past limit,
   // returns RESULT_END_OF_DATA and does not modify *ptr.
-  // If limit == NULL, or limit < *ptr, no error will be signalled, but it is
-  // recommended that a limit always be supplied for security reasons.
+  // If limit == NULL, returns RESULT_ERROR.
+  // If limit < *ptr, returns RESULT_END_OF_DATA.
   static SignedIntegerType Parse(const char* limit, const char** ptr);
 
   // Returns the encoding length of the specified value.
@@ -122,14 +119,6 @@ class VarintBE {  // BE stands for Big-Endian
   // rather than in buf[0 : length].
   // The value of v must not be negative.
   static int EncodeInternal(SignedIntegerType v, char* varint_buf);
-
-  // Returns true if bytes_left <= kMaxBytes AND the next bytes_left bytes
-  // starting at parse_ptr all have their continuation bit (most significant
-  // bit) set.  This means that there may or may not be a valid encoded
-  // varint at parse_ptr, but it cannot be read or validated until more
-  // input is available.
-  static inline bool ReachedEndOfData(const char* parse_ptr,
-                                      const char* limit);
 
   // These are private to avoid constructing any objects of this type
   VarintBE();
