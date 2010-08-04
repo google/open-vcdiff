@@ -40,7 +40,7 @@ TEST_F(VCDiffDecoderInterleavedAllowedButNotUsed, Decode) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffDecoderInterleavedAllowedButNotUsed, DecodeWithChecksum) {
@@ -51,7 +51,7 @@ TEST_F(VCDiffDecoderInterleavedAllowedButNotUsed, DecodeWithChecksum) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 typedef VCDiffDecoderInterleavedAllowedButNotUsed
@@ -63,7 +63,7 @@ TEST_F(VCDiffDecoderInterleavedAllowedButNotUsedByteByByte, Decode) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffDecoderInterleavedAllowedButNotUsedByteByByte,
@@ -75,7 +75,7 @@ TEST_F(VCDiffDecoderInterleavedAllowedButNotUsedByteByByte,
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // Use the standard file header with the interleaved encoding.  Should fail.
@@ -251,7 +251,7 @@ TEST_F(VCDiffStandardWindowDecoderTest, Decode) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // Bug 1287926: If DecodeChunk() stops in the middle of the window header,
@@ -279,7 +279,8 @@ TEST_F(VCDiffStandardWindowDecoderTest, DecodeBreakInFourthWindowHeader) {
                                        - (chunk_1_size + chunk_2_size),
                                    &output_chunk3));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_chunk1 + output_chunk2 + output_chunk3);
+  EXPECT_EQ(expected_target_.c_str(),
+            output_chunk1 + output_chunk2 + output_chunk3);
 }
 
 TEST_F(VCDiffStandardWindowDecoderTest, DecodeChunkNoVcdTargetAllowed) {
@@ -294,7 +295,7 @@ TEST_F(VCDiffStandardWindowDecoderTest, DecodeChunkNoVcdTargetAllowed) {
   // Just parsing one more byte (the VCD_TARGET) should result in an error.
   EXPECT_FALSE(decoder_.DecodeChunk(&delta_file_[chunk_1_size], 1, &output_));
   // The target data for the first two windows should have been output.
-  EXPECT_EQ(expected_target_.substr(0, 89), output_);
+  EXPECT_EQ(expected_target_.substr(0, 89).c_str(), output_);
 }
 
 TEST_F(VCDiffStandardWindowDecoderTest, DecodeInTwoParts) {
@@ -309,7 +310,7 @@ TEST_F(VCDiffStandardWindowDecoderTest, DecodeInTwoParts) {
                                      delta_file_size - i,
                                      &output_chunk2));
     EXPECT_TRUE(decoder_.FinishDecoding());
-    EXPECT_EQ(expected_target_, output_chunk1 + output_chunk2);
+    EXPECT_EQ(expected_target_.c_str(), output_chunk1 + output_chunk2);
   }
 }
 
@@ -329,7 +330,7 @@ TEST_F(VCDiffStandardWindowDecoderTest, DecodeInThreeParts) {
                                        delta_file_size - j,
                                        &output_chunk3));
       EXPECT_TRUE(decoder_.FinishDecoding());
-      EXPECT_EQ(expected_target_,
+      EXPECT_EQ(expected_target_.c_str(),
                 output_chunk1 + output_chunk2 + output_chunk3);
     }
   }
@@ -345,7 +346,7 @@ TEST_F(VCDiffStandardWindowDecoderTest, TargetMatchesWindowSizeLimit) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardWindowDecoderTest, TargetMatchesFileSizeLimit) {
@@ -355,7 +356,7 @@ TEST_F(VCDiffStandardWindowDecoderTest, TargetMatchesFileSizeLimit) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardWindowDecoderTest, TargetExceedsWindowSizeLimit) {
@@ -385,7 +386,7 @@ TEST_F(VCDiffStandardWindowDecoderTestByteByByte, Decode) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardWindowDecoderTestByteByByte, DecodeExplicitVcdTarget) {
@@ -395,7 +396,7 @@ TEST_F(VCDiffStandardWindowDecoderTestByteByByte, DecodeExplicitVcdTarget) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // Windows 3 and 4 use the VCD_TARGET flag, so decoder should signal an error.
@@ -411,7 +412,7 @@ TEST_F(VCDiffStandardWindowDecoderTestByteByByte, DecodeNoVcdTarget) {
   // The failure should occur just at the position of the first VCD_TARGET.
   EXPECT_EQ(delta_file_header_.size() + 83, i);
   // The target data for the first two windows should have been output.
-  EXPECT_EQ(expected_target_.substr(0, 89), output_);
+  EXPECT_EQ(expected_target_.substr(0, 89).c_str(), output_);
 }
 
 // Divides up the interleaved encoding into eight separate delta file windows.
@@ -531,7 +532,7 @@ TEST_F(VCDiffInterleavedWindowDecoderTest, Decode) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedWindowDecoderTest, DecodeInTwoParts) {
@@ -546,7 +547,7 @@ TEST_F(VCDiffInterleavedWindowDecoderTest, DecodeInTwoParts) {
                                      delta_file_size - i,
                                      &output_chunk2));
     EXPECT_TRUE(decoder_.FinishDecoding());
-    EXPECT_EQ(expected_target_, output_chunk1 + output_chunk2);
+    EXPECT_EQ(expected_target_.c_str(), output_chunk1 + output_chunk2);
   }
 }
 
@@ -566,7 +567,7 @@ TEST_F(VCDiffInterleavedWindowDecoderTest, DecodeInThreeParts) {
                                        delta_file_size - j,
                                        &output_chunk3));
       EXPECT_TRUE(decoder_.FinishDecoding());
-      EXPECT_EQ(expected_target_,
+      EXPECT_EQ(expected_target_.c_str(),
                 output_chunk1 + output_chunk2 + output_chunk3);
     }
   }
@@ -581,7 +582,7 @@ TEST_F(VCDiffInterleavedWindowDecoderTestByteByByte, Decode) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // Windows 3 and 4 use the VCD_TARGET flag, so decoder should signal an error.
@@ -597,7 +598,7 @@ TEST_F(VCDiffInterleavedWindowDecoderTestByteByByte, DecodeNoVcdTarget) {
   // The failure should occur just at the position of the first VCD_TARGET.
   EXPECT_EQ(delta_file_header_.size() + 83, i);
   // The target data for the first two windows should have been output.
-  EXPECT_EQ(expected_target_.substr(0, 89), output_);
+  EXPECT_EQ(expected_target_.substr(0, 89).c_str(), output_);
 }
 
 // The original version of VCDiffDecoder did not allow the caller to modify the
@@ -616,7 +617,7 @@ TEST_F(VCDiffInterleavedWindowDecoderTest, OutputStringCanBeModified) {
     temp_output.clear();
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedWindowDecoderTest, OutputStringIsPreserved) {
@@ -627,7 +628,7 @@ TEST_F(VCDiffInterleavedWindowDecoderTest, OutputStringIsPreserved) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(previous_data + expected_target_, output_);
+  EXPECT_EQ((previous_data + expected_target_).c_str(), output_);
 }
 
 // A decode job that tests the ability to COPY across the boundary between
@@ -688,7 +689,7 @@ TEST_F(VCDiffStandardCrossDecoderTest, Decode) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 typedef VCDiffStandardCrossDecoderTest VCDiffStandardCrossDecoderTestByteByByte;
@@ -699,7 +700,7 @@ TEST_F(VCDiffStandardCrossDecoderTestByteByByte, Decode) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // The same decode job that tests the ability to COPY across the boundary
@@ -755,7 +756,7 @@ TEST_F(VCDiffInterleavedCrossDecoderTest, Decode) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedCrossDecoderTest, DecodeWithChecksum) {
@@ -766,7 +767,7 @@ TEST_F(VCDiffInterleavedCrossDecoderTest, DecodeWithChecksum) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 typedef VCDiffInterleavedCrossDecoderTest
@@ -778,7 +779,7 @@ TEST_F(VCDiffInterleavedCrossDecoderTestByteByByte, Decode) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedCrossDecoderTestByteByByte, DecodeWithChecksum) {
@@ -789,7 +790,7 @@ TEST_F(VCDiffInterleavedCrossDecoderTestByteByByte, DecodeWithChecksum) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // Test using a custom code table and custom cache sizes with interleaved
@@ -975,7 +976,7 @@ TEST_F(VCDiffCustomCodeTableDecoderTest, DecodeUsingCustomCodeTable) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffCustomCodeTableDecoderTest, IncompleteCustomCodeTable) {
@@ -996,7 +997,7 @@ TEST_F(VCDiffCustomCodeTableDecoderTestByteByByte, DecodeUsingCustomCodeTable) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffCustomCodeTableDecoderTestByteByByte, IncompleteCustomCodeTable) {
@@ -1016,7 +1017,7 @@ TEST_F(VCDiffCustomCodeTableDecoderTestByteByByte, CustomTableNoVcdTarget) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 #ifdef GTEST_HAS_DEATH_TEST

@@ -37,7 +37,7 @@ TEST_F(VCDiffStandardDecoderTest, Decode) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // If we add a checksum to a standard-format delta file (without using format
@@ -83,7 +83,7 @@ TEST_F(VCDiffStandardDecoderTest, TargetMatchesWindowSizeLimit) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTest, TargetMatchesFileSizeLimit) {
@@ -93,7 +93,7 @@ TEST_F(VCDiffStandardDecoderTest, TargetMatchesFileSizeLimit) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTest, TargetExceedsWindowSizeLimit) {
@@ -152,7 +152,7 @@ TEST_F(VCDiffStandardDecoderTest, OkayToSetUpperBitsOfWinIndicator) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTest, CopyInstructionsShouldFailIfNoSourceSegment) {
@@ -356,7 +356,7 @@ TEST_F(VCDiffStandardDecoderTest, OkayToSetUpperBitsOfDeltaIndicator) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTest, DataCompressionNotSupported) {

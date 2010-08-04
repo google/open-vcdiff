@@ -50,8 +50,8 @@ VCDiffInstructionType VCDiffCodeTableReader::GetNextInstruction(
     int32_t* size,
     unsigned char* mode) {
   if (!instructions_and_sizes_) {
-    LOG(ERROR) << "Internal error: GetNextInstruction() called before Init()"
-               << LOG_ENDL;
+    VCD_ERROR << "Internal error: GetNextInstruction() called before Init()"
+              << VCD_ENDL;
     return VCD_INSTRUCTION_ERROR;
   }
   last_instruction_start_ = *instructions_and_sizes_;
@@ -95,8 +95,8 @@ VCDiffInstructionType VCDiffCodeTableReader::GetNextInstruction(
     switch (*size = VarintBE<int32_t>::Parse(instructions_and_sizes_end_,
                                              instructions_and_sizes_)) {
       case RESULT_ERROR:
-        LOG(ERROR) << "Instruction size is not a valid variable-length integer"
-                   << LOG_ENDL;
+        VCD_ERROR << "Instruction size is not a valid variable-length integer"
+                  << VCD_ENDL;
         return VCD_INSTRUCTION_ERROR;
       case RESULT_END_OF_DATA:
         UnGetInstruction();  // Rewind to instruction start

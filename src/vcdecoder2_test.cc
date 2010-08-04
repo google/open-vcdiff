@@ -43,7 +43,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, Decode) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTestByteByByte, DecodeNoVcdTarget) {
@@ -53,7 +53,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, DecodeNoVcdTarget) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 // Remove one byte from the length of the chunk to process, and
@@ -109,7 +109,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, TargetMatchesWindowSizeLimit) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTestByteByByte, TargetMatchesFileSizeLimit) {
@@ -119,7 +119,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, TargetMatchesFileSizeLimit) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTestByteByByte, TargetExceedsWindowSizeLimit) {
@@ -203,7 +203,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte, OkayToSetUpperBitsOfWinIndicator) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTestByteByByte,
@@ -555,7 +555,7 @@ TEST_F(VCDiffStandardDecoderTestByteByByte,
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffStandardDecoderTestByteByByte, DataCompressionNotSupported) {

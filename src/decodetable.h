@@ -109,14 +109,14 @@ class VCDiffCodeTableReader {
   void UnGetInstruction() {
     if (last_instruction_start_) {
       if (last_instruction_start_ > *instructions_and_sizes_) {
-        LOG(DFATAL) << "Internal error: last_instruction_start past end of "
-                       "instructions_and_sizes in UnGetInstruction" << LOG_ENDL;
+        VCD_DFATAL << "Internal error: last_instruction_start past end of "
+                      "instructions_and_sizes in UnGetInstruction" << VCD_ENDL;
       }
       *instructions_and_sizes_ = last_instruction_start_;
       if ((pending_second_instruction_ != kNoOpcode) &&
           (last_pending_second_instruction_ != kNoOpcode)) {
-        LOG(DFATAL) << "Internal error: two pending instructions in a row "
-                       "in UnGetInstruction" << LOG_ENDL;
+        VCD_DFATAL << "Internal error: two pending instructions in a row "
+                      "in UnGetInstruction" << VCD_ENDL;
       }
       pending_second_instruction_ = last_pending_second_instruction_;
     }

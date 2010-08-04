@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..;../../src;../../vsprojects"
+				AdditionalIncludeDirectories="../..;../../src;../../vsprojects;../../gflags/src/windows;../../gflags/src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../..;../../src;../../vsprojects"
+				AdditionalIncludeDirectories="../..;../../src;../../vsprojects;../../gflags/src/windows;../../gflags/src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				DefaultCharIsUnsigned="true"
@@ -185,7 +185,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\src\gflags.cc"
+				RelativePath="..\..\gflags\src\gflags.cc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -205,7 +205,11 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\gflags_reporting.cc"
+				RelativePath="..\..\gflags\src\gflags_completions.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\gflags\src\gflags_reporting.cc"
 				>
 			</File>
 			<File
@@ -239,11 +243,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\gflags\gflags.h"
+				RelativePath="..\..\gflags\src\gflags\gflags.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\mutex.h"
+				RelativePath="..\..\gflags\src\mutex.h"
 				>
 			</File>
 		</Filter>

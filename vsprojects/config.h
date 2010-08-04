@@ -20,20 +20,27 @@
 #ifndef OPEN_VCDIFF_VSPROJECTS_CONFIG_H_
 #define OPEN_VCDIFF_VSPROJECTS_CONFIG_H_
 
+// The gflags sources are compiled and linked directly into the vcdiff
+// executable.  They should not be exported by open-vcdiff.
+#define GFLAGS_DLL_DECL
+
+/* Namespace for Google classes */
+#define GOOGLE_NAMESPACE  ::google
+
+/* define if the compiler implements namespaces */
+#define HAVE_NAMESPACES 1
+
 /* Define to 1 if you have the `QueryPerformanceCounter' function. */
 #define HAVE_QUERYPERFORMANCECOUNTER 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the <strings.h> header file. */
-#define HAVE_STRINGS_H 1
+/* Define to 1 if you have the <string.h> header file. */
+#define HAVE_STRING_H 1
 
 /* Define to 1 if you have the <windows.h> header file. */
 #define HAVE_WINDOWS_H 1
-
-/* Define to 1 if the system has the type `__int16'. */
-#define HAVE___INT16 1
 
 /* Name of package */
 #define PACKAGE "open-vcdiff"
@@ -45,19 +52,28 @@
 #define PACKAGE_NAME "open-vcdiff"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "open-vcdiff 0.7"
+#define PACKAGE_STRING "open-vcdiff 0.8"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "open-vcdiff"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.7"
+#define PACKAGE_VERSION "0.8"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
+/* the namespace where STL code like vector<> is defined */
+#define STL_NAMESPACE std
+
 /* Version number of package */
-#define VERSION "0.7"
+#define VERSION "0.8"
+
+/* Stops putting the code inside the Google namespace */
+#define _END_GOOGLE_NAMESPACE_ }
+
+/* Puts following code inside the Google namespace */
+#define _START_GOOGLE_NAMESPACE_ namespace google {
 
 // These functions have different names, but the same behavior,
 // for Visual Studio.

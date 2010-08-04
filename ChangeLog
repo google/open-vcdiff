@@ -1,3 +1,44 @@
+Tue,  3 Aug 2010 10:44:32 -0800  Google Inc. <opensource@google.com>
+  Release version 0.8 with the following changes:
+  * Issue #12: Truncate decoded_target_ after decoding each window, rather than
+    after each call to DecodeChunk().  This helps limit memory usage when
+    processing multiple windows.
+  * Issue #22: To work around a bug in the gold linker
+    (http://sourceware.org/bugzilla/show_bug.cgi?id=10238), list all direct
+    library dependencies in Makefile.am.
+  * Issue #23: Add an option for the encoder to produce simple JSON output
+    instead of VCDIFF (RFC 3284) format.
+  * Issue #25: Enable VCDIFF_USE_BLOCK_COMPARE_WORDS for the PowerPC
+    architecture as well as for x86.  The test
+    BlockContentsMatchIsAsFastAsBlockCompareWords failed on a PowerPC machine
+    running AIX 5.3.8.
+  * Issue #28: Only call string::reserve() when the required capacity is greater
+    than the string's current capacity.
+  * Get rid of ExitFatal().  It is no longer used for anything since the custom
+    test framework was replaced with gtest.
+  * Get rid of the match count feature.
+  * Rename the log macros: for example, LOG(ERROR) is now VCD_ERROR.
+    Rename COMPILE_ASSERT to VCD_COMPILE_ASSERT.
+  * Simplify RollingHash by performing its sanity checks at compile time.
+  * The googletest package is now referenced as an svn:externals property.
+    Remove the branched googletest sources from src/gtest and instead reference
+    the source files in the top-level gtest directory.
+  * Likewise, the google-gflags package is now referenced as an svn:externals
+    property.  Remove the branched gflags sources from src/gflags and instead
+    reference the source files in the top-level gflags directory.
+  * Use version 1.11 of Automake.
+  * Explicitly include the m4 directory in configuration scripts.
+  * Call LT_INIT from configure.ac as suggested by libtool.
+  * Don't distribute gflags and gtest documents whose names conflict with the
+    same documents in the open-vcdiff package.
+  * Only define _XOPEN_SOURCE if not already defined.
+  * Fix warnings that appeared when compiling on RedHat 9 with gcc 3.2.2:
+      src/encodetable_test.cc:111: warning: cannot pass objects of non-POD
+          type `struct std::string' through `...'; call will abort at runtime
+  * Fix Visual Studio compiler warning about mismatch between size_t and int
+    in blockhash_test.cc.
+  * Add contributors' names to THANKS file.
+
 Fri, 09 Oct 2009 10:32:10 -0700  Google Inc. <opensource@google.com>
 
   Release version 0.7 with the following changes:

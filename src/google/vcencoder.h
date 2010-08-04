@@ -17,43 +17,13 @@
 #define OPEN_VCDIFF_VCENCODER_H_
 
 #include <stddef.h>  // size_t
-#include <vector>
+#include "google/format_extension_flags.h"
 #include "google/output_string.h"
 
 namespace open_vcdiff {
 
 class VCDiffEngine;
 class VCDiffStreamingEncoderImpl;
-
-// These flags are passed to the constructor of VCDiffStreamingEncoder
-// to determine whether certain open-vcdiff format extensions
-// (which are not part of the RFC 3284 draft standard for VCDIFF)
-// are employed.
-//
-// Because these extensions are not part of the VCDIFF standard, if
-// any of these flags except VCD_STANDARD_FORMAT is specified, then the caller
-// must be certain that the receiver of the data will be using open-vcdiff
-// to decode the delta file, or at least that the receiver can interpret
-// these extensions.  The encoder will use an 'S' as the fourth character
-// in the delta file to indicate that non-standard extensions are being used.
-//
-enum VCDiffFormatExtensionFlagValues {
-  // No extensions: the encoded format will conform to the RFC
-  // draft standard for VCDIFF.
-  VCD_STANDARD_FORMAT = 0x00,
-  // If this flag is specified, then the encoder writes each delta file
-  // window by interleaving instructions and sizes with their corresponding
-  // addresses and data, rather than placing these elements
-  // into three separate sections.  This facilitates providing partially
-  // decoded results when only a portion of a delta file window is received
-  // (e.g. when HTTP over TCP is used as the transmission protocol.)
-  VCD_FORMAT_INTERLEAVED = 0x01,
-  // If this flag is specified, then an Adler32 checksum
-  // of the target window data is included in the delta window.
-  VCD_FORMAT_CHECKSUM = 0x02
-};
-
-typedef int VCDiffFormatExtensionFlags;
 
 // A HashedDictionary must be constructed from the dictionary data
 // in order to use VCDiffStreamingEncoder.  If the same dictionary will
@@ -223,12 +193,6 @@ class VCDiffStreamingEncoder {
   }
 
   bool FinishEncodingToInterface(OutputStringInterface* output_string);
-
-  // Replaces the contents of match_counts with a vector of integers,
-  // one for each possible match length.  The value of match_counts[n]
-  // is equal to the number of matches of length n found so far
-  // for this VCDiffStreamingEncoder object.
-  void GetMatchCounts(std::vector<int>* match_counts) const;
 
  private:
   VCDiffStreamingEncoderImpl* const impl_;

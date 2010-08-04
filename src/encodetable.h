@@ -20,7 +20,6 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // int32_t
 #include <string>
-#include <vector>
 #include "addrcache.h"
 #include "checksum.h"
 #include "codetable.h"
@@ -81,7 +80,13 @@ class VCDiffCodeTableWriter : public CodeTableWriterInterface {
   // was successful.  After the object has been initialized and used,
   // Init() can be called again to restore the initial state of the object.
   //
-  bool Init(size_t dictionary_size);
+  virtual bool Init(size_t dictionary_size);
+
+  // Write the header (as defined in section 4.1 of the RFC) to *out.
+  // This includes information that can be gathered
+  // before the first chunk of input is available.
+  virtual void WriteHeader(OutputStringInterface* out,
+                           VCDiffFormatExtensionFlags format_extensions);
 
   virtual size_t target_length() const { return target_length_; }
 
@@ -94,27 +99,23 @@ class VCDiffCodeTableWriter : public CodeTableWriterInterface {
   // Encode a RUN opcode for "size" copies of the value "byte".
   virtual void Run(size_t size, unsigned char byte);
 
-  void AddChecksum(VCDChecksum checksum) {
+  virtual void AddChecksum(VCDChecksum checksum) {
     add_checksum_ = true;
     checksum_ = checksum;
   }
 
-  // Finishes encoding and appends the encoded delta window to the output
+  // Appends the encoded delta window to the output
   // string.  The output string is not null-terminated and may contain embedded
   // '\0' characters.
   virtual void Output(OutputStringInterface* out);
 
-  const std::vector<int>& match_counts() const { return match_counts_; }
+  // There should not be any need to output more data
+  // since EncodeChunk() encodes a complete target window
+  // and there is no end-of-delta-file marker.
+  virtual void FinishEncoding(OutputStringInterface* /*out*/) {}
 
  private:
   typedef std::string string;
-
-  // This is an estimate of the longest match size the encoder expects to find.
-  // It is used to determine the initial size of the vector match_counts_.
-  // If it is too large, then some space will be wasted on vector elements
-  // that are not used.  If it is too small, then some time will be wasted
-  // expanding match_counts_ to accommodate larger match sizes.
-  static const size_t kMaxMatchSize = 2000;
 
   // The maximum value for the mode of a COPY instruction.
   const unsigned char max_mode_;
@@ -225,10 +226,6 @@ class VCDiffCodeTableWriter : public CodeTableWriterInterface {
   // either before or after the calls to Add(), Run(), and Copy().
   //
   VCDChecksum checksum_;
-
-  // The value of match_counts_[n] is equal to the number of matches
-  // of length n (that is, COPY instructions of size n) found so far.
-  std::vector<int> match_counts_;
 
   // Making these private avoids implicit copy constructor & assignment operator
   VCDiffCodeTableWriter(const VCDiffCodeTableWriter&);  // NOLINT

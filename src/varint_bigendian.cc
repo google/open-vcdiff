@@ -61,9 +61,9 @@ template <typename SignedIntegerType>
 int VarintBE<SignedIntegerType>::EncodeInternal(SignedIntegerType v,
                                                 char* varint_buf) {
   if (v < 0) {
-    LOG(DFATAL) << "Negative value " << v
-                << " passed to VarintBE::EncodeInternal,"
-                   " which requires non-negative argument" << LOG_ENDL;
+    VCD_DFATAL << "Negative value " << v
+               << " passed to VarintBE::EncodeInternal,"
+                  " which requires non-negative argument" << VCD_ENDL;
     return 0;
   }
   int length = 1;
@@ -109,9 +109,9 @@ void VarintBE<SignedIntegerType>::AppendToOutputString(
 template <typename SignedIntegerType>
 int VarintBE<SignedIntegerType>::Length(SignedIntegerType v) {
   if (v < 0) {
-    LOG(DFATAL) << "Negative value " << v
-                << " passed to VarintBE::Length,"
-                   " which requires non-negative argument" << LOG_ENDL;
+    VCD_DFATAL << "Negative value " << v
+               << " passed to VarintBE::Length,"
+                  " which requires non-negative argument" << VCD_ENDL;
     return 0;
   }
   int length = 0;

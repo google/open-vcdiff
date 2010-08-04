@@ -188,6 +188,10 @@
 				RelativePath="..\..\src\zlib.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\src\google\format_extension_flags.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

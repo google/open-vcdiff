@@ -76,20 +76,20 @@ bool VCDiffAddressCache::Init() {
   // near_cache_size_ and same_cache_size_ because adding them together can
   // cause an integer overflow if each is set to, say, INT_MAX.
   if ((near_cache_size_ > (VCD_MAX_MODES - 2)) || (near_cache_size_ < 0)) {
-    LOG(ERROR) << "Near cache size " << near_cache_size_ << " is invalid"
-               << LOG_ENDL;
+    VCD_ERROR << "Near cache size " << near_cache_size_ << " is invalid"
+              << VCD_ENDL;
     return false;
   }
   if ((same_cache_size_ > (VCD_MAX_MODES - 2)) || (same_cache_size_ < 0)) {
-    LOG(ERROR) << "Same cache size " << same_cache_size_ << " is invalid"
-               << LOG_ENDL;
+    VCD_ERROR << "Same cache size " << same_cache_size_ << " is invalid"
+              << VCD_ENDL;
     return false;
   }
   if ((near_cache_size_ + same_cache_size_) > VCD_MAX_MODES - 2) {
-    LOG(ERROR) << "Using near cache size " << near_cache_size_
-               << " and same cache size " << same_cache_size_
-               << " would exceed maximum number of COPY modes ("
-               << VCD_MAX_MODES << ")" << LOG_ENDL;
+    VCD_ERROR << "Using near cache size " << near_cache_size_
+              << " and same cache size " << same_cache_size_
+              << " would exceed maximum number of COPY modes ("
+              << VCD_MAX_MODES << ")" << VCD_ENDL;
     return false;
   }
   if (near_cache_size_ > 0) {
@@ -148,21 +148,21 @@ void VCDiffAddressCache::UpdateCache(VCDAddress address) {
 //       The values 0 and 1 correspond to SELF and HERE addressing.
 //
 // The function is guaranteed to succeed unless the conditions on the arguments
-// have not been met, in which case a LOG(DFATAL) message will be produced,
+// have not been met, in which case a VCD_DFATAL message will be produced,
 // 0 will be returned, and *encoded_addr will be replaced with 0.
 //
 unsigned char VCDiffAddressCache::EncodeAddress(VCDAddress address,
                                                 VCDAddress here_address,
                                                 VCDAddress* encoded_addr) {
   if (address < 0) {
-    LOG(DFATAL) << "EncodeAddress was passed a negative address: "
-                << address << LOG_ENDL;
+    VCD_DFATAL << "EncodeAddress was passed a negative address: "
+               << address << VCD_ENDL;
     *encoded_addr = 0;
     return 0;
   }
   if (address >= here_address) {
-    LOG(DFATAL) << "EncodeAddress was called with address (" << address
-                << ") < here_address (" << here_address << ")" << LOG_ENDL;
+    VCD_DFATAL << "EncodeAddress was called with address (" << address
+               << ") < here_address (" << here_address << ")" << VCD_ENDL;
     *encoded_addr = 0;
     return 0;
   }
@@ -223,13 +223,13 @@ static unsigned char ParseByte(const char** byte_pointer) {
 static bool IsDecodedAddressValid(VCDAddress decoded_address,
                                   VCDAddress here_address) {
   if (decoded_address < 0) {
-    LOG(ERROR) << "Decoded address " << decoded_address << " is invalid"
-               << LOG_ENDL;
+    VCD_ERROR << "Decoded address " << decoded_address << " is invalid"
+              << VCD_ENDL;
     return false;
   } else if (decoded_address >= here_address) {
-    LOG(ERROR) << "Decoded address (" << decoded_address
-               << ") is beyond location in target file (" << here_address
-               << ")" << LOG_ENDL;
+    VCD_ERROR << "Decoded address (" << decoded_address
+              << ") is beyond location in target file (" << here_address
+              << ")" << VCD_ENDL;
     return false;
   }
   return true;
@@ -279,8 +279,8 @@ VCDAddress VCDiffAddressCache::DecodeAddress(VCDAddress here_address,
                                              const char** address_stream,
                                              const char* address_stream_end) {
   if (here_address < 0) {
-    LOG(DFATAL) << "DecodeAddress was passed a negative value"
-                   " for here_address: " << here_address << LOG_ENDL;
+    VCD_DFATAL << "DecodeAddress was passed a negative value"
+                  " for here_address: " << here_address << VCD_ENDL;
     return RESULT_ERROR;
   }
   const char* new_address_pos = *address_stream;
@@ -298,8 +298,8 @@ VCDAddress VCDiffAddressCache::DecodeAddress(VCDAddress here_address,
                                                        &new_address_pos);
     switch (encoded_address) {
       case RESULT_ERROR:
-        LOG(ERROR) << "Found invalid variable-length integer "
-                      "as encoded address value" << LOG_ENDL;
+        VCD_ERROR << "Found invalid variable-length integer "
+                     "as encoded address value" << VCD_ENDL;
         return RESULT_ERROR;
       case RESULT_END_OF_DATA:
         return RESULT_END_OF_DATA;
@@ -313,9 +313,9 @@ VCDAddress VCDiffAddressCache::DecodeAddress(VCDAddress here_address,
     } else if (IsNearMode(mode)) {
       decoded_address = DecodeNearAddress(mode, encoded_address);
     } else {
-      LOG(DFATAL) << "Invalid mode value (" << static_cast<int>(mode)
-                  << ") passed to DecodeAddress; maximum mode value = "
-                  << static_cast<int>(LastMode()) << LOG_ENDL;
+      VCD_DFATAL << "Invalid mode value (" << static_cast<int>(mode)
+                 << ") passed to DecodeAddress; maximum mode value = "
+                 << static_cast<int>(LastMode()) << VCD_ENDL;
       return RESULT_ERROR;
     }
   }

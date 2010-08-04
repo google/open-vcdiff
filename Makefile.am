@@ -1,10 +1,14 @@
 ## Process this file with automake to produce Makefile.in
 
 # Make sure that when we re-make ./configure, we get the macros we need
-# ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I m4 \
+                  -I gflags/m4
 
-# This is so we can #include <google/foo>
-AM_CPPFLAGS = -I$(top_srcdir)/src
+# This is so we can #include <google/vcencoder.h> or <gtest/gtest.h>
+AM_CPPFLAGS = -I$(top_srcdir)/src \
+              -I$(top_srcdir)/gflags/src \
+              -I$(top_srcdir)/gtest \
+              -I$(top_srcdir)/gtest/include
 
 # For a non-optimized (debug) build, change "-DNDEBUG" to "-DDEBUG".
 AM_CXXFLAGS = -DNDEBUG -DNO_THREADS
@@ -22,11 +26,11 @@ googleincludedir = $(includedir)/google
 ## The .h files you want to install (that is, .h files that people
 ## who install this package can include in their own applications.)
 googleinclude_HEADERS = src/google/vcdecoder.h src/google/vcencoder.h \
+			src/google/format_extension_flags.h \
 			src/google/output_string.h
 
 docdir = $(prefix)/share/doc/$(PACKAGE)-$(VERSION)
-dist_doc_DATA = AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS \
-		src/gtest/README
+dist_doc_DATA = AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS
 
 # The manual pages that should be installed
 dist_man1_MANS = man/vcdiff.1
@@ -53,35 +57,44 @@ noinst_LTLIBRARIES =
 # google-gflags: Used for command-line client
 #     Please refer to http://code.google.com/p/google-gflags/ for details
 noinst_LTLIBRARIES += libgflags.la
-libgflags_la_SOURCES = src/gflags/gflags.h \
-		       src/mutex.h \
-		       src/gflags.cc \
-		       src/gflags_reporting.cc
+libgflags_la_SOURCES = gflags/src/gflags/gflags.h \
+                       gflags/src/gflags/gflags_completions.h \
+                       gflags/src/mutex.h \
+                       gflags/src/gflags.cc \
+                       gflags/src/gflags_completions.cc \
+                       gflags/src/gflags_reporting.cc
 
 # gtest (Google Test): Used for unit tests only
 #     Please refer to http://code.google.com/p/googletest/ for details
-noinst_LTLIBRARIES += libgtest.la
-libgtest_la_SOURCES = src/gtest/gtest.h \
-		      src/gtest/gtest-death-test.h \
-		      src/gtest/gtest-message.h \
-		      src/gtest/gtest_pred_impl.h \
-		      src/gtest/gtest-spi.h \
-		      src/gtest/gtest_prod.h \
-		      src/gtest/internal/gtest-death-test-internal.h \
-		      src/gtest/internal/gtest-filepath.h \
-		      src/gtest/internal/gtest-internal.h \
-		      src/gtest/internal/gtest-port.h \
-		      src/gtest/internal/gtest-string.h \
-		      src/gtest/src/gtest-internal-inl.h \
-		      src/gtest/gtest.cc \
-		      src/gtest/gtest-death-test.cc \
-		      src/gtest/gtest-filepath.cc \
-		      src/gtest/gtest-port.cc \
-		      src/testing.h
-
 noinst_LTLIBRARIES += libgtest_main.la
-libgtest_main_la_SOURCES = src/gtest/gtest_main.cc
-libgtest_main_la_LIBADD = libgtest.la
+libgtest_main_la_SOURCES = gtest/include/gtest/gtest.h \
+                           gtest/include/gtest/gtest-death-test.h \
+                           gtest/include/gtest/gtest-message.h \
+                           gtest/include/gtest/gtest-param-test.h \
+                           gtest/include/gtest/gtest_pred_impl.h \
+                           gtest/include/gtest/gtest_prod.h \
+                           gtest/include/gtest/gtest-spi.h \
+                           gtest/include/gtest/gtest-test-part.h \
+                           gtest/include/gtest/gtest-typed-test.h \
+                           gtest/include/gtest/internal/gtest-death-test-internal.h \
+                           gtest/include/gtest/internal/gtest-filepath.h \
+                           gtest/include/gtest/internal/gtest-internal.h \
+                           gtest/include/gtest/internal/gtest-linked_ptr.h \
+                           gtest/include/gtest/internal/gtest-param-util.h \
+                           gtest/include/gtest/internal/gtest-param-util-generated.h \
+                           gtest/include/gtest/internal/gtest-port.h \
+                           gtest/include/gtest/internal/gtest-string.h \
+                           gtest/include/gtest/internal/gtest-tuple.h \
+                           gtest/include/gtest/internal/gtest-type-util.h \
+                           gtest/src/gtest-internal-inl.h \
+                           gtest/src/gtest.cc \
+                           gtest/src/gtest-death-test.cc \
+                           gtest/src/gtest-filepath.cc \
+                           gtest/src/gtest-port.cc \
+                           gtest/src/gtest-test-part.cc \
+                           gtest/src/gtest-typed-test.cc \
+                           gtest/src/gtest_main.cc \
+                           src/testing.h
 
 noinst_LTLIBRARIES += libvcdecoder_test_common.la
 libvcdecoder_test_common_la_SOURCES = src/vcdecoder_test.h \
@@ -90,7 +103,8 @@ libvcdecoder_test_common_la_LIBADD = libvcddec.la libgtest_main.la
 
 # libvcdcom: The open-vcdiff *common* library
 lib_LTLIBRARIES += libvcdcom.la
-libvcdcom_la_SOURCES = src/google/output_string.h \
+libvcdcom_la_SOURCES = src/google/format_extension_flags.h \
+		       src/google/output_string.h \
 		       src/addrcache.h \
 		       src/checksum.h \
 		       src/codetable.h \
@@ -123,11 +137,13 @@ libvcdenc_la_SOURCES = src/google/vcencoder.h \
 		       src/compile_assert.h \
 		       src/encodetable.h \
 		       src/instruction_map.h \
+		       src/jsonwriter.h \
 		       src/rolling_hash.h \
 		       src/vcdiffengine.h \
 		       src/blockhash.cc \
 		       src/encodetable.cc \
 		       src/instruction_map.cc \
+		       src/jsonwriter.cc \
 		       src/vcdiffengine.cc \
                        src/vcencoder.cc
 libvcdenc_la_LIBADD = libvcdcom.la
@@ -150,19 +166,19 @@ codetable_test_LDADD = libvcdcom.la libgtest_main.la
 
 check_PROGRAMS += decodetable_test
 decodetable_test_SOURCES = src/decodetable_test.cc
-decodetable_test_LDADD = libvcddec.la libgtest_main.la
+decodetable_test_LDADD = libvcddec.la libvcdcom.la libgtest_main.la
 
 check_PROGRAMS += encodetable_test
 encodetable_test_SOURCES = src/encodetable_test.cc
-encodetable_test_LDADD = libvcdenc.la libgtest_main.la
+encodetable_test_LDADD = libvcdenc.la libvcdcom.la libgtest_main.la
 
 check_PROGRAMS += headerparser_test
 headerparser_test_SOURCES = src/headerparser_test.cc
-headerparser_test_LDADD = libvcddec.la libgtest_main.la
+headerparser_test_LDADD = libvcddec.la libvcdcom.la libgtest_main.la
 
 check_PROGRAMS += instruction_map_test
 instruction_map_test_SOURCES = src/instruction_map_test.cc
-instruction_map_test_LDADD = libvcdenc.la libgtest_main.la
+instruction_map_test_LDADD = libvcdenc.la libvcdcom.la libgtest_main.la
 
 check_PROGRAMS += output_string_test
 output_string_test_SOURCES = src/output_string_crope.h \
@@ -199,11 +215,15 @@ vcdecoder5_test_LDADD = libvcdecoder_test_common.la
 
 check_PROGRAMS += vcdiffengine_test
 vcdiffengine_test_SOURCES = src/vcdiffengine_test.cc
-vcdiffengine_test_LDADD = libvcdenc.la libgtest_main.la
+vcdiffengine_test_LDADD = libvcdenc.la libvcdcom.la libgtest_main.la
 
 check_PROGRAMS += vcencoder_test
 vcencoder_test_SOURCES = src/vcencoder_test.cc
-vcencoder_test_LDADD = libvcddec.la libvcdenc.la libgtest_main.la
+vcencoder_test_LDADD = libvcddec.la libvcdenc.la libvcdcom.la libgtest_main.la
+
+check_PROGRAMS += jsonwriter_test
+jsonwriter_test_SOURCES = src/jsonwriter_test.cc
+jsonwriter_test_LDADD = libvcdenc.la libvcdcom.la libgtest_main.la
 
 check_SCRIPTS += src/vcdiff_test.sh
 dist_noinst_DATA = testdata/configure.ac.v0.1 \
@@ -228,6 +248,11 @@ libtool: $(LIBTOOL_DEPS)
 
 EXTRA_DIST = $(check_SCRIPTS) \
 	     autogen.sh \
+	     gflags/src/windows/config.h \
+	     gflags/src/windows/gflags/gflags.h \
+	     gflags/src/windows/gflags/gflags_completions.h \
+	     gflags/src/windows/port.h \
+	     gflags/src/windows/port.cc \
 	     packages/rpm.sh \
 	     packages/rpm/rpm.spec \
 	     packages/deb.sh \
@@ -246,11 +271,13 @@ EXTRA_DIST = $(check_SCRIPTS) \
 	     vsprojects/gtest/gtest.vcproj \
 	     vsprojects/headerparser_test/headerparser_test.vcproj \
 	     vsprojects/instruction_map_test/instruction_map_test.vcproj \
+	     vsprojects/jsonwriter_test/jsonwriter_test.vcproj \
 	     vsprojects/output_string_test/output_string_test.vcproj \
 	     vsprojects/rolling_hash_test/rolling_hash_test.vcproj \
 	     vsprojects/varint_bigendian_test/varint_bigendian_test.vcproj \
 	     vsprojects/vcdcom/vcdcom.vcproj \
 	     vsprojects/vcddec/vcddec.vcproj \
+	     vsprojects/vcdecoder_test_common/vcdecoder_test_common.vcproj \
 	     vsprojects/vcdecoder1_test/vcdecoder1_test.vcproj \
 	     vsprojects/vcdecoder2_test/vcdecoder2_test.vcproj \
 	     vsprojects/vcdecoder3_test/vcdecoder3_test.vcproj \

@@ -17,50 +17,32 @@
 #define OPEN_VCDIFF_LOGGING_H_
 
 #include <config.h>
+#include <stdlib.h>  // exit
 #include <iostream>
-#include <vector>
-
-// Windows API defines ERROR
-#ifdef ERROR
-#undef ERROR
-#endif  // ERROR
 
 namespace open_vcdiff {
 
-enum LogLevel {
-  INFO,
-  WARNING,
-  ERROR,
-  FATAL
-};
-
-#ifndef NDEBUG
-#define DFATAL FATAL
-#else  // NDEBUG
-#define DFATAL ERROR
-#endif  // !NDEBUG
-
 extern bool g_fatal_error_occurred;
-extern void (*ExitFatal)();
-
-inline std::ostream& LogMessage(LogLevel level, const char* level_name) {
-  if (level == FATAL) {
-    g_fatal_error_occurred = true;
-  }
-  return std::cerr << level_name << ": ";
-}
 
 inline void CheckFatalError() {
   if (g_fatal_error_occurred) {
-    g_fatal_error_occurred = false;
-    (*ExitFatal)();
+    std::cerr.flush();
+    exit(1);
   }
 }
 
 }  // namespace open_vcdiff
 
-#define LOG(level)   LogMessage(open_vcdiff::level, #level)
-#define LOG_ENDL     std::endl; \
-                     open_vcdiff::CheckFatalError();
+#define VCD_WARNING std::cerr << "WARNING: "
+#define VCD_ERROR std::cerr << "ERROR: "
+#ifndef NDEBUG
+#define VCD_DFATAL open_vcdiff::g_fatal_error_occurred = true; \
+                   std::cerr << "FATAL: "
+#else  // NDEBUG
+#define VCD_DFATAL VCD_ERROR
+#endif  // !NDEBUG
+
+#define VCD_ENDL std::endl; \
+                 open_vcdiff::CheckFatalError();
 
 #endif  // OPEN_VCDIFF_LOGGING_H_

@@ -14,14 +14,10 @@
 // limitations under the License.
 
 #include <config.h>
-#include <stdlib.h>  // exit
 #include "logging.h"
 
 namespace open_vcdiff {
 
 bool g_fatal_error_occurred = false;
-
-static void DefaultExitFatal() { exit(1); }
-void (*ExitFatal)() = &DefaultExitFatal;
 
 }  // namespace open_vcdiff

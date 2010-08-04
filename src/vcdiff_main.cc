@@ -58,6 +58,7 @@ DEFINE_bool(allow_vcd_target, true,
 DEFINE_bool(checksum, false,
             "Include an Adler32 checksum of the target data when encoding");
 DEFINE_bool(interleaved, false, "Use interleaved format");
+DEFINE_bool(json, false, "Output diff in the JSON format when encoding");
 DEFINE_bool(stats, false, "Report compression percentage");
 DEFINE_bool(target_matches, false, "Find duplicate strings in target data"
                                    " as well as dictionary data");
@@ -393,6 +394,9 @@ bool VCDiffFileBasedCoder::Encode() {
   }
   if (FLAGS_checksum) {
     format_flags |= open_vcdiff::VCD_FORMAT_CHECKSUM;
+  }
+  if (FLAGS_json) {
+    format_flags |= open_vcdiff::VCD_FORMAT_JSON;
   }
   open_vcdiff::VCDiffStreamingEncoder encoder(hashed_dictionary_.get(),
                                               format_flags,

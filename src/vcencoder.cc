@@ -28,12 +28,13 @@
 // encoders or accepted by other decoders.
 
 #include <config.h>
-#include "google/vcencoder.h"
-#include <vector>
+#include <memory>  // auto_ptr
 #include "checksum.h"
 #include "encodetable.h"
-#include "logging.h"
 #include "google/output_string.h"
+#include "google/vcencoder.h"
+#include "jsonwriter.h"
+#include "logging.h"
 #include "vcdiffengine.h"
 
 namespace open_vcdiff {
@@ -62,22 +63,10 @@ class VCDiffStreamingEncoderImpl {
 
   bool FinishEncoding(OutputStringInterface* out);
 
-  const std::vector<int>& match_counts() const {
-    return coder_.match_counts();
-  }
-
  private:
-  // Write the header (as defined in section 4.1 of the RFC) to *output.
-  // This includes information that can be gathered
-  // before the first chunk of input is available.
-  void WriteHeader(OutputStringInterface* output) const;
-
   const VCDiffEngine* engine_;
 
-  // This implementation of the encoder uses the default
-  // code table.  A VCDiffCodeTableWriter could also be constructed
-  // using a custom code table.
-  VCDiffCodeTableWriter coder_;
+  std::auto_ptr<CodeTableWriterInterface> coder_;
 
   const VCDiffFormatExtensionFlags format_extensions_;
 
@@ -103,39 +92,28 @@ inline VCDiffStreamingEncoderImpl::VCDiffStreamingEncoderImpl(
     VCDiffFormatExtensionFlags format_extensions,
     bool look_for_target_matches)
     : engine_(dictionary->engine()),
-      coder_((format_extensions & VCD_FORMAT_INTERLEAVED) != 0),
       format_extensions_(format_extensions),
       look_for_target_matches_(look_for_target_matches),
-      encode_chunk_allowed_(false) { }
-
-inline void VCDiffStreamingEncoderImpl::WriteHeader(
-    OutputStringInterface* output) const {
-  DeltaFileHeader header_data = {
-    0xD6,  // Header1: "V" | 0x80
-    0xC3,  // Header2: "C" | 0x80
-    0xC4,  // Header3: "D" | 0x80
-    0x00,  // Header4: Draft standard format
-    0x00 };  // Hdr_Indicator:
-             // No compression, no custom code table
-  if (format_extensions_ != VCD_STANDARD_FORMAT) {
-    header_data.header4 = 'S';  // Header4: VCDIFF/SDCH, extensions used
+      encode_chunk_allowed_(false) {
+  if (format_extensions & VCD_FORMAT_JSON) {
+    coder_.reset(new JSONCodeTableWriter());
+  } else {
+    // This implementation of the encoder uses the default
+    // code table.  A VCDiffCodeTableWriter could also be constructed
+    // using a custom code table.
+    coder_.reset(new VCDiffCodeTableWriter(
+        (format_extensions & VCD_FORMAT_INTERLEAVED) != 0));
   }
-  output->append(reinterpret_cast<const char*>(&header_data),
-                 sizeof(header_data));
-  // If custom cache table sizes or a custom code table were used
-  // for encoding, here is where they would be appended to *output.
-  // This implementation of the encoder does not use those features,
-  // although the decoder can understand and interpret them.
 }
 
 inline bool VCDiffStreamingEncoderImpl::StartEncoding(
     OutputStringInterface* out) {
-  if (!coder_.Init(engine_->dictionary_size())) {
-    LOG(DFATAL) << "Internal error: "
-                   "Initialization of code table writer failed" << LOG_ENDL;
+  if (!coder_->Init(engine_->dictionary_size())) {
+    VCD_DFATAL << "Internal error: "
+                  "Initialization of code table writer failed" << VCD_ENDL;
     return false;
   }
-  WriteHeader(out);
+  coder_->WriteHeader(out, format_extensions_);
   encode_chunk_allowed_ = true;
   return true;
 }
@@ -145,26 +123,24 @@ inline bool VCDiffStreamingEncoderImpl::EncodeChunk(
     size_t len,
     OutputStringInterface* out) {
   if (!encode_chunk_allowed_) {
-    LOG(ERROR) << "EncodeChunk called before StartEncoding" << LOG_ENDL;
+    VCD_ERROR << "EncodeChunk called before StartEncoding" << VCD_ENDL;
     return false;
   }
   if ((format_extensions_ & VCD_FORMAT_CHECKSUM) != 0) {
-    coder_.AddChecksum(ComputeAdler32(data, len));
+    coder_->AddChecksum(ComputeAdler32(data, len));
   }
-  engine_->Encode(data, len, look_for_target_matches_, out, &coder_);
+  engine_->Encode(data, len, look_for_target_matches_, out, coder_.get());
   return true;
 }
 
 inline bool VCDiffStreamingEncoderImpl::FinishEncoding(
-    OutputStringInterface* /*out*/) {
+    OutputStringInterface* out) {
   if (!encode_chunk_allowed_) {
-    LOG(ERROR) << "FinishEncoding called before StartEncoding" << LOG_ENDL;
+    VCD_ERROR << "FinishEncoding called before StartEncoding" << VCD_ENDL;
     return false;
   }
   encode_chunk_allowed_ = false;
-  // There should not be any need to output more data
-  // since EncodeChunk() encodes a complete target window
-  // and there is no end-of-delta-file marker.
+  coder_->FinishEncoding(out);
   return true;
 }
 
@@ -195,22 +171,13 @@ bool VCDiffStreamingEncoder::FinishEncodingToInterface(
   return impl_->FinishEncoding(out);
 }
 
-void VCDiffStreamingEncoder::GetMatchCounts(
-    std::vector<int>* match_counts) const {
-  if (!match_counts) {
-    LOG(DFATAL) << "GetMatchCounts() called with NULL argument" << LOG_ENDL;
-    return;
-  }
-  *match_counts = impl_->match_counts();
-}
-
 bool VCDiffEncoder::EncodeToInterface(const char* target_data,
                                       size_t target_len,
                                       OutputStringInterface* out) {
   out->clear();
   if (!encoder_) {
     if (!dictionary_.Init()) {
-      LOG(ERROR) << "Error initializing HashedDictionary" << LOG_ENDL;
+      VCD_ERROR << "Error initializing HashedDictionary" << VCD_ENDL;
       return false;
     }
     encoder_ = new VCDiffStreamingEncoder(&dictionary_,

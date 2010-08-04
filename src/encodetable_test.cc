@@ -20,7 +20,6 @@
 #include <string.h>  // strlen
 #include <algorithm>
 #include <string>
-#include <vector>
 #include "addrcache.h"  // VCDiffAddressCache::kDefaultNearCacheSize
 #include "checksum.h"
 #include "codetable.h"
@@ -107,27 +106,12 @@ class CodeTableWriterTest : public testing::Test {
 
   void ExpectString(const char* s) {
     const size_t size = strlen(s);  // don't include terminating NULL char
-    EXPECT_EQ(string(s, size),
-              string(out.data() + out_index, size));
+    EXPECT_EQ(s, string(out.data() + out_index, size));
     out_index += size;
   }
 
   void ExpectNoMoreBytes() {
     EXPECT_EQ(out_index, out.size());
-  }
-
-  static bool AnyMatch(int match_count) { return match_count != 0; }
-
-  static void ExpectNoMatchesForWriter(const VCDiffCodeTableWriter& writer) {
-    const std::vector<int>& match_counts = writer.match_counts();
-    EXPECT_TRUE(find_if(match_counts.begin(), match_counts.end(), AnyMatch)
-                    == match_counts.end());
-  }
-
-  void ExpectNoMatches() const {
-    ExpectNoMatchesForWriter(standard_writer);
-    ExpectNoMatchesForWriter(interleaved_writer);
-    ExpectNoMatchesForWriter(exercise_writer);
   }
 
   // This value is designed so that the total number of inst values and modes
@@ -214,8 +198,6 @@ TEST_F(CodeTableWriterTest, WriterEncodeNothing) {
   EXPECT_TRUE(exercise_writer.Init(0x20));
   exercise_writer.Output(&output_string);
   EXPECT_TRUE(out.empty());
-
-  ExpectNoMatches();
 }
 
 TEST_F(CodeTableWriterTest, StandardWriterEncodeAdd) {
@@ -234,7 +216,6 @@ TEST_F(CodeTableWriterTest, StandardWriterEncodeAdd) {
   ExpectString("foo");
   ExpectByte(0x04);  // ADD(3) opcode
   ExpectNoMoreBytes();
-  ExpectNoMatches();
 }
 
 TEST_F(CodeTableWriterTest, ExerciseWriterEncodeAdd) {
@@ -253,7 +234,6 @@ TEST_F(CodeTableWriterTest, ExerciseWriterEncodeAdd) {
   ExpectByte(0x04);  // Opcode: NOOP + ADD(0)
   ExpectByte(0x03);  // Size of ADD (3)
   ExpectString("foo");
-  ExpectNoMatches();
 }
 
 TEST_F(CodeTableWriterTest, StandardWriterEncodeRun) {
@@ -273,7 +253,6 @@ TEST_F(CodeTableWriterTest, StandardWriterEncodeRun) {
   ExpectByte(0x00);  // RUN(0) opcode
   ExpectByte(0x03);  // Size of RUN (3)
   ExpectNoMoreBytes();
-  ExpectNoMatches();
 }
 
 TEST_F(CodeTableWriterTest, ExerciseWriterEncodeRun) {
@@ -293,7 +272,6 @@ TEST_F(CodeTableWriterTest, ExerciseWriterEncodeRun) {
   ExpectByte(0x03);  // Size of RUN (3)
   ExpectByte('a');
   ExpectNoMoreBytes();
-  ExpectNoMatches();
 }
 
 TEST_F(CodeTableWriterTest, StandardWriterEncodeCopy) {
@@ -315,16 +293,6 @@ TEST_F(CodeTableWriterTest, StandardWriterEncodeCopy) {
   ExpectByte(0x02);  // COPY address (2)
   ExpectByte(0x02);  // COPY address (2)
   ExpectNoMoreBytes();
-  EXPECT_LE(9U, standard_writer.match_counts().size());
-  EXPECT_EQ(0, standard_writer.match_counts()[0]);
-  EXPECT_EQ(0, standard_writer.match_counts()[1]);
-  EXPECT_EQ(0, standard_writer.match_counts()[2]);
-  EXPECT_EQ(0, standard_writer.match_counts()[3]);
-  EXPECT_EQ(0, standard_writer.match_counts()[4]);
-  EXPECT_EQ(0, standard_writer.match_counts()[5]);
-  EXPECT_EQ(0, standard_writer.match_counts()[6]);
-  EXPECT_EQ(0, standard_writer.match_counts()[7]);
-  EXPECT_EQ(2, standard_writer.match_counts()[8]);
 }
 
 // The exercise code table can't be used to test how the code table
@@ -350,16 +318,6 @@ TEST_F(CodeTableWriterTest, InterleavedWriterEncodeCopy) {
   ExpectByte(0x78);  // COPY mode SAME(0), size 8
   ExpectByte(0x02);  // COPY address (2)
   ExpectNoMoreBytes();
-  EXPECT_LE(9U, interleaved_writer.match_counts().size());
-  EXPECT_EQ(0, interleaved_writer.match_counts()[0]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[1]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[2]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[3]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[4]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[5]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[6]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[7]);
-  EXPECT_EQ(2, interleaved_writer.match_counts()[8]);
 }
 
 TEST_F(CodeTableWriterTest, StandardWriterEncodeCombo) {
@@ -384,13 +342,6 @@ TEST_F(CodeTableWriterTest, StandardWriterEncodeCombo) {
   ExpectByte(0x02);  // COPY address (2)
   ExpectByte(0x00);  // COPY address (0)
   ExpectNoMoreBytes();
-  EXPECT_LE(6U, standard_writer.match_counts().size());
-  EXPECT_EQ(0, standard_writer.match_counts()[0]);
-  EXPECT_EQ(0, standard_writer.match_counts()[1]);
-  EXPECT_EQ(0, standard_writer.match_counts()[2]);
-  EXPECT_EQ(0, standard_writer.match_counts()[3]);
-  EXPECT_EQ(1, standard_writer.match_counts()[4]);
-  EXPECT_EQ(1, standard_writer.match_counts()[5]);
 }
 
 TEST_F(CodeTableWriterTest, InterleavedWriterEncodeCombo) {
@@ -416,13 +367,6 @@ TEST_F(CodeTableWriterTest, InterleavedWriterEncodeCombo) {
   ExpectByte(0x00);  // COPY address (0)
   ExpectByte('X');
   ExpectNoMoreBytes();
-  EXPECT_LE(6U, interleaved_writer.match_counts().size());
-  EXPECT_EQ(0, interleaved_writer.match_counts()[0]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[1]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[2]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[3]);
-  EXPECT_EQ(1, interleaved_writer.match_counts()[4]);
-  EXPECT_EQ(1, interleaved_writer.match_counts()[5]);
 }
 
 TEST_F(CodeTableWriterTest, InterleavedWriterEncodeComboWithChecksum) {
@@ -480,16 +424,6 @@ TEST_F(CodeTableWriterTest, ReallyBigDictionary) {
   ExpectByte(0x28);  // COPY mode HERE, size 8
   ExpectByte(0x09);  // COPY address (9)
   ExpectNoMoreBytes();
-  EXPECT_LE(9U, interleaved_writer.match_counts().size());
-  EXPECT_EQ(0, interleaved_writer.match_counts()[0]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[1]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[2]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[3]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[4]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[5]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[6]);
-  EXPECT_EQ(0, interleaved_writer.match_counts()[7]);
-  EXPECT_EQ(2, interleaved_writer.match_counts()[8]);
 }
 
 #ifdef GTEST_HAS_DEATH_TEST
