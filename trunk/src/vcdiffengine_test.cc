@@ -18,7 +18,6 @@
 #include <string.h>  // memset, strlen
 #include <algorithm>
 #include <string>
-#include <vector>
 #include "addrcache.h"
 #include "blockhash.h"
 #include "encodetable.h"
@@ -53,7 +52,6 @@ class VCDiffEngineTestBase : public testing::Test {
   virtual ~VCDiffEngineTestBase() { }
 
   virtual void TearDown() {
-    VerifyMatchCounts();
   }
 
   // Copy string_without_spaces into newly allocated result buffer,
@@ -221,7 +219,6 @@ class VCDiffEngineTestBase : public testing::Test {
       ExpectInstructionByte(0x13 + (0x10 * mode));
       ExpectInstructionVarint(size);
     }
-    ExpectMatch(size);
   }
 
   bool ExpectAddCopyInstruction(int add_size, int copy_size, int copy_mode) {
@@ -233,13 +230,11 @@ class VCDiffEngineTestBase : public testing::Test {
                             (0x0C * copy_mode) +
                             (0x03 * add_size) +
                             copy_size);
-      ExpectMatch(copy_size);
       return true;
     } else if (default_cache_.IsSameMode(copy_mode) &&
                (add_size <= 4) &&
                (copy_size == 4)) {
       ExpectInstructionByte(0xD2 + (0x04 * copy_mode) + add_size);
-      ExpectMatch(copy_size);
       return true;
     } else {
       ExpectAddInstruction(add_size);
@@ -286,20 +281,6 @@ class VCDiffEngineTestBase : public testing::Test {
     ExpectSize(address_bytes_);
   }
 
-  void ExpectMatch(size_t match_size) {
-    if (match_size >= expected_match_counts_.size()) {
-      // Be generous to avoid resizing again
-      expected_match_counts_.resize(match_size * 2, 0);
-    }
-    ++expected_match_counts_[match_size];
-  }
-
-  void VerifyMatchCounts() {
-    EXPECT_TRUE(std::equal(expected_match_counts_.begin(),
-                           expected_match_counts_.end(),
-                           actual_match_counts_.begin()));
-  }
-
   bool interleaved_;
   string diff_;
   OutputString<string> diff_output_string_;
@@ -311,8 +292,6 @@ class VCDiffEngineTestBase : public testing::Test {
   size_t instruction_bytes_;
   size_t address_bytes_;
   VCDiffAddressCache default_cache_;  // Used for finding mode values
-  std::vector<int> expected_match_counts_;
-  std::vector<int> actual_match_counts_;
 };
 
 class VCDiffEngineTest : public VCDiffEngineTestBase {
@@ -342,7 +321,6 @@ class VCDiffEngineTest : public VCDiffEngineTestBase {
     coder.Init(engine_.dictionary_size());
     engine_.Encode("", 0, target_matching, &diff_output_string_, &coder);
     EXPECT_TRUE(diff_.empty());
-    actual_match_counts_ = coder.match_counts();
   }
 
   // text must be NULL-terminated
@@ -355,7 +333,6 @@ class VCDiffEngineTest : public VCDiffEngineTestBase {
                    target_matching,
                    &diff_output_string_,
                    &coder);
-    actual_match_counts_ = coder.match_counts();
   }
 
   void Encode(bool interleaved, bool target_matching) {
@@ -644,7 +621,6 @@ class WeaselsToMoonpiesTest : public VCDiffEngineTestBase {
                    target_matching,
                    &diff_output_string_,
                    &coder);
-    actual_match_counts_ = coder.match_counts();
   }
 
   void Encode(bool interleaved, bool target_matching) {

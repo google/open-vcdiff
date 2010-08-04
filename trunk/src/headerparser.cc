@@ -25,9 +25,9 @@ namespace open_vcdiff {
 
 void ParseableChunk::Advance(size_t number_of_bytes) {
   if (number_of_bytes > UnparsedSize()) {
-    LOG(DFATAL) << "Internal error: position advanced by " << number_of_bytes
-                << " bytes, current unparsed size " << UnparsedSize()
-                << LOG_ENDL;
+    VCD_DFATAL << "Internal error: position advanced by " << number_of_bytes
+               << " bytes, current unparsed size " << UnparsedSize()
+               << VCD_ENDL;
     position_ = end_;
     return;
   }
@@ -36,14 +36,14 @@ void ParseableChunk::Advance(size_t number_of_bytes) {
 
 void ParseableChunk::SetPosition(const char* position) {
   if (position < start_) {
-    LOG(DFATAL) << "Internal error: new data position " << position
-                << " is beyond start of data " << start_ << LOG_ENDL;
+    VCD_DFATAL << "Internal error: new data position " << position
+               << " is beyond start of data " << start_ << VCD_ENDL;
     position_ = start_;
     return;
   }
   if (position > end_) {
-    LOG(DFATAL) << "Internal error: new data position " << position
-                << " is beyond end of data " << end_ << LOG_ENDL;
+    VCD_DFATAL << "Internal error: new data position " << position
+               << " is beyond end of data " << end_ << VCD_ENDL;
     position_ = end_;
     return;
   }
@@ -52,9 +52,9 @@ void ParseableChunk::SetPosition(const char* position) {
 
 void ParseableChunk::FinishExcept(size_t number_of_bytes) {
   if (number_of_bytes > UnparsedSize()) {
-    LOG(DFATAL) << "Internal error: specified number of remaining bytes "
-                << number_of_bytes << " is greater than unparsed data size "
-                << UnparsedSize() << LOG_ENDL;
+    VCD_DFATAL << "Internal error: specified number of remaining bytes "
+               << number_of_bytes << " is greater than unparsed data size "
+               << UnparsedSize() << VCD_ENDL;
     Finish();
     return;
   }
@@ -93,8 +93,8 @@ bool VCDiffHeaderParser::ParseInt32(const char* variable_description,
                                parseable_chunk_.UnparsedDataAddr());
   switch (parsed_value) {
     case RESULT_ERROR:
-      LOG(ERROR) << "Expected " << variable_description
-                 << "; found invalid variable-length integer" << LOG_ENDL;
+      VCD_ERROR << "Expected " << variable_description
+                << "; found invalid variable-length integer" << VCD_ENDL;
       return_code_ = RESULT_ERROR;
       return false;
     case RESULT_END_OF_DATA:
@@ -120,8 +120,8 @@ bool VCDiffHeaderParser::ParseUInt32(const char* variable_description,
                                parseable_chunk_.UnparsedDataAddr());
   switch (parsed_value) {
     case RESULT_ERROR:
-      LOG(ERROR) << "Expected " << variable_description
-                 << "; found invalid variable-length integer" << LOG_ENDL;
+      VCD_ERROR << "Expected " << variable_description
+                << "; found invalid variable-length integer" << VCD_ENDL;
       return_code_ = RESULT_ERROR;
       return false;
     case RESULT_END_OF_DATA:
@@ -129,8 +129,8 @@ bool VCDiffHeaderParser::ParseUInt32(const char* variable_description,
       return false;
     default:
       if (parsed_value > 0xFFFFFFFF) {
-        LOG(ERROR) << "Value of " << variable_description << "(" << parsed_value
-                   << ") is too large for unsigned 32-bit integer" << LOG_ENDL;
+        VCD_ERROR << "Value of " << variable_description << "(" << parsed_value
+                  << ") is too large for unsigned 32-bit integer" << VCD_ENDL;
         return_code_ = RESULT_ERROR;
         return false;
       }
@@ -173,9 +173,9 @@ bool VCDiffHeaderParser::ParseSourceSegmentLengthAndPosition(
   }
   // Guard against overflow by checking source length first
   if (*source_segment_length > from_size) {
-    LOG(ERROR) << "Source segment length (" << *source_segment_length
-               << ") is larger than " << from_name << " (" << from_size
-               << ")" << LOG_ENDL;
+    VCD_ERROR << "Source segment length (" << *source_segment_length
+              << ") is larger than " << from_name << " (" << from_size
+              << ")" << VCD_ENDL;
     return_code_ = RESULT_ERROR;
     return false;
   }
@@ -184,18 +184,18 @@ bool VCDiffHeaderParser::ParseSourceSegmentLengthAndPosition(
   }
   if ((*source_segment_position >= from_size) &&
       (*source_segment_length > 0)) {
-    LOG(ERROR) << "Source segment position (" << *source_segment_position
-               << ") is past " << from_boundary_name
-               << " (" << from_size << ")" << LOG_ENDL;
+    VCD_ERROR << "Source segment position (" << *source_segment_position
+              << ") is past " << from_boundary_name
+              << " (" << from_size << ")" << VCD_ENDL;
     return_code_ = RESULT_ERROR;
     return false;
   }
   const size_t source_segment_end = *source_segment_position +
                                     *source_segment_length;
   if (source_segment_end > from_size) {
-    LOG(ERROR) << "Source segment end position (" << source_segment_end
-               << ") is past " << from_boundary_name
-               << " (" << from_size << ")" << LOG_ENDL;
+    VCD_ERROR << "Source segment end position (" << source_segment_end
+              << ") is past " << from_boundary_name
+              << " (" << from_size << ")" << VCD_ENDL;
     return_code_ = RESULT_ERROR;
     return false;
   }
@@ -223,8 +223,8 @@ bool VCDiffHeaderParser::ParseWinIndicatorAndSourceSegment(
                                                  source_segment_position);
     case VCD_TARGET:
       if (!allow_vcd_target) {
-        LOG(ERROR) << "Delta file contains VCD_TARGET flag, which is not "
-                      "allowed by current decoder settings" << LOG_ENDL;
+        VCD_ERROR << "Delta file contains VCD_TARGET flag, which is not "
+                     "allowed by current decoder settings" << VCD_ENDL;
         return_code_ = RESULT_ERROR;
         return false;
       }
@@ -234,8 +234,8 @@ bool VCDiffHeaderParser::ParseWinIndicatorAndSourceSegment(
                                                  source_segment_length,
                                                  source_segment_position);
     case VCD_SOURCE | VCD_TARGET:
-      LOG(ERROR) << "Win_Indicator must not have both VCD_SOURCE"
-                    " and VCD_TARGET set" << LOG_ENDL;
+      VCD_ERROR << "Win_Indicator must not have both VCD_SOURCE"
+                   " and VCD_TARGET set" << VCD_ENDL;
       return_code_ = RESULT_ERROR;
       return false;
     default:
@@ -245,8 +245,8 @@ bool VCDiffHeaderParser::ParseWinIndicatorAndSourceSegment(
 
 bool VCDiffHeaderParser::ParseWindowLengths(size_t* target_window_length) {
   if (delta_encoding_start_) {
-    LOG(DFATAL) << "Internal error: VCDiffHeaderParser::ParseWindowLengths "
-                   "was called twice for the same delta window" << LOG_ENDL;
+    VCD_DFATAL << "Internal error: VCDiffHeaderParser::ParseWindowLengths "
+                  "was called twice for the same delta window" << VCD_ENDL;
     return_code_ = RESULT_ERROR;
     return false;
   }
@@ -262,8 +262,8 @@ bool VCDiffHeaderParser::ParseWindowLengths(size_t* target_window_length) {
 
 const char* VCDiffHeaderParser::EndOfDeltaWindow() const {
   if (!delta_encoding_start_) {
-    LOG(DFATAL) << "Internal error: VCDiffHeaderParser::GetDeltaWindowEnd "
-                   "was called before ParseWindowLengths" << LOG_ENDL;
+    VCD_DFATAL << "Internal error: VCDiffHeaderParser::GetDeltaWindowEnd "
+                  "was called before ParseWindowLengths" << VCD_ENDL;
     return NULL;
   }
   return delta_encoding_start_ + delta_encoding_length_;
@@ -275,8 +275,8 @@ bool VCDiffHeaderParser::ParseDeltaIndicator() {
     return false;
   }
   if (delta_indicator & (VCD_DATACOMP | VCD_INSTCOMP | VCD_ADDRCOMP)) {
-    LOG(ERROR) << "Secondary compression of delta file sections "
-                  "is not supported" << LOG_ENDL;
+    VCD_ERROR << "Secondary compression of delta file sections "
+                 "is not supported" << VCD_ENDL;
     return_code_ = RESULT_ERROR;
     return false;
   }
@@ -299,8 +299,8 @@ bool VCDiffHeaderParser::ParseSectionLengths(
     return false;
   }
   if (!delta_encoding_start_) {
-    LOG(DFATAL) << "Internal error: VCDiffHeaderParser::ParseSectionLengths "
-                   "was called before ParseWindowLengths" << LOG_ENDL;
+    VCD_DFATAL << "Internal error: VCDiffHeaderParser::ParseSectionLengths "
+                  "was called before ParseWindowLengths" << VCD_ENDL;
     return_code_ = RESULT_ERROR;
     return false;
   }
@@ -311,9 +311,9 @@ bool VCDiffHeaderParser::ParseSectionLengths(
            *add_and_run_data_length +
            *instructions_and_sizes_length +
            *addresses_length)) {
-    LOG(ERROR) << "The length of the delta encoding does not match "
-                  "the size of the header plus the sizes of the data sections"
-               << LOG_ENDL;
+    VCD_ERROR << "The length of the delta encoding does not match "
+                 "the size of the header plus the sizes of the data sections"
+              << VCD_ENDL;
     return_code_ = RESULT_ERROR;
     return false;
   }

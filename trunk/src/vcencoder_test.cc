@@ -38,7 +38,10 @@ using __gnu_cxx::crope;
 #endif  // HAVE_MALLOC_H
 
 #ifdef HAVE_SYS_MMAN_H
+#if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 600
+#undef  _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600  // posix_memalign
+#endif
 #include <sys/mman.h>  // mprotect
 #endif  // HAVE_SYS_MMAN_H
 
@@ -76,8 +79,7 @@ class VerifyEncodedBytesTest : public testing::Test {
 
   void ExpectString(const char* s) {
     const size_t size = strlen(s);  // don't include terminating NULL char
-    EXPECT_EQ(string(s, size),
-              string(delta_data() + delta_index_, size));
+    EXPECT_EQ(s, string(delta_data() + delta_index_, size));
     delta_index_ += size;
   }
 
@@ -118,11 +120,14 @@ class VCDiffEncoderTest : public VerifyEncodedBytesTest {
  protected:
   static const char kDictionary[];
   static const char kTarget[];
+  static const char kJSONDiff[];
 
   VCDiffEncoderTest();
   virtual ~VCDiffEncoderTest() { }
 
-  void TestWithFixedChunkSize(size_t chunk_size);
+  void TestWithFixedChunkSize(VCDiffStreamingEncoder *encoder,
+                              VCDiffStreamingDecoder *decoder,
+                              size_t chunk_size);
   void TestWithEncodedChunkVector(size_t chunk_size);
 
   HashedDictionary hashed_dictionary_;
@@ -130,6 +135,7 @@ class VCDiffEncoderTest : public VerifyEncodedBytesTest {
   VCDiffStreamingDecoder decoder_;
   VCDiffEncoder simple_encoder_;
   VCDiffDecoder simple_decoder_;
+  VCDiffStreamingEncoder json_encoder_;
 
   string result_target_;
 };
@@ -146,12 +152,21 @@ const char VCDiffEncoderTest::kTarget[] =
     "Just the place for a Snark! I have said it thrice:\n"
     "What I tell you three times is true.\"\n";
 
+const char VCDiffEncoderTest::kJSONDiff[] =
+    "[\"\\\"Just the place for a Snark! I have said it twice:\\n"
+    "That alone should encourage the crew.\\n\","
+    "161,44,"
+    "\"hrice:\\nWhat I tell you three times is true.\\\"\\n\",]";
+
 VCDiffEncoderTest::VCDiffEncoderTest()
     : hashed_dictionary_(kDictionary, sizeof(kDictionary)),
       encoder_(&hashed_dictionary_,
                VCD_FORMAT_INTERLEAVED | VCD_FORMAT_CHECKSUM,
                /* look_for_target_matches = */ true),
-      simple_encoder_(kDictionary, sizeof(kDictionary)) {
+      simple_encoder_(kDictionary, sizeof(kDictionary)),
+      json_encoder_(&hashed_dictionary_,
+                    VCD_FORMAT_JSON,
+                    /* look_for_target_matches = */ true) {
   EXPECT_TRUE(hashed_dictionary_.Init());
 }
 
@@ -177,6 +192,17 @@ TEST_F(VCDiffEncoderTest, EncodeDecodeNothing) {
                                    &result_target_));
   EXPECT_TRUE(decoder_.FinishDecoding());
   EXPECT_TRUE(result_target_.empty());
+}
+
+TEST_F(VCDiffEncoderTest, EncodeNothingJSON) {
+  HashedDictionary nothing_dictionary("", 0);
+  EXPECT_TRUE(nothing_dictionary.Init());
+  VCDiffStreamingEncoder nothing_encoder(&nothing_dictionary,
+                                         VCD_FORMAT_JSON,
+                                         false);
+  EXPECT_TRUE(nothing_encoder.StartEncoding(delta()));
+  EXPECT_TRUE(nothing_encoder.FinishEncoding(delta()));
+  EXPECT_EQ("", delta_as_const());
 }
 
 // A NULL dictionary pointer is legal as long as the dictionary size is 0.
@@ -250,6 +276,13 @@ TEST_F(VCDiffEncoderTest, EncodeDecodeSingleChunk) {
   EXPECT_EQ(kTarget, result_target_);
 }
 
+TEST_F(VCDiffEncoderTest, EncodeSimpleJSON) {
+  EXPECT_TRUE(json_encoder_.StartEncoding(delta()));
+  EXPECT_TRUE(json_encoder_.EncodeChunk(kTarget, strlen(kTarget), delta()));
+  EXPECT_TRUE(json_encoder_.FinishEncoding(delta()));
+  EXPECT_EQ(kJSONDiff, delta_as_const());
+}
+
 TEST_F(VCDiffEncoderTest, EncodeDecodeSeparate) {
   string delta_start, delta_encode, delta_finish;
   EXPECT_TRUE(encoder_.StartEncoding(&delta_start));
@@ -295,9 +328,13 @@ TEST_F(VCDiffEncoderTest, EncodeDecodeCrope) {
 }
 #endif  // HAVE_EXT_ROPE
 
-void VCDiffEncoderTest::TestWithFixedChunkSize(size_t chunk_size) {
+// Test the encoding and decoding with a fixed chunk size.
+// If decoder is null, only test the encoding.
+void VCDiffEncoderTest::TestWithFixedChunkSize(VCDiffStreamingEncoder *encoder,
+                                               VCDiffStreamingDecoder *decoder,
+                                               size_t chunk_size) {
   delta()->clear();
-  EXPECT_TRUE(encoder_.StartEncoding(delta()));
+  EXPECT_TRUE(encoder->StartEncoding(delta()));
   for (size_t chunk_start_index = 0;
        chunk_start_index < strlen(kTarget);
        chunk_start_index += chunk_size) {
@@ -306,17 +343,20 @@ void VCDiffEncoderTest::TestWithFixedChunkSize(size_t chunk_size) {
     if (this_chunk_size > bytes_available) {
       this_chunk_size = bytes_available;
     }
-    EXPECT_TRUE(encoder_.EncodeChunk(&kTarget[chunk_start_index],
+    EXPECT_TRUE(encoder->EncodeChunk(&kTarget[chunk_start_index],
                                      this_chunk_size,
                                      delta()));
   }
-  EXPECT_TRUE(encoder_.FinishEncoding(delta()));
+  EXPECT_TRUE(encoder->FinishEncoding(delta()));
   const size_t num_windows = (strlen(kTarget) / chunk_size) + 1;
   const size_t size_of_windows =
       strlen(kTarget) + (kWindowHeaderSize * num_windows);
   EXPECT_GE(kFileHeaderSize + size_of_windows, delta_size());
   result_target_.clear();
-  decoder_.StartDecoding(kDictionary, sizeof(kDictionary));
+
+  if (!decoder) return;
+
+  decoder->StartDecoding(kDictionary, sizeof(kDictionary));
   for (size_t chunk_start_index = 0;
        chunk_start_index < delta_size();
        chunk_start_index += chunk_size) {
@@ -325,25 +365,50 @@ void VCDiffEncoderTest::TestWithFixedChunkSize(size_t chunk_size) {
     if (this_chunk_size > bytes_available) {
       this_chunk_size = bytes_available;
     }
-    EXPECT_TRUE(decoder_.DecodeChunk(delta_data() + chunk_start_index,
+    EXPECT_TRUE(decoder->DecodeChunk(delta_data() + chunk_start_index,
                                      this_chunk_size,
                                      &result_target_));
   }
-  EXPECT_TRUE(decoder_.FinishDecoding());
+  EXPECT_TRUE(decoder->FinishDecoding());
   EXPECT_EQ(kTarget, result_target_);
 }
 
 TEST_F(VCDiffEncoderTest, EncodeDecodeFixedChunkSizes) {
   // These specific chunk sizes have failed in the past
-  TestWithFixedChunkSize(6);
-  TestWithFixedChunkSize(45);
-  TestWithFixedChunkSize(60);
+  TestWithFixedChunkSize(&encoder_, &decoder_, 6);
+  TestWithFixedChunkSize(&encoder_, &decoder_, 45);
+  TestWithFixedChunkSize(&encoder_, &decoder_, 60);
 
   // Now loop through all possible chunk sizes
   for (size_t chunk_size = 1; chunk_size < strlen(kTarget); ++chunk_size) {
-    TestWithFixedChunkSize(chunk_size);
+    TestWithFixedChunkSize(&encoder_, &decoder_, chunk_size);
   }
 }
+
+TEST_F(VCDiffEncoderTest, EncodeFixedChunkSizesJSON) {
+  // There is no JSON decoder; these diffs are created by hand.
+  TestWithFixedChunkSize(&json_encoder_, NULL, 6);
+  EXPECT_EQ("[\"\\\"Just \",\"the pl\",\"ace fo\",\"r a Sn\",\"ark! I\","
+            "\" have \",\"said i\",\"t twic\",\"e:\\nTha\",\"t alon\","
+            "\"e shou\",\"ld enc\",\"ourage\",\" the c\",\"rew.\\nJ\","
+            "\"ust th\",\"e plac\",\"e for \",\"a Snar\",\"k! I h\","
+            "\"ave sa\",\"id it \",\"thrice\",\":\\nWhat\",\" I tel\","
+            "\"l you \",\"three \",\"times \",\"is tru\",\"e.\\\"\\n\",]",
+            delta_as_const());
+  TestWithFixedChunkSize(&json_encoder_, NULL, 45);
+  EXPECT_EQ("[\"\\\"Just the place for a Snark! I have said it t\","
+            "\"wice:\\nThat alone should encourage the crew.\\nJ\","
+            "\"ust the place for a Snark! I have said it thr\",\"ice:\\n"
+            "What I tell you three times is true.\\\"\\n\",]",
+            delta_as_const());
+  TestWithFixedChunkSize(&json_encoder_, NULL, 60);
+  EXPECT_EQ("[\"\\\"Just the place for a Snark! I have said it twice:\\n"
+            "That alon\",\"e should encourage the crew.\\n"
+            "Just the place for a Snark! I h\",\"ave said it thrice:\\n"
+            "What I tell you three times is true.\\\"\\n\",]",
+            delta_as_const());
+}
+
 
 // If --allow_vcd_target=false is specified, the decoder will throw away some of
 // the internally-stored decoded target beyond the current window.  Try
@@ -353,7 +418,7 @@ TEST_F(VCDiffEncoderTest, EncodeDecodeFixedChunkSizesNoVcdTarget) {
   decoder_.SetAllowVcdTarget(false);
   // Loop through all possible chunk sizes
   for (size_t chunk_size = 1; chunk_size < strlen(kTarget); ++chunk_size) {
-    TestWithFixedChunkSize(chunk_size);
+    TestWithFixedChunkSize(&encoder_, &decoder_, chunk_size);
   }
 }
 
@@ -613,29 +678,7 @@ TEST_F(VCDiffEncoderTest, ShouldNotReadPastBeginningOfBuffer) {
 }
 #endif  // HAVE_MPROTECT && (HAVE_MEMALIGN || HAVE_POSIX_MEMALIGN)
 
-class VCDiffMatchCountTest : public VerifyEncodedBytesTest {
- protected:
-  virtual ~VCDiffMatchCountTest() { }
-
-  void ExpectMatch(size_t match_size) {
-    if (match_size >= expected_match_counts_.size()) {
-      // Be generous to avoid resizing again
-      expected_match_counts_.resize(match_size * 2, 0);
-    }
-    ++expected_match_counts_[match_size];
-  }
-
-  void VerifyMatchCounts() {
-    EXPECT_TRUE(std::equal(expected_match_counts_.begin(),
-                           expected_match_counts_.end(),
-                           actual_match_counts_.begin()));
-  }
-
-  std::vector<int> expected_match_counts_;
-  std::vector<int> actual_match_counts_;
-};
-
-class VCDiffHTML1Test : public VCDiffMatchCountTest {
+class VCDiffHTML1Test : public VerifyEncodedBytesTest {
  protected:
   static const char kDictionary[];
   static const char kTarget[];
@@ -759,20 +802,6 @@ TEST_F(VCDiffHTML1Test, CheckOutputOfSimpleEncoder) {
   ExpectNoMoreBytes();
 }
 
-TEST_F(VCDiffHTML1Test, MatchCounts) {
-  StreamingEncode();
-  encoder_.GetMatchCounts(&actual_match_counts_);
-  if (BlockHash::kBlockSize < 16) {
-    // A medium block size will catch the "his part " match.
-    ExpectMatch(56);
-    ExpectMatch(9);
-  } else if (BlockHash::kBlockSize <= 56) {
-    // Any block size up to 56 will catch the matching prefix string.
-    ExpectMatch(56);
-  }
-  VerifyMatchCounts();
-}
-
 TEST_F(VCDiffHTML1Test, SimpleEncoderPerformsTargetMatching) {
   EXPECT_TRUE(simple_encoder_.Encode(kRedundantTarget,
                                      strlen(kRedundantTarget),
@@ -846,15 +875,7 @@ TEST_F(VCDiffHTML1Test, SimpleEncoderWithoutTargetMatching) {
   ExpectNoMoreBytes();
 }
 
-#ifdef GTEST_HAS_DEATH_TEST
-typedef VCDiffHTML1Test VCDiffHTML1DeathTest;
-
-TEST_F(VCDiffHTML1DeathTest, NullMatchCounts) {
-  EXPECT_DEBUG_DEATH(encoder_.GetMatchCounts(NULL), "GetMatchCounts");
-}
-#endif  // GTEST_HAS_DEATH_TEST
-
-class VCDiffHTML2Test : public VCDiffMatchCountTest {
+class VCDiffHTML2Test : public VerifyEncodedBytesTest {
  protected:
   static const char kDictionary[];
   static const char kTarget[];
@@ -994,15 +1015,6 @@ TEST_F(VCDiffHTML2Test, VerifyOutputWithChecksum) {
     ExpectString(kTarget);
   }
   ExpectNoMoreBytes();
-}
-
-TEST_F(VCDiffHTML2Test, MatchCounts) {
-  StreamingEncode();
-  encoder_.GetMatchCounts(&actual_match_counts_);
-  if (BlockHash::kBlockSize <= 8) {
-    ExpectMatch(14);
-  }
-  VerifyMatchCounts();
 }
 
 }  // anonymous namespace

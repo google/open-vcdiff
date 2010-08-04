@@ -28,7 +28,10 @@
 #endif  // HAVE_MALLOC_H
 
 #ifdef HAVE_SYS_MMAN_H
+#if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 600
+#undef  _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600  // posix_memalign
+#endif
 #include <sys/mman.h>  // mprotect
 #endif  // HAVE_SYS_MMAN_H
 
@@ -91,7 +94,7 @@ TEST_F(VCDiffInterleavedDecoderTest, Decode) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTest, DecodeWithChecksum) {
@@ -102,7 +105,7 @@ TEST_F(VCDiffInterleavedDecoderTest, DecodeWithChecksum) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTest, ChecksumDoesNotMatch) {
@@ -164,7 +167,7 @@ TEST_F(VCDiffInterleavedDecoderTest, TargetMatchesWindowSizeLimit) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTest, TargetMatchesFileSizeLimit) {
@@ -174,7 +177,7 @@ TEST_F(VCDiffInterleavedDecoderTest, TargetMatchesFileSizeLimit) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTest, TargetExceedsWindowSizeLimit) {
@@ -225,7 +228,7 @@ TEST_F(VCDiffInterleavedDecoderTest, FuzzBitsWithChecksum) {
                              &output_)) {
       if (decoder_.FinishDecoding()) {
         // Decoding succeeded.  Make sure the correct target was produced.
-        EXPECT_EQ(expected_target_, output_);
+        EXPECT_EQ(expected_target_.c_str(), output_);
       }
     } else {
       EXPECT_EQ("", output_);
@@ -500,7 +503,7 @@ TEST_F(VCDiffInterleavedDecoderTest, ShouldNotReadPastEndOfBuffer) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 
   // Undo the mprotect.
   mprotect(second_page, page_size, PROT_READ|PROT_WRITE);
@@ -533,7 +536,7 @@ TEST_F(VCDiffInterleavedDecoderTest, ShouldNotReadPastBeginningOfBuffer) {
                                    delta_file_.size(),
                                    &output_));
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 
   // Undo the mprotect.
   mprotect(first_page, page_size, PROT_READ|PROT_WRITE);
@@ -624,7 +627,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, Decode) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTestByteByByte, DecodeWithChecksum) {
@@ -635,7 +638,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, DecodeWithChecksum) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTestByteByByte, ChecksumDoesNotMatch) {
@@ -690,7 +693,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, TargetMatchesWindowSizeLimit) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTestByteByByte, TargetMatchesFileSizeLimit) {
@@ -700,7 +703,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, TargetMatchesFileSizeLimit) {
     EXPECT_TRUE(decoder_.DecodeChunk(&delta_file_[i], 1, &output_));
   }
   EXPECT_TRUE(decoder_.FinishDecoding());
-  EXPECT_EQ(expected_target_, output_);
+  EXPECT_EQ(expected_target_.c_str(), output_);
 }
 
 TEST_F(VCDiffInterleavedDecoderTestByteByByte, TargetExceedsWindowSizeLimit) {
@@ -771,7 +774,7 @@ TEST_F(VCDiffInterleavedDecoderTestByteByByte, FuzzBitsWithChecksum) {
     if (!failed) {
       if (decoder_.FinishDecoding()) {
         // Decoding succeeded.  Make sure the correct target was produced.
-        EXPECT_EQ(expected_target_, output_);
+        EXPECT_EQ(expected_target_.c_str(), output_);
       }
     }
     // The decoder should not create more target bytes than were expected.

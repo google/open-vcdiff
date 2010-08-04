@@ -18,42 +18,46 @@
 
 #include <config.h>
 
-// The COMPILE_ASSERT macro can be used to verify that a compile-time
+namespace open_vcdiff {
+
+// The VCD_COMPILE_ASSERT macro can be used to verify that a compile-time
 // expression is true. For example, you could use it to verify the
 // size of a static array:
 //
-//   COMPILE_ASSERT(ARRAYSIZE(content_type_names) == CONTENT_NUM_TYPES,
-//                  content_type_names_incorrect_size);
+//   VCD_COMPILE_ASSERT(ARRAYSIZE(content_type_names) == CONTENT_NUM_TYPES,
+//                      content_type_names_incorrect_size);
 //
 // or to make sure a struct is smaller than a certain size:
 //
-//   COMPILE_ASSERT(sizeof(foo) < 128, foo_too_large);
+//   VCD_COMPILE_ASSERT(sizeof(foo) < 128, foo_too_large);
 //
-// For the second argument to COMPILE_ASSERT, the programmer should supply
+// For the second argument to VCD_COMPILE_ASSERT, the programmer should supply
 // a variable name that meets C++ naming rules, but that provides
 // a description of the compile-time rule that has been violated.
 // (In the example above, the name used is "foo_too_large".)
 // If the expression is false, most compilers will issue a warning/error
 // containing the name of the variable.
 // This refinement (adding a descriptive variable name argument)
-// is what differentiates COMPILE_ASSERT from Boost static asserts.
+// is what differentiates VCD_COMPILE_ASSERT from Boost static asserts.
 
 template <bool>
 struct CompileAssert {
 };
 
-#define COMPILE_ASSERT(expr, msg) \
-  typedef CompileAssert<static_cast<bool>(expr)> \
+}  // namespace open_vcdiff
+
+#define VCD_COMPILE_ASSERT(expr, msg) \
+  typedef open_vcdiff::CompileAssert<static_cast<bool>(expr)> \
       msg[static_cast<bool>(expr) ? 1 : -1]
 
-// Implementation details of COMPILE_ASSERT:
+// Implementation details of VCD_COMPILE_ASSERT:
 //
-// - COMPILE_ASSERT works by defining an array type that has -1
+// - VCD_COMPILE_ASSERT works by defining an array type that has -1
 //   elements (and thus is invalid) when the expression is false.
 //
 // - The simpler definition
 //
-//     #define COMPILE_ASSERT(expr, msg) typedef char msg[(expr) ? 1 : -1]
+//     #define VCD_COMPILE_ASSERT(expr, msg) typedef char msg[(expr) ? 1 : -1]
 //
 //   does not work, as gcc supports variable-length arrays whose sizes
 //   are determined at run-time (this is gcc's extension and not part
@@ -61,7 +65,7 @@ struct CompileAssert {
 //   following code with the simple definition:
 //
 //     int foo;
-//     COMPILE_ASSERT(foo, msg); // not supposed to compile as foo is
+//     VCD_COMPILE_ASSERT(foo, msg); // not supposed to compile as foo is
 //                               // not a compile-time constant.
 //
 // - By using the type CompileAssert<(static_cast<bool>(expr))>, we ensure that

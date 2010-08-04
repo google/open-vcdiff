@@ -38,7 +38,7 @@ const char* VCDiffInstructionName(VCDiffInstructionType inst) {
     case VCD_COPY:
       return "COPY";
     default:
-      LOG(ERROR) << "Unexpected instruction type " << inst << LOG_ENDL;
+      VCD_ERROR << "Unexpected instruction type " << inst << VCD_ENDL;
       return "";
   }
 }
@@ -195,31 +195,31 @@ bool VCDiffCodeTableData::ValidateOpcode(int opcode,
   // Check upper limits of inst and mode.  inst, size, and mode are
   // unsigned, so there is no lower limit on them.
   if (inst > VCD_LAST_INSTRUCTION_TYPE) {
-    LOG(ERROR) << "VCDiff: Bad code table; opcode " << opcode << " has invalid "
-               << first_or_second << " instruction type "
-               << static_cast<int>(inst) << LOG_ENDL;
+    VCD_ERROR << "VCDiff: Bad code table; opcode " << opcode << " has invalid "
+              << first_or_second << " instruction type "
+              << static_cast<int>(inst) << VCD_ENDL;
     no_errors_found = false;
   }
   if (mode > max_mode) {
-    LOG(ERROR) << "VCDiff: Bad code table; opcode " << opcode << " has invalid "
-               << first_or_second << " mode "
-               << static_cast<int>(mode) << LOG_ENDL;
+    VCD_ERROR << "VCDiff: Bad code table; opcode " << opcode << " has invalid "
+              << first_or_second << " mode "
+              << static_cast<int>(mode) << VCD_ENDL;
     no_errors_found = false;
   }
   // A NOOP instruction must have size 0
   // (and mode 0, which is included in the next rule)
   if ((inst == VCD_NOOP) && (size != 0)) {
-    LOG(ERROR) << "VCDiff: Bad code table; opcode " << opcode << " has "
-               << first_or_second << " instruction NOOP with nonzero size "
-               << static_cast<int>(size) << LOG_ENDL;
+    VCD_ERROR << "VCDiff: Bad code table; opcode " << opcode << " has "
+              << first_or_second << " instruction NOOP with nonzero size "
+              << static_cast<int>(size) << VCD_ENDL;
     no_errors_found = false;
   }
   // A nonzero mode can only be used with a COPY instruction
   if ((inst != VCD_COPY) && (mode != 0)) {
-    LOG(ERROR) << "VCDiff: Bad code table; opcode " << opcode
-               << " has non-COPY "
-               << first_or_second << " instruction with nonzero mode "
-               << static_cast<int>(mode) << LOG_ENDL;
+    VCD_ERROR << "VCDiff: Bad code table; opcode " << opcode
+              << " has non-COPY "
+              << first_or_second << " instruction with nonzero mode "
+              << static_cast<int>(mode) << VCD_ENDL;
     no_errors_found = false;
   }
   return no_errors_found;
@@ -259,12 +259,12 @@ bool VCDiffCodeTableData::Validate(unsigned char max_mode) const {
     if (i == VCD_NOOP) continue;
     if (!hasOpcodeForTypeAndMode[i])  {
       if (i >= VCD_COPY) {
-        LOG(ERROR) << "VCDiff: Bad code table; there is no opcode for inst "
-                      "COPY, size 0, mode " << (i - VCD_COPY) << LOG_ENDL;
+        VCD_ERROR << "VCDiff: Bad code table; there is no opcode for inst "
+                     "COPY, size 0, mode " << (i - VCD_COPY) << VCD_ENDL;
       } else {
-        LOG(ERROR) << "VCDiff: Bad code table; there is no opcode for inst "
+        VCD_ERROR << "VCDiff: Bad code table; there is no opcode for inst "
             << VCDiffInstructionName(static_cast<VCDiffInstructionType>(i))
-            << ", size 0,  mode 0" << LOG_ENDL;
+            << ", size 0,  mode 0" << VCD_ENDL;
       }
       no_errors_found = false;
     }

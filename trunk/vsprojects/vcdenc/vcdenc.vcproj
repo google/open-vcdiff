@@ -173,6 +173,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\jsonwriter.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\google\output_string.h"
 				>
 			</File>
@@ -210,6 +214,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\instruction_map.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\jsonwriter.cc"
 				>
 			</File>
 			<File

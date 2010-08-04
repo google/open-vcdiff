@@ -18,6 +18,7 @@
 
 #include <config.h>
 #include <stdint.h>  // uint32_t
+#include "compile_assert.h"
 #include "logging.h"
 
 namespace open_vcdiff {
@@ -99,18 +100,16 @@ class RollingHash {
   // than once.  It is not thread-safe, but calling it from two different
   // threads at the same time can only cause a memory leak, not incorrect
   // behavior.  Make sure to call it before spawning any threads that could use
-  // RollingHash.  The function returns true if initialization succeeds, or
-  // false if initialization fails, in which case the caller should not proceed
-  // to construct any objects of type RollingHash.
-  static bool Init();
+  // RollingHash.
+  static void Init();
 
   // Initialize hasher to maintain a window of the specified size.  You need an
   // instance of this type to use UpdateHash(), but Hash() does not depend on
   // remove_table_, so it is static.
   RollingHash() {
     if (!remove_table_) {
-      LOG(DFATAL) << "RollingHash object instantiated"
-                     " before calling RollingHash::Init()" << LOG_ENDL;
+      VCD_DFATAL << "RollingHash object instantiated"
+                    " before calling RollingHash::Init()" << VCD_ENDL;
     }
   }
 
@@ -175,12 +174,9 @@ const uint32_t* RollingHash<window_size>::remove_table_ = NULL;
 // the same window_size.
 //
 template<int window_size>
-bool RollingHash<window_size>::Init() {
-  if (window_size < 2) {
-    LOG(ERROR) << "RollingHash window size " << window_size
-               << " is too small" << LOG_ENDL;
-    return false;
-  }
+void RollingHash<window_size>::Init() {
+  VCD_COMPILE_ASSERT(window_size >= 2,
+                     RollingHash_window_size_must_be_at_least_2);
   if (remove_table_ == NULL) {
     // The new object is placed into a local pointer instead of directly into
     // remove_table_, for two reasons:
@@ -229,7 +225,6 @@ bool RollingHash<window_size>::Init() {
     }
     remove_table_ = new_remove_table;
   }
-  return true;
 }
 
 }  // namespace open_vcdiff

@@ -747,8 +747,9 @@ TEST_F(BlockHashDeathTest, CallingAddBlockBeforeInitIsIllegal) {
 }
 
 TEST_F(BlockHashDeathTest, AddAllBlocksThroughIndexOutOfRange) {
-  EXPECT_DEBUG_DEATH(th_->AddAllBlocksThroughIndex(strlen(sample_text) + 1),
-                     "higher than end");
+  EXPECT_DEBUG_DEATH(
+      th_->AddAllBlocksThroughIndex(static_cast<int>(strlen(sample_text) + 1)),
+      "higher than end");
 }
 #endif  // GTEST_HAS_DEATH_TEST
 

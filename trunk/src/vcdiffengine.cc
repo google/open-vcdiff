@@ -44,20 +44,17 @@ VCDiffEngine::~VCDiffEngine() {
 
 bool VCDiffEngine::Init() {
   if (hashed_dictionary_) {
-    LOG(DFATAL) << "Init() called twice for same VCDiffEngine object"
-                << LOG_ENDL;
+    VCD_DFATAL << "Init() called twice for same VCDiffEngine object"
+               << VCD_ENDL;
     return false;
   }
   hashed_dictionary_ = BlockHash::CreateDictionaryHash(dictionary_,
                                                        dictionary_size());
   if (!hashed_dictionary_) {
-    LOG(DFATAL) << "Creation of dictionary hash failed" << LOG_ENDL;
+    VCD_DFATAL << "Creation of dictionary hash failed" << VCD_ENDL;
     return false;
   }
-  if (!RollingHash<BlockHash::kBlockSize>::Init()) {
-    LOG(DFATAL) << "RollingHash initialization failed" << LOG_ENDL;
-    return false;
-  }
+  RollingHash<BlockHash::kBlockSize>::Init();
   return true;
 }
 
@@ -140,10 +137,10 @@ inline void VCDiffEngine::FinishEncoding(
     OutputStringInterface* diff,
     CodeTableWriterInterface* coder) const {
   if (target_size != static_cast<size_t>(coder->target_length())) {
-    LOG(DFATAL) << "Internal error in VCDiffEngine::Encode: "
-                   "original target size (" << target_size
-                << ") does not match number of bytes processed ("
-                << coder->target_length() << ")" << LOG_ENDL;
+    VCD_DFATAL << "Internal error in VCDiffEngine::Encode: "
+                  "original target size (" << target_size
+               << ") does not match number of bytes processed ("
+               << coder->target_length() << ")" << VCD_ENDL;
   }
   coder->Output(diff);
 }
@@ -154,8 +151,8 @@ void VCDiffEngine::EncodeInternal(const char* target_data,
                                   OutputStringInterface* diff,
                                   CodeTableWriterInterface* coder) const {
   if (!hashed_dictionary_) {
-    LOG(DFATAL) << "Internal error: VCDiffEngine::Encode() "
-                   "called before VCDiffEngine::Init()" << LOG_ENDL;
+    VCD_DFATAL << "Internal error: VCDiffEngine::Encode() "
+                  "called before VCDiffEngine::Init()" << VCD_ENDL;
     return;
   }
   if (target_size == 0) {
@@ -176,7 +173,7 @@ void VCDiffEngine::EncodeInternal(const char* target_data,
                                               target_size,
                                               dictionary_size());
     if (!target_hash) {
-      LOG(DFATAL) << "Instantiation of target hash failed" << LOG_ENDL;
+      VCD_DFATAL << "Instantiation of target hash failed" << VCD_ENDL;
       return;
     }
   }

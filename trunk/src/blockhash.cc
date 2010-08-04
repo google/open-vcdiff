@@ -15,9 +15,10 @@
 
 #include <config.h>
 #include "blockhash.h"
-#include "compile_assert.h"
 #include <stdint.h>  // uint32_t
 #include <string.h>  // memcpy, memcmp
+#include <algorithm>  // std::min
+#include "compile_assert.h"
 #include "logging.h"
 #include "rolling_hash.h"
 
@@ -40,7 +41,7 @@ BlockHash::~BlockHash() { }
 // kBlockSize must be at least 2 to be meaningful.  Since it's a compile-time
 // constant, check its value at compile time rather than wasting CPU cycles
 // on runtime checks.
-COMPILE_ASSERT(BlockHash::kBlockSize >= 2, kBlockSize_must_be_at_least_2);
+VCD_COMPILE_ASSERT(BlockHash::kBlockSize >= 2, kBlockSize_must_be_at_least_2);
 
 // kBlockSize is required to be a power of 2 because multiplication
 // (n * kBlockSize), division (n / kBlockSize) and MOD (n % kBlockSize)
@@ -49,20 +50,20 @@ COMPILE_ASSERT(BlockHash::kBlockSize >= 2, kBlockSize_must_be_at_least_2);
 // into bit-shift (>> or <<) and bitwise-AND (&) operations, which are much
 // more efficient than executing full integer multiply, divide, or remainder
 // instructions.
-COMPILE_ASSERT((BlockHash::kBlockSize & (BlockHash::kBlockSize - 1)) == 0,
-               kBlockSize_must_be_a_power_of_2);
+VCD_COMPILE_ASSERT((BlockHash::kBlockSize & (BlockHash::kBlockSize - 1)) == 0,
+                   kBlockSize_must_be_a_power_of_2);
 
 bool BlockHash::Init(bool populate_hash_table) {
   if (!hash_table_.empty() ||
       !next_block_table_.empty() ||
       !last_block_table_.empty()) {
-    LOG(DFATAL) << "Init() called twice for same BlockHash object" << LOG_ENDL;
+    VCD_DFATAL << "Init() called twice for same BlockHash object" << VCD_ENDL;
     return false;
   }
   const size_t table_size = CalcTableSize(source_size_);
   if (table_size == 0) {
-    LOG(DFATAL) << "Error finding table size for source size " << source_size_
-                << LOG_ENDL;
+    VCD_DFATAL << "Error finding table size for source size " << source_size_
+               << VCD_ENDL;
     return false;
   }
   // Since table_size is a power of 2, (table_size - 1) is a bit mask
@@ -119,29 +120,29 @@ size_t BlockHash::CalcTableSize(const size_t dictionary_size) {
     table_size <<= 1;
     // Guard against an infinite loop
     if (table_size <= 0) {
-      LOG(DFATAL) << "Internal error: CalcTableSize(dictionary_size = "
-                  << dictionary_size
-                  << "): resulting table_size " << table_size
-                  << " is zero or negative" << LOG_ENDL;
+      VCD_DFATAL << "Internal error: CalcTableSize(dictionary_size = "
+                 << dictionary_size
+                 << "): resulting table_size " << table_size
+                 << " is zero or negative" << VCD_ENDL;
       return 0;
     }
   }
   // Check size sanity
   if ((table_size & (table_size - 1)) != 0) {
-    LOG(DFATAL) << "Internal error: CalcTableSize(dictionary_size = "
-                << dictionary_size
-                << "): resulting table_size " << table_size
-                << " is not a power of 2" << LOG_ENDL;
+    VCD_DFATAL << "Internal error: CalcTableSize(dictionary_size = "
+               << dictionary_size
+               << "): resulting table_size " << table_size
+               << " is not a power of 2" << VCD_ENDL;
     return 0;
   }
   // The loop above tries to find the smallest power of 2 that is >= min_size.
   // That value must lie somewhere between min_size and (min_size * 2),
   // except for the case (dictionary_size == 0, table_size == 1).
   if ((dictionary_size > 0) && (table_size > (min_size * 2))) {
-    LOG(DFATAL) << "Internal error: CalcTableSize(dictionary_size = "
-                << dictionary_size
-                << "): resulting table_size " << table_size
-                << " is too large" << LOG_ENDL;
+    VCD_DFATAL << "Internal error: CalcTableSize(dictionary_size = "
+               << dictionary_size
+               << "): resulting table_size " << table_size
+               << " is too large" << VCD_ENDL;
     return 0;
   }
   return table_size;
@@ -151,8 +152,8 @@ size_t BlockHash::CalcTableSize(const size_t dictionary_size) {
 // call this function to save time.
 void BlockHash::AddBlock(uint32_t hash_value) {
   if (hash_table_.empty()) {
-    LOG(DFATAL) << "BlockHash::AddBlock() called before BlockHash::Init()"
-                << LOG_ENDL;
+    VCD_DFATAL << "BlockHash::AddBlock() called before BlockHash::Init()"
+               << VCD_ENDL;
     return;
   }
   // The initial value of last_block_added_ is -1.
@@ -160,17 +161,17 @@ void BlockHash::AddBlock(uint32_t hash_value) {
   const int total_blocks =
       static_cast<int>(source_size_ / kBlockSize);  // round down
   if (block_number >= total_blocks) {
-    LOG(DFATAL) << "BlockHash::AddBlock() called"
-                   " with block number " << block_number
-                << " that is past last block " << (total_blocks - 1)
-                << LOG_ENDL;
+    VCD_DFATAL << "BlockHash::AddBlock() called"
+                  " with block number " << block_number
+               << " that is past last block " << (total_blocks - 1)
+               << VCD_ENDL;
     return;
   }
   if (next_block_table_[block_number] != -1) {
-    LOG(DFATAL) << "Internal error in BlockHash::AddBlock(): "
-                   "block number = " << block_number
-                << ", next block should be -1 but is "
-                << next_block_table_[block_number] << LOG_ENDL;
+    VCD_DFATAL << "Internal error in BlockHash::AddBlock(): "
+                  "block number = " << block_number
+               << ", next block should be -1 but is "
+               << next_block_table_[block_number] << VCD_ENDL;
     return;
   }
   const uint32_t hash_table_index = GetHashTableIndex(hash_value);
@@ -183,11 +184,11 @@ void BlockHash::AddBlock(uint32_t hash_value) {
     // Add this entry at the end of the chain of matching blocks
     const int last_matching_block = last_block_table_[first_matching_block];
     if (next_block_table_[last_matching_block] != -1) {
-      LOG(DFATAL) << "Internal error in BlockHash::AddBlock(): "
-                     "first matching block = " << first_matching_block
-                  << ", last matching block = " << last_matching_block
-                  << ", next block should be -1 but is "
-                  << next_block_table_[last_matching_block] << LOG_ENDL;
+      VCD_DFATAL << "Internal error in BlockHash::AddBlock(): "
+                    "first matching block = " << first_matching_block
+                 << ", last matching block = " << last_matching_block
+                 << ", next block should be -1 but is "
+                 << next_block_table_[last_matching_block] << VCD_ENDL;
       return;
     }
     next_block_table_[last_matching_block] = block_number;
@@ -202,17 +203,17 @@ void BlockHash::AddAllBlocks() {
 
 void BlockHash::AddAllBlocksThroughIndex(int end_index) {
   if (end_index > static_cast<int>(source_size_)) {
-    LOG(DFATAL) << "BlockHash::AddAllBlocksThroughIndex() called"
-                   " with index " << end_index
-                << " higher than end index  " << source_size_ << LOG_ENDL;
+    VCD_DFATAL << "BlockHash::AddAllBlocksThroughIndex() called"
+                  " with index " << end_index
+               << " higher than end index  " << source_size_ << VCD_ENDL;
     return;
   }
   const int last_index_added = last_block_added_ * kBlockSize;
   if (end_index <= last_index_added) {
-    LOG(DFATAL) << "BlockHash::AddAllBlocksThroughIndex() called"
-                   " with index " << end_index
-                << " <= last index added ( " << last_index_added
-                << ")" << LOG_ENDL;
+    VCD_DFATAL << "BlockHash::AddAllBlocksThroughIndex() called"
+                  " with index " << end_index
+               << " <= last index added ( " << last_index_added
+               << ")" << VCD_ENDL;
     return;
   }
   int end_limit = end_index;
@@ -231,8 +232,8 @@ void BlockHash::AddAllBlocksThroughIndex(int end_index) {
   }
 }
 
-COMPILE_ASSERT((BlockHash::kBlockSize % sizeof(uword_t)) == 0,
-               kBlockSize_must_be_a_multiple_of_machine_word_size);
+VCD_COMPILE_ASSERT((BlockHash::kBlockSize % sizeof(uword_t)) == 0,
+                   kBlockSize_must_be_a_multiple_of_machine_word_size);
 
 // A recursive template to compare a fixed number
 // of (possibly unaligned) machine words starting
@@ -325,8 +326,8 @@ int BlockHash::FirstMatchingBlock(uint32_t hash_value,
 int BlockHash::NextMatchingBlock(int block_number,
                                  const char* block_ptr) const {
   if (static_cast<size_t>(block_number) >= GetNumberOfBlocks()) {
-    LOG(DFATAL) << "NextMatchingBlock called for invalid block number "
-                << block_number << LOG_ENDL;
+    VCD_DFATAL << "NextMatchingBlock called for invalid block number "
+               << block_number << VCD_ENDL;
     return -1;
   }
   return SkipNonMatchingBlocks(next_block_table_[block_number], block_ptr);
