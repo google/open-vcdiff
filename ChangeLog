@@ -1,3 +1,13 @@
+Fri,  6 Aug 2010 11:36:36 -0800  Google Inc. <opensource@google.com>
+  Release version 0.8.1 with the following change:
+  * Issue #24: Revert the fix for Issue #21, which caused a regression
+    (the Debian package did not properly install the vcdiff executable.)
+    This version of open-vcdiff builds and tests successfully using MinGW 5.1.6,
+    so Issue #21 is no longer a problem.
+  * Fix warning in autogen.sh by providing only one directory argument to
+    AC_CONFIG_MACRO_DIR.  The subordinate directory gflags/m4 is still
+    specified as an -I argument to aclocal.
+
 Tue,  3 Aug 2010 10:44:32 -0800  Google Inc. <opensource@google.com>
   Release version 0.8 with the following changes:
   * Issue #12: Truncate decoded_target_ after decoding each window, rather than
