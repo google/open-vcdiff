@@ -1,4 +1,13 @@
+Tue, 27 Sep 2011 10:30:38 -0700  Google Inc. <opensource@google.com>
+
+  Release version 0.8.2 with the following changes:
+  * Issue #29: Include public header format_extension_flags.h in the Debian
+    package libvcdenc-dev.
+  * Issue #31: Add missing license text to codetablewriter_interface.h and to
+    the packaging scripts.
+
 Fri,  6 Aug 2010 11:36:36 -0800  Google Inc. <opensource@google.com>
+
   Release version 0.8.1 with the following change:
   * Issue #24: Revert the fix for Issue #21, which caused a regression
     (the Debian package did not properly install the vcdiff executable.)
@@ -9,6 +18,7 @@ Fri,  6 Aug 2010 11:36:36 -0800  Google Inc. <opensource@google.com>
     specified as an -I argument to aclocal.
 
 Tue,  3 Aug 2010 10:44:32 -0800  Google Inc. <opensource@google.com>
+
   Release version 0.8 with the following changes:
   * Issue #12: Truncate decoded_target_ after decoding each window, rather than
     after each call to DecodeChunk().  This helps limit memory usage when
