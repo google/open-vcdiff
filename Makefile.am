@@ -6,6 +6,7 @@ ACLOCAL_AMFLAGS = -I m4 \
 
 # This is so we can #include <google/vcencoder.h> or <gtest/gtest.h>
 AM_CPPFLAGS = -I$(top_srcdir)/src \
+              -I$(top_srcdir)/src/zlib \
               -I$(top_srcdir)/gflags/src \
               -I$(top_srcdir)/gtest \
               -I$(top_srcdir)/gtest/include
@@ -111,9 +112,9 @@ libvcdcom_la_SOURCES = src/google/format_extension_flags.h \
 		       src/logging.h \
 		       src/varint_bigendian.h \
 		       src/vcdiff_defs.h \
-		       src/zlib.h \
-		       src/zconf.h \
-		       src/adler32.c \
+		       src/zlib/zlib.h \
+		       src/zlib/zconf.h \
+		       src/zlib/adler32.c \
 		       src/addrcache.cc \
 		       src/codetable.cc \
 		       src/logging.cc \

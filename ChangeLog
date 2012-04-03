@@ -1,3 +1,11 @@
+Tue, 03 Apr 2012 09:59:09 -0700  Google Inc. <opensource@google.com>
+
+  Release version 0.8.3 with the following changes:
+  * Issue #34: Move zconf.h, zlib.h, and adler32.c into a zlib subdirectory to
+    avoid conflicts with other revisions of these files included in Chromium.
+    Please see: http://codereview.chromium.org/9555002/
+  * Issue #32: Fix erroneous parameter in unit test.
+
 Tue, 27 Sep 2011 10:30:38 -0700  Google Inc. <opensource@google.com>
 
   Release version 0.8.2 with the following changes:

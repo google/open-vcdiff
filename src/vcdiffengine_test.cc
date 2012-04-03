@@ -510,7 +510,7 @@ TEST_F(VCDiffEngineTest, EngineEncodeSampleTextWithTargetMatching) {
 }
 
 TEST_F(VCDiffEngineTest, EngineEncodeSampleTextInterleavedWithTargetMatching) {
-  Encode(/* interleaved = */ true, /* target matching = */ false);
+  Encode(/* interleaved = */ true, /* target matching = */ true);
   // Interleaved section
   if (!ExpectAddCopyInstruction(kBlockSize, (3 * kBlockSize) - 1,
                                 VCD_SELF_MODE)) {

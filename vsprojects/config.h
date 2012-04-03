@@ -52,7 +52,7 @@
 #define PACKAGE_NAME "open-vcdiff"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "open-vcdiff 0.8.2"
+#define PACKAGE_STRING "open-vcdiff 0.8.3"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "open-vcdiff"
@@ -61,7 +61,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.8.2"
+#define PACKAGE_VERSION "0.8.3"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -70,7 +70,7 @@
 #define STL_NAMESPACE std
 
 /* Version number of package */
-#define VERSION "0.8.2"
+#define VERSION "0.8.3"
 
 /* Stops putting the code inside the Google namespace */
 #define _END_GOOGLE_NAMESPACE_ }
