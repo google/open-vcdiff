@@ -406,6 +406,7 @@ ACLOCAL_AMFLAGS = -I m4 \
 
 # This is so we can #include <google/vcencoder.h> or <gtest/gtest.h>
 AM_CPPFLAGS = -I$(top_srcdir)/src \
+              -I$(top_srcdir)/src/zlib \
               -I$(top_srcdir)/gflags/src \
               -I$(top_srcdir)/gtest \
               -I$(top_srcdir)/gtest/include
@@ -488,9 +489,9 @@ libvcdcom_la_SOURCES = src/google/format_extension_flags.h \
 		       src/logging.h \
 		       src/varint_bigendian.h \
 		       src/vcdiff_defs.h \
-		       src/zlib.h \
-		       src/zconf.h \
-		       src/adler32.c \
+		       src/zlib/zlib.h \
+		       src/zlib/zconf.h \
+		       src/zlib/adler32.c \
 		       src/addrcache.cc \
 		       src/codetable.cc \
 		       src/logging.cc \
@@ -912,12 +913,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-adler32.lo: src/adler32.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adler32.lo -MD -MP -MF $(DEPDIR)/adler32.Tpo -c -o adler32.lo `test -f 'src/adler32.c' || echo '$(srcdir)/'`src/adler32.c
+adler32.lo: src/zlib/adler32.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adler32.lo -MD -MP -MF $(DEPDIR)/adler32.Tpo -c -o adler32.lo `test -f 'src/zlib/adler32.c' || echo '$(srcdir)/'`src/zlib/adler32.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/adler32.Tpo $(DEPDIR)/adler32.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/adler32.c' object='adler32.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/zlib/adler32.c' object='adler32.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adler32.lo `test -f 'src/adler32.c' || echo '$(srcdir)/'`src/adler32.c
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adler32.lo `test -f 'src/zlib/adler32.c' || echo '$(srcdir)/'`src/zlib/adler32.c
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

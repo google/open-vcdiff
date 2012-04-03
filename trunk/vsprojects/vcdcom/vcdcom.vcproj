@@ -181,11 +181,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\zconf.h"
+				RelativePath="..\..\src\zlib\zconf.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\zlib.h"
+				RelativePath="..\..\src\zlib\zlib.h"
 				>
 			</File>
 			<File
@@ -209,7 +209,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\adler32.c"
+				RelativePath="..\..\src\zlib\adler32.c"
 				>
 			</File>
 			<File
