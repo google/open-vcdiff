@@ -10,7 +10,7 @@ that can write and read the VCDIFF format described in
 The encoder uses the
 [http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.11.8470&rep=rep1&type=pdf Bentley/McIlroy technique]
 for finding matches between the
-dictionary and target data.
+source and target data.
 
 An encoder/decoder named
 [http://xdelta.org Xdelta],
@@ -27,6 +27,10 @@ implementations of the Shared-Dictionary Compression over HTTP
 (SDCH, or "Sandwich") protocol.  Please join the
 [http://groups.google.com/group/SDCH SDCH Google Group]
 if you want to find out more about SDCH.
+
+_Note:_ In this document, and in the source code,
+the term "dictionary" is used interchangeably with the term "source"
+(or "source file" or "source data") as defined in RFC 3284.
 
 == Extensions to standard VCDIFF format ==
 {{{open-vcdiff}}} conforms to the
