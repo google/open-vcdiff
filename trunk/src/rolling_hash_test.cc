@@ -1,5 +1,4 @@
-// Copyright 2007 Google Inc.
-// Authors: Jeff Dean, Lincoln Smith
+// Copyright 2007 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -104,27 +103,35 @@ class RollingHashTest : public testing::Test {
   template<int kBlockSize> static void BM_DefaultHash(int iterations,
                                                       const char *buffer) {
     RollingHash<kBlockSize> hasher;
-    static uint32_t result_array[kUpdateHashBlocks];
+    // Keep the compiler from optimizing away all work by "checking"
+    // the output values.
+    int number_of_odd_values = 0;
     for (int iter = 0; iter < iterations; ++iter) {
       for (int i = 0; i < kUpdateHashBlocks; ++i) {
-        result_array[i] = hasher.Hash(&buffer[i]);
+        if (hasher.Hash(&buffer[i]) % 2) {
+          ++number_of_odd_values;
+        }
       }
     }
+    EXPECT_LT(0, number_of_odd_values);
   }
 
   template<int kBlockSize> static void BM_UpdateHash(int iterations,
                                                      const char *buffer) {
     RollingHash<kBlockSize> hasher;
-    static uint32_t result_array[kUpdateHashBlocks];
+    int number_of_odd_values = 0;
     for (int iter = 0; iter < iterations; ++iter) {
       uint32_t running_hash = hasher.Hash(buffer);
       for (int i = 0; i < kUpdateHashBlocks; ++i) {
         running_hash = hasher.UpdateHash(running_hash,
                                          buffer[i],
                                          buffer[i + kBlockSize]);
-        result_array[i] = running_hash;
+        if (running_hash % 2) {
+          ++number_of_odd_values;
+        }
       }
     }
+    EXPECT_LT(0, number_of_odd_values);
   }
 
  protected:

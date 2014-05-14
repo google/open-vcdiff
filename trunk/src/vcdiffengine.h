@@ -1,5 +1,4 @@
-// Copyright 2006 Google Inc.
-// Authors: Sanjay Ghemawat, Jeff Dean, Chandra Chereddi, Lincoln Smith
+// Copyright 2006 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,6 +52,8 @@ class VCDiffEngine {
   // as non-const.
   bool Init();
 
+  const char *dictionary() const { return dictionary_; }
+
   size_t dictionary_size() const { return dictionary_size_; }
 
   // Main worker function.  Finds the best matches between the dictionary
@@ -103,10 +104,6 @@ class VCDiffEngine {
   void AddUnmatchedRemainder(const char* unencoded_target_start,
                              size_t unencoded_target_size,
                              CodeTableWriterInterface* coder) const;
-
-  void FinishEncoding(size_t target_size,
-                      OutputStringInterface* diff,
-                      CodeTableWriterInterface* coder) const;
 
   const char* dictionary_;  // A copy of the dictionary contents
 

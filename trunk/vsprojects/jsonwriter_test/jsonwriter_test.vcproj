@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..;../../gtest;../../gtest/include;../../src;../../vsprojects"
+				AdditionalIncludeDirectories="../..;../../gtest;../../gtest/include;../../src;../../src/zlib;../../vsprojects"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -123,7 +123,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../..;../../gtest;../../gtest/include;../../src;../../vsprojects"
+				AdditionalIncludeDirectories="../..;../../gtest;../../gtest/include;../../src;../../src/zlib;../../vsprojects"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

@@ -1,6 +1,5 @@
 @echo off
-rem Copyright 2008 Google Inc.
-rem Author: Lincoln Smith
+rem Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 rem
 rem Licensed under the Apache License, Version 2.0 (the "License");
 rem you may not use this file except in compliance with the License.

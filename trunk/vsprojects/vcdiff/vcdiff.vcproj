@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..;../../src;../../vsprojects;../../gflags/src/windows;../../gflags/src"
+				AdditionalIncludeDirectories="../..;../../src;../../src/zlib;../../vsprojects;../../gflags/src/windows;../../gflags/src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../..;../../src;../../vsprojects;../../gflags/src/windows;../../gflags/src"
+				AdditionalIncludeDirectories="../..;../../src;../../src/zlib;../../vsprojects;../../gflags/src/windows;../../gflags/src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				DefaultCharIsUnsigned="true"
@@ -248,6 +248,10 @@
 			</File>
 			<File
 				RelativePath="..\..\gflags\src\mutex.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\unique_ptr.h"
 				>
 			</File>
 		</Filter>

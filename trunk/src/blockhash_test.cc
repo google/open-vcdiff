@@ -1,5 +1,4 @@
-// Copyright 2008 Google Inc.
-// Author: Lincoln Smith
+// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +17,10 @@
 #include <limits.h>  // INT_MIN
 #include <string.h>  // memcpy, memcmp, strlen
 #include <iostream>
-#include <memory>  // auto_ptr
 #include "encodetable.h"
 #include "rolling_hash.h"
 #include "testing.h"
+#include "unique_ptr.h" // auto_ptr, unique_ptr
 
 namespace open_vcdiff {
 
@@ -231,10 +230,9 @@ class BlockHashTest : public testing::Test {
   static uint32_t hashed_unaligned_e;
   static uint32_t hashed_all_Qs;
 
-  // Boost scoped_ptr, if available, could be used instead of std::auto_ptr.
-  std::auto_ptr<const BlockHash> dh_;  // hash table is populated at startup
-  std::auto_ptr<BlockHash> th_;  // hash table not populated;
-                                // used to test incremental adds
+  UNIQUE_PTR<const BlockHash> dh_;  // hash table is populated at startup
+  UNIQUE_PTR<BlockHash> th_;  // hash table not populated;
+                              // used to test incremental adds
 
   BlockHash::Match best_match_;
   char* compare_buffer_1_;
@@ -725,7 +723,13 @@ TEST_F(BlockHashTest, AddEntireRangeFindSixMatches) {
 TEST_F(BlockHashTest, ZeroSizeSourceAccepted) {
   BlockHash zero_sized_hash(sample_text, 0, 0);
   EXPECT_EQ(true, zero_sized_hash.Init(true));
-  EXPECT_EQ(-1, FirstMatchingBlock(*th_, hashed_y, test_string_y));
+  EXPECT_EQ(-1, FirstMatchingBlock(zero_sized_hash, hashed_y, test_string_y));
+}
+
+TEST_F(BlockHashTest, NullSource) {
+  BlockHash null_source_hash(NULL, 0, 0);
+  EXPECT_EQ(true, null_source_hash.Init(true));
+  EXPECT_EQ(-1, FirstMatchingBlock(null_source_hash, hashed_y, test_string_y));
 }
 
 #ifdef GTEST_HAS_DEATH_TEST

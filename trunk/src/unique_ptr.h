@@ -1,4 +1,5 @@
-// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
+// Copyright 2014 The open-vcdiff Authors. All Rights Reserved.
+// Author: Mostyn Bramley-Moore
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,19 +12,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// Replacement for the standard <stdint.h>, to be used only when the
-// package is compiled using MS Visual Studio.
 
-#ifndef OPEN_VCDIFF_STDINT_H_
-#define OPEN_VCDIFF_STDINT_H_
+#ifndef OPEN_VCDIFF_UNIQUE_PTR_H_
+#define OPEN_VCDIFF_UNIQUE_PTR_H_
 
-typedef __int16 int16_t;
-typedef __int32 int32_t;
-typedef __int64 int64_t;
+// std::auto_ptr is deprecated in C++11, in favor of std::unique_ptr.
+// Since C++11 is not widely available yet, the macro below is used to
+// select the best available option.
 
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
+#include <memory>
 
-#endif  // OPEN_VCDIFF_STDINT_H_
+#if __cplusplus >= 201103L
+// C++11
+#define UNIQUE_PTR std::unique_ptr
+#else
+#define UNIQUE_PTR std::auto_ptr
+#endif
+
+#endif  // OPEN_VCDIFF_UNIQUE_PTR_H_

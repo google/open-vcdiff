@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..;../../src;../../vsprojects"
+				AdditionalIncludeDirectories="../..;../../src;../../src/zlib;../../vsprojects"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -102,7 +102,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../..;../../src;../../vsprojects"
+				AdditionalIncludeDirectories="../..;../../src;../../src/zlib;../../vsprojects"
 				RuntimeLibrary="2"
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
@@ -182,6 +182,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\rolling_hash.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\unique_ptr.h"
 				>
 			</File>
 			<File

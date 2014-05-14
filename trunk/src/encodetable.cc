@@ -1,5 +1,4 @@
-// Copyright 2008 Google Inc.
-// Author: Lincoln Smith
+// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -387,6 +386,20 @@ void VCDiffCodeTableWriter::Output(OutputStringInterface* out) {
     VCD_DFATAL << "Internal error: calling Init() to reset "
                   "VCDiffCodeTableWriter state failed" << VCD_ENDL;
   }
+}
+
+// Verifies dictionary is compatible with writer.
+bool VCDiffCodeTableWriter::VerifyDictionary(const char * /*dictionary*/,
+                                             size_t /*size*/) const {
+  // Arbitrary dictionaries are allowed.
+  return true;
+}
+
+// Verifies target chunk is compatible with writer.
+bool VCDiffCodeTableWriter::VerifyChunk(const char * /*chunk*/,
+                                        size_t /*size*/) const {
+  // Arbitrary targets are allowed.
+  return true;
 }
 
 };  // namespace open_vcdiff

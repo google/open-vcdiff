@@ -1,5 +1,4 @@
-// Copyright 2006, 2008 Google Inc.
-// Authors: Chandra Chereddi, Lincoln Smith
+// Copyright 2006, 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -214,6 +213,12 @@ void BlockHash::AddAllBlocksThroughIndex(int end_index) {
                   " with index " << end_index
                << " <= last index added ( " << last_index_added
                << ")" << VCD_ENDL;
+    return;
+  }
+  if (source_size() < static_cast<size_t>(kBlockSize)) {
+    // Exit early if the source data is small enough that it does not contain
+    // any blocks.  This avoids negative values of last_legal_hash_index.
+    // See: https://code.google.com/p/open-vcdiff/issues/detail?id=40
     return;
   }
   int end_limit = end_index;

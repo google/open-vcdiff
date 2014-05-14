@@ -1,5 +1,4 @@
-// Copyright 2009 Google Inc.
-// Author: James deBoer
+// Copyright 2009 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,10 +67,12 @@ class JSONCodeTableWriter : public CodeTableWriterInterface {
   // Finishes the encoding.
   virtual void FinishEncoding(OutputStringInterface *out);
 
-  // Returns the number of target bytes processed, which is the sum of all the
-  // size arguments passed to Add(), Copy(), and Run().
-  // TODO(ajenjo): Eliminate the need for this method.
-  virtual size_t target_length() const;
+  // Verifies dictionary is compatible with writer.
+  virtual bool VerifyDictionary(const char *dictionary, size_t size) const;
+
+  // Verifies target chunk is compatible with writer.
+  virtual bool VerifyChunk(const char *chunk, size_t size) const;
+
  private:
   typedef std::string string;
 
@@ -79,14 +80,17 @@ class JSONCodeTableWriter : public CodeTableWriterInterface {
   // and add it to the 'out' string.
   void JSONEscape(const char* data, size_t size, string* out);
 
+  // Returns true if all characters in 'data' are 7-bit ASCII.
+  static bool IsAscii(const char *data, size_t len);
+
   // Stores the JSON data before it is sent to the OutputString.
   string output_;
 
-  // The sum of all the size arguments passed to Add(), Copy() and Run().
-  size_t target_length_;
-
   // Set if some data has been output.
   bool output_called_;
+
+  // Set if an opcode has been added.
+  bool opcode_added_;
 };
 
 }  // namespace open_vcdiff
