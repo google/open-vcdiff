@@ -1,5 +1,4 @@
-// Copyright 2008 Google Inc.
-// Author: Lincoln Smith
+// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -88,8 +87,6 @@ class VCDiffCodeTableWriter : public CodeTableWriterInterface {
   virtual void WriteHeader(OutputStringInterface* out,
                            VCDiffFormatExtensionFlags format_extensions);
 
-  virtual size_t target_length() const { return target_length_; }
-
   // Encode an ADD opcode with the "size" bytes starting at data
   virtual void Add(const char* data, size_t size);
 
@@ -113,6 +110,13 @@ class VCDiffCodeTableWriter : public CodeTableWriterInterface {
   // since EncodeChunk() encodes a complete target window
   // and there is no end-of-delta-file marker.
   virtual void FinishEncoding(OutputStringInterface* /*out*/) {}
+
+  // Verifies dictionary is compatible with writer.
+  virtual bool VerifyDictionary(const char * /*dictionary*/,
+                                size_t /*size*/) const;
+
+  // Verifies target chunk is compatible with writer.
+  virtual bool VerifyChunk(const char * /*chunk*/, size_t /*size*/) const;
 
  private:
   typedef std::string string;

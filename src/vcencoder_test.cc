@@ -1,5 +1,4 @@
-// Copyright 2008 Google Inc.
-// Author: Lincoln Smith
+// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -121,6 +120,7 @@ class VCDiffEncoderTest : public VerifyEncodedBytesTest {
   static const char kDictionary[];
   static const char kTarget[];
   static const char kJSONDiff[];
+  static const char kNonAscii[];
 
   VCDiffEncoderTest();
   virtual ~VCDiffEncoderTest() { }
@@ -136,6 +136,7 @@ class VCDiffEncoderTest : public VerifyEncodedBytesTest {
   VCDiffEncoder simple_encoder_;
   VCDiffDecoder simple_decoder_;
   VCDiffStreamingEncoder json_encoder_;
+  VCDiffEncoder nonascii_simple_encoder_;
 
   string result_target_;
 };
@@ -156,7 +157,10 @@ const char VCDiffEncoderTest::kJSONDiff[] =
     "[\"\\\"Just the place for a Snark! I have said it twice:\\n"
     "That alone should encourage the crew.\\n\","
     "161,44,"
-    "\"hrice:\\nWhat I tell you three times is true.\\\"\\n\",]";
+    "\"hrice:\\nWhat I tell you three times is true.\\\"\\n\"]";
+
+// NonASCII string "foo\x128".
+const char VCDiffEncoderTest::kNonAscii[] = {102, 111, 111, 128, 0};
 
 VCDiffEncoderTest::VCDiffEncoderTest()
     : hashed_dictionary_(kDictionary, sizeof(kDictionary)),
@@ -166,7 +170,8 @@ VCDiffEncoderTest::VCDiffEncoderTest()
       simple_encoder_(kDictionary, sizeof(kDictionary)),
       json_encoder_(&hashed_dictionary_,
                     VCD_FORMAT_JSON,
-                    /* look_for_target_matches = */ true) {
+                    /* look_for_target_matches = */ true),
+      nonascii_simple_encoder_(kNonAscii, sizeof(kNonAscii)) {
   EXPECT_TRUE(hashed_dictionary_.Init());
 }
 
@@ -304,6 +309,28 @@ TEST_F(VCDiffEncoderTest, EncodeDecodeSeparate) {
   EXPECT_EQ(kTarget, result_target_);
 }
 
+TEST_F(VCDiffEncoderTest, NonasciiDictionary) {
+  EXPECT_TRUE(nonascii_simple_encoder_.Encode(kTarget,
+                                              strlen(kTarget),
+                                              delta()));
+}
+
+TEST_F(VCDiffEncoderTest, NonasciiDictionaryWithJSON) {
+  nonascii_simple_encoder_.SetFormatFlags(VCD_FORMAT_JSON);
+  EXPECT_FALSE(nonascii_simple_encoder_.Encode(kTarget,
+                                               strlen(kTarget),
+                                               delta()));
+}
+
+TEST_F(VCDiffEncoderTest, NonasciiTarget) {
+  EXPECT_TRUE(simple_encoder_.Encode(kNonAscii, strlen(kNonAscii), delta()));
+}
+
+TEST_F(VCDiffEncoderTest, NonasciiTargetWithJSON) {
+  simple_encoder_.SetFormatFlags(VCD_FORMAT_JSON);
+  EXPECT_FALSE(simple_encoder_.Encode(kNonAscii, strlen(kNonAscii), delta()));
+}
+
 #ifdef HAVE_EXT_ROPE
 // Test that the crope class can be used in place of a string for encoding
 // and decoding.
@@ -393,19 +420,19 @@ TEST_F(VCDiffEncoderTest, EncodeFixedChunkSizesJSON) {
             "\"e shou\",\"ld enc\",\"ourage\",\" the c\",\"rew.\\nJ\","
             "\"ust th\",\"e plac\",\"e for \",\"a Snar\",\"k! I h\","
             "\"ave sa\",\"id it \",\"thrice\",\":\\nWhat\",\" I tel\","
-            "\"l you \",\"three \",\"times \",\"is tru\",\"e.\\\"\\n\",]",
+            "\"l you \",\"three \",\"times \",\"is tru\",\"e.\\\"\\n\"]",
             delta_as_const());
   TestWithFixedChunkSize(&json_encoder_, NULL, 45);
   EXPECT_EQ("[\"\\\"Just the place for a Snark! I have said it t\","
             "\"wice:\\nThat alone should encourage the crew.\\nJ\","
             "\"ust the place for a Snark! I have said it thr\",\"ice:\\n"
-            "What I tell you three times is true.\\\"\\n\",]",
+            "What I tell you three times is true.\\\"\\n\"]",
             delta_as_const());
   TestWithFixedChunkSize(&json_encoder_, NULL, 60);
   EXPECT_EQ("[\"\\\"Just the place for a Snark! I have said it twice:\\n"
             "That alon\",\"e should encourage the crew.\\n"
             "Just the place for a Snark! I h\",\"ave said it thrice:\\n"
-            "What I tell you three times is true.\\\"\\n\",]",
+            "What I tell you three times is true.\\\"\\n\"]",
             delta_as_const());
 }
 

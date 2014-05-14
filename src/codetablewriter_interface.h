@@ -1,5 +1,4 @@
-// Copyright 2008 Google Inc.
-// Author: Lincoln Smith
+// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,9 +72,11 @@ class CodeTableWriterInterface {
   // Finishes encoding.
   virtual void FinishEncoding(OutputStringInterface* out) = 0;
 
-  // Returns the number of target bytes processed, which is the sum of all the
-  // size arguments passed to Add(), Copy(), and Run().
-  virtual size_t target_length() const = 0;
+  // Verifies dictionary is compatible with writer.
+  virtual bool VerifyDictionary(const char *dictionary, size_t size) const = 0;
+
+  // Verifies target chunk is compatible with writer.
+  virtual bool VerifyChunk(const char *chunk, size_t size) const = 0;
 };
 
 }  // namespace open_vcdiff

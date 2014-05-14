@@ -1,3 +1,28 @@
+Wed, 14 May 2014 13:29:25 -0700  Google Inc. <opensource@google.com>
+
+  Release version 0.8.4 with the following changes:
+  * Issue #35: Add "src/zlib" to the list of additional include directories
+    when compiling open-vcdiff with Visual Studio.  This addresses a
+    regression introduced in version 0.8.3.
+  * Issues #36 and #37: Don't use trailing commas in JSON encoding.  Add a
+    check for non-ASCII characters when using JSON format.  Cast char to
+    unsigned char when testing whether its value is >= 0x80.
+  * Issue #40: Avoid working with negative source offsets if the source data is
+    small enough that it does not contain any blocks to hash.
+  * Issue #41: Set GTEST_HAS_TR1_TUPLE to 0 so that it excludes
+    (unused) std::tuple support when compiling gtest.
+    According to the bug, <tr1/tuple> is not available on OS X.
+  * Issue #42: Use unique_ptr (if available) instead of auto_ptr.
+  * Issue #43: Remove a newline from Makefile.am to fix a reported
+    incompatibility with openembedded framework and autoreconf.
+  * Fix unused-local-typedefs warnings in GCC 4.7+ by marking the CompileAssert
+    typedefs with __attribute__((unused)).
+  * Remove unnecessary methods CodeTableWriterInterface::target_length() and
+    VCDiffEngine::FinishEncoding().
+  * Add the FALLTHROUGH_INTENDED macro to indicate that the lack of a "break;"
+    at the end of a case in a switch statement is intentional.
+  * Fix the comment for VCDiffFileBasedCoder::OpenFileForReading().
+
 Tue, 03 Apr 2012 09:59:09 -0700  Google Inc. <opensource@google.com>
 
   Release version 0.8.3 with the following changes:

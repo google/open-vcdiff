@@ -4,7 +4,7 @@
 # make sure we're interpreted by some minimal autoconf
 AC_PREREQ(2.57)
 
-AC_INIT(open-vcdiff, 0.8.3, opensource@google.com)
+AC_INIT(open-vcdiff, 0.8.4, opensource@google.com)
 AC_CONFIG_SRCDIR(README)
 AC_CONFIG_MACRO_DIR(m4)
 AM_INIT_AUTOMAKE

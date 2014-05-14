@@ -1,5 +1,4 @@
-// Copyright 2009 Google Inc.
-// Author: James deBoer
+// Copyright 2009 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,17 +18,18 @@
 #include <sstream>
 #include <string>
 #include "jsonwriter.h"
+#include "logging.h"
 #include "google/output_string.h"
 
 namespace open_vcdiff {
 
 JSONCodeTableWriter::JSONCodeTableWriter()
-  : output_called_(false) {}
+  : output_called_(false), opcode_added_(false) {}
 JSONCodeTableWriter::~JSONCodeTableWriter() {}
 
 bool JSONCodeTableWriter::Init(size_t /*dictionary_size*/) {
   output_ = "[";
-  target_length_ = 0;
+  opcode_added_ = false;
   return true;
 }
 
@@ -37,7 +37,6 @@ void JSONCodeTableWriter::Output(OutputStringInterface* out) {
   output_called_ = true;
   out->append(output_.data(), output_.size());
   output_ = "";
-  target_length_ = 0;
 }
 
 void JSONCodeTableWriter::FinishEncoding(OutputStringInterface* out) {
@@ -50,7 +49,7 @@ void JSONCodeTableWriter::JSONEscape(const char* data,
                                      size_t size,
                                      string* out) {
   for (size_t i = 0; i < size; ++i) {
-    const char c = data[i];
+    const unsigned char c = static_cast<unsigned char>(data[i]);
     switch (c) {
       case '"': out->append("\\\"", 2); break;
       case '\\': out->append("\\\\", 2); break;
@@ -66,40 +65,77 @@ void JSONCodeTableWriter::JSONEscape(const char* data,
           snprintf(unicode_code, sizeof(unicode_code), "\\u%04x", c);
           out->append(unicode_code, strlen(unicode_code));
         } else {
-          out->push_back(c);
+          out->push_back(data[i]);
         }
     }
   }
 }
 
 void JSONCodeTableWriter::Add(const char* data, size_t size) {
+  // Add leading comma if this is not the first opcode.
+  if (opcode_added_) {
+    output_.push_back(',');
+  }
   output_.push_back('\"');
   JSONEscape(data, size, &output_);
-  output_.append("\",", 2);
-  target_length_ += size;
+  output_.push_back('\"');
+  opcode_added_ = true;
 }
 
 void JSONCodeTableWriter::Copy(int32_t offset, size_t size) {
+  // Add leading comma if this is not the first opcode.
+  if (opcode_added_) {
+    output_.push_back(',');
+  }
   std::ostringstream copy_code;
-  copy_code << offset << "," << size << ",";
+  copy_code << offset << "," << size;
   output_.append(copy_code.str());
-  target_length_ += size;
+  opcode_added_ = true;
 }
 
 void JSONCodeTableWriter::Run(size_t size, unsigned char byte) {
+  // Add leading comma if this is not the first opcode.
+  if (opcode_added_) {
+    output_.push_back(',');
+  }
   output_.push_back('\"');
   output_.append(string(size, byte).data(), size);
-  output_.append("\",", 2);
-  target_length_ += size;
-}
-
-size_t JSONCodeTableWriter::target_length() const {
-  return target_length_;
+  output_.push_back('\"');
+  opcode_added_ = true;
 }
 
 void JSONCodeTableWriter::WriteHeader(OutputStringInterface *,
                                       VCDiffFormatExtensionFlags) {
   // The JSON format does not need a header.
+}
+
+bool JSONCodeTableWriter::VerifyDictionary(const char *dictionary,
+                                           size_t size) const {
+  // Indexes in the JSON encoding are interpreted as character indexes
+  // in a unicode string while the delta is constructed using byte
+  // indexes.  To avoid an indexing mismatch and corrupt deltas all
+  // characters in the dictionary and target must be single-byte
+  // characters, ie 7-bit ASCII.
+  VCD_ERROR <<  "JSON writer does not allow non-ASCII characters"
+      " in dictionary" << VCD_ENDL;
+  return IsAscii(dictionary, size);
+}
+
+bool JSONCodeTableWriter::VerifyChunk(const char *chunk, size_t size) const {
+  // See comment in VerifyDictionary for explanation of ASCII
+  // restriction.
+  VCD_ERROR <<  "JSON writer does not allow non-ASCII characters"
+      " in target" << VCD_ENDL;
+  return IsAscii(chunk, size);
+}
+
+bool JSONCodeTableWriter::IsAscii(const char *data, size_t len) {
+  for (size_t i = 0; i < len; i++) {
+    if (static_cast<unsigned char>(data[i]) >= 128) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace open_vcdiff

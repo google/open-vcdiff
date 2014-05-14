@@ -1,5 +1,4 @@
-// Copyright 2008 Google Inc.
-// Authors: Zhanyong Wan, Lincoln Smith
+// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,9 +45,15 @@ struct CompileAssert {
 
 }  // namespace open_vcdiff
 
+#ifdef HAVE__ATTRIBUTE__
+#define VCD_COMPILE_ASSERT(expr, msg) \
+  typedef open_vcdiff::CompileAssert<static_cast<bool>(expr)> \
+      msg[static_cast<bool>(expr) ? 1 : -1] __attribute__((unused))
+#else
 #define VCD_COMPILE_ASSERT(expr, msg) \
   typedef open_vcdiff::CompileAssert<static_cast<bool>(expr)> \
       msg[static_cast<bool>(expr) ? 1 : -1]
+#endif  // HAVE__ATTRIBUTE__
 
 // Implementation details of VCD_COMPILE_ASSERT:
 //

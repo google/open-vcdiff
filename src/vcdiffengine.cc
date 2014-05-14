@@ -1,5 +1,4 @@
-// Copyright 2006, 2008 Google Inc.
-// Authors: Chandra Chereddi, Lincoln Smith
+// Copyright 2006, 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -130,21 +129,6 @@ inline void VCDiffEngine::AddUnmatchedRemainder(
   }
 }
 
-// This helper function tells the coder to finish the encoding and write
-// the results into the output string "diff".
-inline void VCDiffEngine::FinishEncoding(
-    size_t target_size,
-    OutputStringInterface* diff,
-    CodeTableWriterInterface* coder) const {
-  if (target_size != static_cast<size_t>(coder->target_length())) {
-    VCD_DFATAL << "Internal error in VCDiffEngine::Encode: "
-                  "original target size (" << target_size
-               << ") does not match number of bytes processed ("
-               << coder->target_length() << ")" << VCD_ENDL;
-  }
-  coder->Output(diff);
-}
-
 template<bool look_for_target_matches>
 void VCDiffEngine::EncodeInternal(const char* target_data,
                                   size_t target_size,
@@ -161,7 +145,7 @@ void VCDiffEngine::EncodeInternal(const char* target_data,
   // Special case for really small input
   if (target_size < static_cast<size_t>(BlockHash::kBlockSize)) {
     AddUnmatchedRemainder(target_data, target_size, coder);
-    FinishEncoding(target_size, diff, coder);
+    coder->Output(diff);
     return;
   }
   RollingHash<BlockHash::kBlockSize> hasher;
@@ -227,7 +211,7 @@ void VCDiffEngine::EncodeInternal(const char* target_data,
     }
   }
   AddUnmatchedRemainder(next_encode, target_end - next_encode, coder);
-  FinishEncoding(target_size, diff, coder);
+  coder->Output(diff);
   delete target_hash;
 }
 

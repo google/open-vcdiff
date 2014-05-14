@@ -1,5 +1,4 @@
-// Copyright 2007 Google Inc.
-// Author: Lincoln Smith
+// Copyright 2007 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,13 +27,13 @@
 // encoders or accepted by other decoders.
 
 #include <config.h>
-#include <memory>  // auto_ptr
 #include "checksum.h"
 #include "encodetable.h"
 #include "google/output_string.h"
 #include "google/vcencoder.h"
 #include "jsonwriter.h"
 #include "logging.h"
+#include "unique_ptr.h" // auto_ptr, unique_ptr
 #include "vcdiffengine.h"
 
 namespace open_vcdiff {
@@ -66,7 +65,7 @@ class VCDiffStreamingEncoderImpl {
  private:
   const VCDiffEngine* engine_;
 
-  std::auto_ptr<CodeTableWriterInterface> coder_;
+  UNIQUE_PTR<CodeTableWriterInterface> coder_;
 
   const VCDiffFormatExtensionFlags format_extensions_;
 
@@ -113,6 +112,11 @@ inline bool VCDiffStreamingEncoderImpl::StartEncoding(
                   "Initialization of code table writer failed" << VCD_ENDL;
     return false;
   }
+  if (!coder_->VerifyDictionary(engine_->dictionary(),
+                                engine_->dictionary_size())) {
+    VCD_ERROR << "Dictionary not valid for writer" << VCD_ENDL;
+    return false;
+  }
   coder_->WriteHeader(out, format_extensions_);
   encode_chunk_allowed_ = true;
   return true;
@@ -124,6 +128,10 @@ inline bool VCDiffStreamingEncoderImpl::EncodeChunk(
     OutputStringInterface* out) {
   if (!encode_chunk_allowed_) {
     VCD_ERROR << "EncodeChunk called before StartEncoding" << VCD_ENDL;
+    return false;
+  }
+  if (!coder_->VerifyChunk(data, len)) {
+    VCD_ERROR << "Target chunk not valid for writer" << VCD_ENDL;
     return false;
   }
   if ((format_extensions_ & VCD_FORMAT_CHECKSUM) != 0) {

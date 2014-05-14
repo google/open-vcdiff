@@ -1,5 +1,4 @@
-// Copyright 2008 Google Inc.
-// Author: Lincoln Smith
+// Copyright 2008 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,12 +24,12 @@
 #include <stdio.h>
 #include <string.h>  // strerror
 #include <iostream>
-#include <memory>
 #include <string>
 #include <vector>
 #include "gflags/gflags.h"
 #include "google/vcdecoder.h"
 #include "google/vcencoder.h"
+#include "unique_ptr.h" // auto_ptr, unique_ptr
 
 #ifndef HAS_GLOBAL_STRING
 using std::string;
@@ -95,12 +94,10 @@ class VCDiffFileBasedCoder {
 
   // Opens a file for incremental reading.  file_name is the name of the file
   // to be opened.  file_type should be a descriptive name (like "target") for
-  // use in log messages.  If successful, returns true and sets *file to a
-  // valid input file, *buffer to a region of memory allocated using malloc()
-  // (so the caller must release it using free()), and buffer_size to the size
-  // of the buffer, which will not be larger than the size of the file, and
-  // will not be smaller than the --buffersize option.  If the function fails,
-  // it outputs a log message and returns false.
+  // use in log messages.  If successful, returns true, sets *file to a valid
+  // input file and resizes *buffer to the smaller of the the file size and the
+  // --buffersize option.  If the function fails, it outputs a log message and
+  // returns false.
   bool OpenFileForReading(const string& file_name,
                           const char* file_type,
                           FILE** file,
@@ -154,7 +151,7 @@ class VCDiffFileBasedCoder {
   // Dictionary contents.  The entire dictionary file will be read into memory.
   std::vector<char> dictionary_;
 
-  std::auto_ptr<open_vcdiff::HashedDictionary> hashed_dictionary_;
+  UNIQUE_PTR<open_vcdiff::HashedDictionary> hashed_dictionary_;
 
   // These should be set to either "delta" or "target".  They are only
   // used in log messages such as "Error opening delta file..."

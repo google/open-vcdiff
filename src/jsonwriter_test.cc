@@ -1,5 +1,4 @@
-// Copyright 2009 Google Inc.
-// Author: James deBoer
+// Copyright 2009 The open-vcdiff Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,97 +41,75 @@ class JSONWriterTest : public testing::Test {
 };
 
 TEST_F(JSONWriterTest, Null) {
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
   EXPECT_EQ("", out_);
-  EXPECT_EQ(0U, coder_.target_length());
 }
 
 TEST_F(JSONWriterTest, Empty) {
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.Output(&output_string_);
   coder_.FinishEncoding(&output_string_);
   EXPECT_EQ("[]", out_);
-  EXPECT_EQ(0U, coder_.target_length());
 }
 
 TEST_F(JSONWriterTest, Add) {
   coder_.Add("123", 3);
-  EXPECT_EQ(3U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
-  EXPECT_EQ("[\"123\",]", out_);
+  EXPECT_EQ("[\"123\"]", out_);
 }
 
 TEST_F(JSONWriterTest, Copy) {
   coder_.Copy(3, 5);
-  EXPECT_EQ(5U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
-  EXPECT_EQ("[3,5,]", out_);
+  EXPECT_EQ("[3,5]", out_);
 }
 
 TEST_F(JSONWriterTest, Run) {
   coder_.Run(3, 'a');
-  EXPECT_EQ(3U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
-  EXPECT_EQ("[\"aaa\",]", out_);
+  EXPECT_EQ("[\"aaa\"]", out_);
 }
 
 TEST_F(JSONWriterTest, AddEscaped) {
   coder_.Add("\n\b\r", 3);
-  EXPECT_EQ(3U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
-  EXPECT_EQ("[\"\\n\\b\\r\",]", out_);
+  EXPECT_EQ("[\"\\n\\b\\r\"]", out_);
 }
 
 TEST_F(JSONWriterTest, AddCopyAdd) {
   coder_.Add("abc", 3);
   coder_.Copy(3, 5);
   coder_.Add("defghij", 7);
-  EXPECT_EQ(15U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
-  EXPECT_EQ("[\"abc\",3,5,\"defghij\",]", out_);
+  EXPECT_EQ("[\"abc\",3,5,\"defghij\"]", out_);
 }
 
 TEST_F(JSONWriterTest, AddOutputAddOutputToSameString) {
   coder_.Add("abc", 3);
-  EXPECT_EQ(3U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
-  EXPECT_EQ("[\"abc\",", out_);
+  EXPECT_EQ("[\"abc\"", out_);
   coder_.Add("def", 3);
-  EXPECT_EQ(3U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
-  EXPECT_EQ("[\"abc\",\"def\",]", out_);
+  EXPECT_EQ("[\"abc\",\"def\"]", out_);
 }
 
 TEST_F(JSONWriterTest, AddOutputAddOutputToDifferentString) {
   coder_.Add("abc", 3);
-  EXPECT_EQ(3U, coder_.target_length());
   coder_.Output(&output_string_);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string_);
-  EXPECT_EQ("[\"abc\",]", out_);
+  EXPECT_EQ("[\"abc\"]", out_);
   string out2;
   OutputString<string> output_string2(&out2);
   coder_.Init(0);
   coder_.Add("def", 3);
-  EXPECT_EQ(3U, coder_.target_length());
   coder_.Output(&output_string2);
-  EXPECT_EQ(0U, coder_.target_length());
   coder_.FinishEncoding(&output_string2);
-  EXPECT_EQ("[\"def\",]", out2);
+  EXPECT_EQ("[\"def\"]", out2);
 }
 
 }  // unnamed namespace
