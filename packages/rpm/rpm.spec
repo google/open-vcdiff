@@ -7,7 +7,7 @@ Summary: An encoder/decoder for the VCDIFF (RFC 3284) format
 Version: %VERSION
 Release: %rel
 Group: Development/Libraries
-URL: http://code.google.com/p/open-vcdiff
+URL: https://github.com/google/open-vcdiff
 License: Apache 2.0
 Vendor: Google
 Packager: Google Inc. <opensource@google.com>

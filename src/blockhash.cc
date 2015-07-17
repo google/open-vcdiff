@@ -218,7 +218,7 @@ void BlockHash::AddAllBlocksThroughIndex(int end_index) {
   if (source_size() < static_cast<size_t>(kBlockSize)) {
     // Exit early if the source data is small enough that it does not contain
     // any blocks.  This avoids negative values of last_legal_hash_index.
-    // See: https://code.google.com/p/open-vcdiff/issues/detail?id=40
+    // See: https://github.com/google/open-vcdiff/issues/40
     return;
   }
   int end_limit = end_index;

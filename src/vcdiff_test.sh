@@ -429,7 +429,7 @@ $VCDIFF $VCD_OPTIONS \
      exit 1; }
 echo "Test 33 ok";
 
-# open-vcdiff bug 8 (http://code.google.com/p/open-vcdiff/issues/detail?id=8)
+# open-vcdiff bug 8 (https://github.com/google/open-vcdiff/issues/8)
 # A malicious encoding that tries to produce a 4GB target file made up of 64
 # windows, each window having a size of 64MB.
 # Limit memory usage to 256MB per process, so the test doesn't take forever
