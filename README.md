@@ -2,6 +2,8 @@
 
 open-vcdiff is an encoder and decoder for the VCDIFF format, as described in [RFC 3284](http://www.ietf.org/rfc/rfc3284.txt): The VCDIFF Generic Differencing and Compression Data Format.
 
+You will need to first synchronize gflags and gtest by running `./fetch_prereq.bat` on Windows or `./fetch_prereq.sh` on other platforms.
+
 A library with a simple API is included, as well as a command-line executable that can apply the encoder and decoder to source, target, and delta files. For further details, please refer to [this link](https://github.com/google/open-vcdiff/wiki/How-to-use-openvcdiff).
 
 See [INSTALL](https://github.com/google/open-vcdiff/blob/master/INSTALL) for (generic) installation instructions for C++: basically

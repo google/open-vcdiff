@@ -12,9 +12,8 @@
 .deps/
 .libs/
 autom4te.cache/
-gflags/src/gflags/gflags.h
-gflags/src/gflags/gflags_completions.h
-gtest/Makefile.in
+gflags/
+gtest/
 src/config.h
 src/stamp-h1
 vcdiff
