@@ -48,6 +48,9 @@ may remove or edit it.
 you want to change it or regenerate `configure' using a newer version
 of `autoconf'.
 
+   You will need to first synchronize gflags and gtest by running
+`./fetch_prereq.bat` on Windows or `./fetch_prereq.sh` on other platforms.
+
    The simplest way to compile this package is:
 
   1. `cd' to the directory containing the package's source code and type
