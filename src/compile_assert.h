@@ -45,15 +45,13 @@ struct CompileAssert {
 
 }  // namespace open_vcdiff
 
-#ifdef HAVE__ATTRIBUTE__
-#define VCD_COMPILE_ASSERT(expr, msg) \
-  typedef open_vcdiff::CompileAssert<static_cast<bool>(expr)> \
-      msg[static_cast<bool>(expr) ? 1 : -1] __attribute__((unused))
+#if __cplusplus >= 201103L
+#define VCD_COMPILE_ASSERT(expr, msg) static_assert(expr, #msg)
 #else
 #define VCD_COMPILE_ASSERT(expr, msg) \
   typedef open_vcdiff::CompileAssert<static_cast<bool>(expr)> \
       msg[static_cast<bool>(expr) ? 1 : -1]
-#endif  // HAVE__ATTRIBUTE__
+#endif  // __cplusplus >= 201103L
 
 // Implementation details of VCD_COMPILE_ASSERT:
 //
