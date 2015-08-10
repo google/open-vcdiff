@@ -43,8 +43,8 @@ namespace open_vcdiff {
 //     Because the mode is expressed as a byte value,
 //     near_cache_size + same_cache_size should not exceed 254.
 //
-VCDiffAddressCache::VCDiffAddressCache(int near_cache_size,
-                                       int same_cache_size)
+VCDiffAddressCache::VCDiffAddressCache(unsigned char near_cache_size,
+                                       unsigned char same_cache_size)
     : near_cache_size_(near_cache_size),
       same_cache_size_(same_cache_size),
       next_slot_(0) { }
@@ -71,22 +71,10 @@ VCDiffAddressCache::VCDiffAddressCache()
 bool VCDiffAddressCache::Init() {
   // The mode is expressed as a byte value, so there is only room for 256 modes,
   // including the two non-cached modes (SELF and HERE).  Do not allow a larger
-  // number of modes to be defined.  We do a separate sanity check for
-  // near_cache_size_ and same_cache_size_ because adding them together can
-  // cause an integer overflow if each is set to, say, INT_MAX.
-  if ((near_cache_size_ > (VCD_MAX_MODES - 2)) || (near_cache_size_ < 0)) {
-    VCD_ERROR << "Near cache size " << near_cache_size_ << " is invalid"
-              << VCD_ENDL;
-    return false;
-  }
-  if ((same_cache_size_ > (VCD_MAX_MODES - 2)) || (same_cache_size_ < 0)) {
-    VCD_ERROR << "Same cache size " << same_cache_size_ << " is invalid"
-              << VCD_ENDL;
-    return false;
-  }
+  // number of modes to be defined.
   if ((near_cache_size_ + same_cache_size_) > VCD_MAX_MODES - 2) {
-    VCD_ERROR << "Using near cache size " << near_cache_size_
-              << " and same cache size " << same_cache_size_
+    VCD_ERROR << "Using near cache size " << static_cast<int>(near_cache_size_)
+              << " and same cache size " << static_cast<int>(same_cache_size_)
               << " would exceed maximum number of COPY modes ("
               << VCD_MAX_MODES << ")" << VCD_ENDL;
     return false;
@@ -175,7 +163,8 @@ unsigned char VCDiffAddressCache::EncodeAddress(VCDAddress address,
       // to the address stream instead of a variable-length integer.
       UpdateCache(address);
       *encoded_addr = same_cache_pos % 256;
-      return FirstSameMode() + (same_cache_pos / 256);  // SAME mode
+      return FirstSameMode() +
+          static_cast<unsigned char>(same_cache_pos / 256);  // SAME mode
     }
   }
 
@@ -193,7 +182,7 @@ unsigned char VCDiffAddressCache::EncodeAddress(VCDAddress address,
   }
 
   // Try using the NEAR cache
-  for (int i = 0; i < near_cache_size(); ++i) {
+  for (unsigned char i = 0; i < near_cache_size(); ++i) {
     const VCDAddress near_encoded_address = address - NearAddress(i);
     if ((near_encoded_address >= 0) &&
         (near_encoded_address < best_encoded_address)) {

@@ -139,61 +139,39 @@ TEST_F(VCDiffAddressCacheTest, ZeroCacheSizes) {
   EXPECT_TRUE(zero_cache.Init());
 }
 
-TEST_F(VCDiffAddressCacheTest, NegativeCacheSizes) {
-  VCDiffAddressCache negative_cache(-1, -1);   // The constructor must not fail
-  EXPECT_FALSE(negative_cache.Init());
-}
-
-TEST_F(VCDiffAddressCacheTest, OnlySameCacheSizeIsNegative) {
-  VCDiffAddressCache negative_cache(0, -1);   // The constructor must not fail
-  EXPECT_FALSE(negative_cache.Init());
-}
-
-TEST_F(VCDiffAddressCacheTest, ExtremePositiveCacheSizes) {
-  // The constructor must not fail
-  VCDiffAddressCache int_max_cache(INT_MAX, INT_MAX);
-  EXPECT_FALSE(int_max_cache.Init());
-}
-
-TEST_F(VCDiffAddressCacheTest, ExtremeNegativeCacheSizes) {
-  // The constructor must not fail
-  VCDiffAddressCache int_min_cache(INT_MIN, INT_MIN);
-  EXPECT_FALSE(int_min_cache.Init());
-}
-
 // VCD_MAX_MODES is the maximum number of modes, including SAME and HERE modes.
 // So neither the SAME cache nor the HERE cache can be larger than
 // (VCD_MAX_MODES - 2).
 TEST_F(VCDiffAddressCacheTest, NearCacheSizeIsTooBig) {
-  VCDiffAddressCache negative_cache(VCD_MAX_MODES - 1, 0);
-  EXPECT_FALSE(negative_cache.Init());
+  VCDiffAddressCache cache(VCD_MAX_MODES - 1, 0);
+  EXPECT_FALSE(cache.Init());
 }
 
 TEST_F(VCDiffAddressCacheTest, SameCacheSizeIsTooBig) {
-  VCDiffAddressCache negative_cache(0, VCD_MAX_MODES - 1);
-  EXPECT_FALSE(negative_cache.Init());
+  VCDiffAddressCache cache(0, VCD_MAX_MODES - 1);
+  EXPECT_FALSE(cache.Init());
 }
 
 TEST_F(VCDiffAddressCacheTest, CombinedSizesAreTooBig) {
-  VCDiffAddressCache negative_cache((VCD_MAX_MODES / 2),
-                                    (VCD_MAX_MODES / 2) - 1);
-  EXPECT_FALSE(negative_cache.Init());
+  VCDiffAddressCache cache1((VCD_MAX_MODES / 2), (VCD_MAX_MODES / 2) - 1);
+  EXPECT_FALSE(cache1.Init());
+  VCDiffAddressCache cache2(VCD_MAX_MODES - 1, VCD_MAX_MODES - 1);
+  EXPECT_FALSE(cache2.Init());
 }
 
 TEST_F(VCDiffAddressCacheTest, MaxLegalNearCacheSize) {
-  VCDiffAddressCache negative_cache(VCD_MAX_MODES - 2, 0);
-  EXPECT_TRUE(negative_cache.Init());
+  VCDiffAddressCache cache(VCD_MAX_MODES - 2, 0);
+  EXPECT_TRUE(cache.Init());
 }
 
 TEST_F(VCDiffAddressCacheTest, MaxLegalSameCacheSize) {
-  VCDiffAddressCache negative_cache(0, VCD_MAX_MODES - 2);
-  EXPECT_TRUE(negative_cache.Init());
+  VCDiffAddressCache cache(0, VCD_MAX_MODES - 2);
+  EXPECT_TRUE(cache.Init());
 }
 
 TEST_F(VCDiffAddressCacheTest, MaxLegalCombinedSizes) {
-  VCDiffAddressCache negative_cache((VCD_MAX_MODES / 2) - 1,
-                                    (VCD_MAX_MODES / 2) - 1);
-  EXPECT_TRUE(negative_cache.Init());
+  VCDiffAddressCache cache((VCD_MAX_MODES / 2) - 1, (VCD_MAX_MODES / 2) - 1);
+  EXPECT_TRUE(cache.Init());
 }
 
 TEST_F(VCDiffAddressCacheTest, DestroyWithoutInitialization) {

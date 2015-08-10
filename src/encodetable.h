@@ -65,8 +65,8 @@ class VCDiffCodeTableWriter : public CodeTableWriterInterface {
   // the file has been decoded.
   //
   VCDiffCodeTableWriter(bool interleaved,
-                        int near_cache_size,
-                        int same_cache_size,
+                        unsigned char near_cache_size,
+                        unsigned char same_cache_size,
                         const VCDiffCodeTableData& code_table_data,
                         unsigned char max_mode);
 

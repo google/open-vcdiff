@@ -37,10 +37,11 @@ namespace open_vcdiff {
 class VCDiffAddressCache {
  public:
   // The default cache sizes specified in the RFC
-  static const int kDefaultNearCacheSize = 4;
-  static const int kDefaultSameCacheSize = 3;
+  static const unsigned char kDefaultNearCacheSize = 4;
+  static const unsigned char kDefaultSameCacheSize = 3;
 
-  VCDiffAddressCache(int near_cache_size, int same_cache_size);
+  VCDiffAddressCache(unsigned char near_cache_size,
+                     unsigned char same_cache_size);
 
   // This version of the constructor uses the default values
   // kDefaultNearCacheSize and kDefaultSameCacheSize.
@@ -55,9 +56,9 @@ class VCDiffAddressCache {
   //
   bool Init();
 
-  int near_cache_size() const { return near_cache_size_; }
+  unsigned char near_cache_size() const { return near_cache_size_; }
 
-  int same_cache_size() const { return same_cache_size_; }
+  unsigned char same_cache_size() const { return same_cache_size_; }
 
   // Returns the first mode number that represents one of the NEAR modes.
   // The number of NEAR modes is near_cache_size.  Each NEAR mode refers to
@@ -196,11 +197,11 @@ class VCDiffAddressCache {
 
  private:
   // The number of addresses to be kept in the NEAR cache.
-  const int near_cache_size_;
+  const unsigned char near_cache_size_;
   // The number of 256-byte blocks to store in the SAME cache.
-  const int same_cache_size_;
+  const unsigned char same_cache_size_;
   // The next position in the NEAR cache to which an address will be written.
-  int       next_slot_;
+  int next_slot_;
   // NEAR cache contents
   std::vector<VCDAddress> near_addresses_;
   // SAME cache contents
