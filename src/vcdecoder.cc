@@ -28,6 +28,7 @@
 
 #include <config.h>
 #include "google/vcdecoder.h"
+#include <limits.h>  // NOLINT
 #include <stddef.h>  // size_t, ptrdiff_t
 #include <stdint.h>  // int32_t
 #include <string.h>  // memcpy, memset
@@ -301,7 +302,7 @@ class VCDiffDeltaFileWindow {
   VCDiffCodeTableReader reader_;
 
   // Making these private avoids implicit copy constructor & assignment operator
-  VCDiffDeltaFileWindow(const VCDiffDeltaFileWindow&);  // NOLINT
+  VCDiffDeltaFileWindow(const VCDiffDeltaFileWindow&);
   void operator=(const VCDiffDeltaFileWindow&);
 };
 
@@ -613,7 +614,7 @@ class VCDiffStreamingDecoderImpl {
   bool allow_vcd_target_;
 
   // Making these private avoids implicit copy constructor & assignment operator
-  VCDiffStreamingDecoderImpl(const VCDiffStreamingDecoderImpl&);  // NOLINT
+  VCDiffStreamingDecoderImpl(const VCDiffStreamingDecoderImpl&);
   void operator=(const VCDiffStreamingDecoderImpl&);
 };
 
@@ -762,16 +763,29 @@ int VCDiffStreamingDecoderImpl::InitCustomCodeTable(const char* data_start,
   // cache sizes and begin parsing the encoded custom code table.
   int32_t near_cache_size = 0, same_cache_size = 0;
   VCDiffHeaderParser header_parser(data_start, data_end);
-  if (!header_parser.ParseInt32("size of near cache", &near_cache_size)) {
+  if (!header_parser.ParseInt32("size of near cache", &near_cache_size) ||
+      !header_parser.ParseInt32("size of same cache", &same_cache_size)) {
     return header_parser.GetResult();
   }
-  if (!header_parser.ParseInt32("size of same cache", &same_cache_size)) {
-    return header_parser.GetResult();
+
+  // We need not check for negative values, ParseInt32() will never return them.
+  if (near_cache_size > UCHAR_MAX) {
+    VCD_DFATAL << "Near cache size " << near_cache_size << " is invalid"
+               << VCD_ENDL;
+    return RESULT_ERROR;
   }
+  if (same_cache_size > UCHAR_MAX) {
+    VCD_DFATAL << "Same cache size " << same_cache_size << " is invalid"
+               << VCD_ENDL;
+    return RESULT_ERROR;
+  }
+
   custom_code_table_.reset(new struct VCDiffCodeTableData);
   memset(custom_code_table_.get(), 0, sizeof(struct VCDiffCodeTableData));
   custom_code_table_string_.clear();
-  addr_cache_.reset(new VCDiffAddressCache(near_cache_size, same_cache_size));
+  addr_cache_.reset(new VCDiffAddressCache(
+      static_cast<unsigned char>(near_cache_size),
+      static_cast<unsigned char>(same_cache_size)));
   // addr_cache_->Init() will be called
   // from VCDiffStreamingDecoderImpl::DecodeChunk()
 

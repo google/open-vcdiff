@@ -17,6 +17,7 @@
 #include <string>
 #include "codetable.h"
 #include "testing.h"
+#include "varint_bigendian.h"  // NOLINT
 #include "vcdecoder_test.h"
 #include "vcdiff_defs.h"  // VCD_SOURCE
 
@@ -1020,41 +1021,40 @@ TEST_F(VCDiffCustomCodeTableDecoderTestByteByByte, CustomTableNoVcdTarget) {
 }
 
 #ifdef GTEST_HAS_DEATH_TEST
-typedef VCDiffCustomCodeTableDecoderTest VCDiffCustomCodeTableDecoderDeathTest;
 
-TEST_F(VCDiffCustomCodeTableDecoderDeathTest, BadCustomCacheSizes) {
+class VCDiffCustomCacheSizeTest : public VCDiffCustomCodeTableDecoderTest {
+ protected:
+  void CustomCacheSizeTest(int32_t near_value, int32_t same_value);
+};
+
+void VCDiffCustomCacheSizeTest::CustomCacheSizeTest(int32_t near_value,
+                                                    int32_t same_value) {
+  SCOPED_TRACE(testing::Message() << "Near value: " << near_value
+                                  << ", same value: " << same_value);
   delta_file_header_.assign(kFileHeader, sizeof(kFileHeader));
-  delta_file_header_.push_back(0x81);  // NEAR cache size (top bit)
-  delta_file_header_.push_back(0x10);  // NEAR cache size (custom value 0x90)
-  delta_file_header_.push_back(0x81);  // SAME cache size (top bit)
-  delta_file_header_.push_back(0x10);  // SAME cache size (custom value 0x90)
+  VarintBE<int32_t>::AppendToString(near_value, &delta_file_header_);
+  VarintBE<int32_t>::AppendToString(same_value, &delta_file_header_);
   delta_file_header_.append(kEncodedCustomCodeTable,
                             sizeof(kEncodedCustomCodeTable));
   InitializeDeltaFile();
-  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
-  EXPECT_DEBUG_DEATH(EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
-                                                       delta_file_.size(),
-                                                       &output_)),
-                     "cache");
+  EXPECT_DEBUG_DEATH({
+    decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
+    EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
+                                      delta_file_.size(),
+                                      &output_));
+  }, "cache");
   EXPECT_EQ("", output_);
 }
 
-TEST_F(VCDiffCustomCodeTableDecoderDeathTest, BadCustomCacheSizesNoVcdTarget) {
+TEST_F(VCDiffCustomCacheSizeTest, BadCustomCacheSizes) {
+  CustomCacheSizeTest(0x90, 0x90);
+  CustomCacheSizeTest(INT_MAX, INT_MAX);
+}
+
+TEST_F(VCDiffCustomCacheSizeTest, BadCustomCacheSizesNoVcdTarget) {
   decoder_.SetAllowVcdTarget(false);
-  delta_file_header_.assign(kFileHeader, sizeof(kFileHeader));
-  delta_file_header_.push_back(0x81);  // NEAR cache size (top bit)
-  delta_file_header_.push_back(0x10);  // NEAR cache size (custom value 0x90)
-  delta_file_header_.push_back(0x81);  // SAME cache size (top bit)
-  delta_file_header_.push_back(0x10);  // SAME cache size (custom value 0x90)
-  delta_file_header_.append(kEncodedCustomCodeTable,
-                            sizeof(kEncodedCustomCodeTable));
-  InitializeDeltaFile();
-  decoder_.StartDecoding(dictionary_.data(), dictionary_.size());
-  EXPECT_DEBUG_DEATH(EXPECT_FALSE(decoder_.DecodeChunk(delta_file_.data(),
-                                                       delta_file_.size(),
-                                                       &output_)),
-                     "cache");
-  EXPECT_EQ("", output_);
+  CustomCacheSizeTest(0x90, 0x90);
+  CustomCacheSizeTest(INT_MAX, INT_MAX);
 }
 
 #endif  // GTEST_HAS_DEATH_TEST

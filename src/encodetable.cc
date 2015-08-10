@@ -67,8 +67,8 @@ VCDiffCodeTableWriter::VCDiffCodeTableWriter(bool interleaved)
 
 VCDiffCodeTableWriter::VCDiffCodeTableWriter(
     bool interleaved,
-    int near_cache_size,
-    int same_cache_size,
+    unsigned char near_cache_size,
+    unsigned char same_cache_size,
     const VCDiffCodeTableData& code_table_data,
     unsigned char max_mode)
     : max_mode_(max_mode),
@@ -189,11 +189,9 @@ void VCDiffCodeTableWriter::EncodeInstruction(VCDiffInstructionType inst,
     }
     OpcodeOrNone compound_opcode = kNoOpcode;
     if (size <= UCHAR_MAX) {
-      compound_opcode =
-          instruction_map_->LookupSecondOpcode(last_opcode,
-                                               inst,
-                                               static_cast<unsigned char>(size),
-                                               mode);
+      compound_opcode = instruction_map_->LookupSecondOpcode(
+          last_opcode, static_cast<unsigned char>(inst),
+          static_cast<unsigned char>(size), mode);
       if (compound_opcode != kNoOpcode) {
         instructions_and_sizes_[last_opcode_index_] =
             static_cast<unsigned char>(compound_opcode);
@@ -202,10 +200,8 @@ void VCDiffCodeTableWriter::EncodeInstruction(VCDiffInstructionType inst,
       }
     }
     // Try finding a compound opcode with size 0.
-    compound_opcode = instruction_map_->LookupSecondOpcode(last_opcode,
-                                                           inst,
-                                                           0,
-                                                           mode);
+    compound_opcode = instruction_map_->LookupSecondOpcode(
+        last_opcode, static_cast<unsigned char>(inst), 0, mode);
     if (compound_opcode != kNoOpcode) {
       instructions_and_sizes_[last_opcode_index_] =
           static_cast<unsigned char>(compound_opcode);
@@ -217,9 +213,9 @@ void VCDiffCodeTableWriter::EncodeInstruction(VCDiffInstructionType inst,
   OpcodeOrNone opcode = kNoOpcode;
   if (size <= UCHAR_MAX) {
     opcode =
-        instruction_map_->LookupFirstOpcode(inst,
-                                            static_cast<unsigned char>(size),
-                                            mode);
+        instruction_map_->LookupFirstOpcode(
+            static_cast<unsigned char>(inst), static_cast<unsigned char>(size),
+            mode);
     if (opcode != kNoOpcode) {
       instructions_and_sizes_.push_back(static_cast<char>(opcode));
       last_opcode_index_ = static_cast<int>(instructions_and_sizes_.size() - 1);
@@ -227,7 +223,8 @@ void VCDiffCodeTableWriter::EncodeInstruction(VCDiffInstructionType inst,
     }
   }
   // There should always be an opcode with size 0.
-  opcode = instruction_map_->LookupFirstOpcode(inst, 0, mode);
+  opcode = instruction_map_->LookupFirstOpcode(
+      static_cast<unsigned char>(inst), 0, mode);
   if (opcode == kNoOpcode) {
     VCD_DFATAL << "No matching opcode found for inst " << inst
                << ", mode " << mode << ", size 0" << VCD_ENDL;
