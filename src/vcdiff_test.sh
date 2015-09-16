@@ -34,6 +34,10 @@ TEST_TMPDIR=${TMPDIR-/tmp}
 DELTA_FILE=$TEST_TMPDIR/configure.ac.vcdiff
 OUTPUT_TARGET_FILE=$TEST_TMPDIR/configure.ac.output
 MALICIOUS_ENCODING=$srcdir/testdata/allocates_4gb.vcdiff
+OVERFLOW_DELTA_FILE=$srcdir/testdata/size-overflow-delta
+OVERFLOW_DICTIONARY_FILE=$srcdir/testdata/size-overflow-dictionary
+OVERFLOW_ERROR_32=$srcdir/testdata/size-overflow-error-32
+OVERFLOW_ERROR_64=$srcdir/testdata/size-overflow-error-64
 
 # vcdiff with no arguments shows usage information & error result
 $VCDIFF \
@@ -523,5 +527,19 @@ cmp $TARGET_FILE $OUTPUT_TARGET_FILE \
 || { echo "Decoded target does not match original"; \
      exit 1; }
 echo "Test 39 ok";
+
+# Test for overflow in size parsing. Check for the specific overflow error
+# message and make sure that it's emitted.
+$VCDIFF $VCD_OPTIONS \
+        decode -dictionary $OVERFLOW_DICTIONARY_FILE \
+               -delta $OVERFLOW_DELTA_FILE \
+               -target $OUTPUT_TARGET_FILE 2>$TEST_TMPDIR/overflow-err\
+&& { echo "Size overflow didn't crash or error vcdiff"; \
+     exit 1; }
+cmp $TEST_TMPDIR/overflow-err $OVERFLOW_ERROR_32 \
+|| cmp $TEST_TMPDIR/overflow-err $OVERFLOW_ERROR_64 \
+|| { echo "Overflow error message does not match"; \
+     exit 1; }
+echo "Test 40 ok"
 
 echo "PASS"

@@ -229,7 +229,11 @@ jsonwriter_test_LDADD = libvcdenc.la libvcdcom.la libgtest_main.la
 check_SCRIPTS += src/vcdiff_test.sh
 dist_noinst_DATA = testdata/configure.ac.v0.1 \
                    testdata/configure.ac.v0.2 \
-                   testdata/allocates_4gb.vcdiff
+                   testdata/allocates_4gb.vcdiff \
+                   testdata/size-overflow-delta \
+                   testdata/size-overflow-dictionary \
+                   testdata/size-overflow-error-32 \
+                   testdata/size-overflow-error-64
 
 ## ^^^^ END OF RULES TO MAKE THE LIBRARIES, BINARIES, AND UNITTESTS
 
