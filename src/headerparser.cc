@@ -12,11 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <config.h>
 #include "headerparser.h"
+
+#include <limits.h>
+
+#include <config.h>
 #include "logging.h"
 #include "varint_bigendian.h"
 #include "vcdiff_defs.h"
+
+namespace {
+
+bool SumWouldOverflow2(size_t a, size_t b) {
+  return a > SIZE_MAX - b;
+}
+
+bool SumWouldOverflow4(size_t a, size_t b, size_t c, size_t d) {
+  return SumWouldOverflow2(a, b) ||
+         SumWouldOverflow2(a + b, c) ||
+         SumWouldOverflow2(a + b + c, d);
+}
+
+}  // namespace
 
 namespace open_vcdiff {
 
@@ -305,6 +322,16 @@ bool VCDiffHeaderParser::ParseSectionLengths(
   }
   const size_t delta_encoding_header_length =
       UnparsedData() - delta_encoding_start_;
+  if (SumWouldOverflow4(delta_encoding_header_length,
+                        *add_and_run_data_length,
+                        *instructions_and_sizes_length,
+                        *addresses_length)) {
+    VCD_ERROR << "The header + sizes of data sections would overflow the "
+                 "maximum size"
+              << VCD_ENDL;
+    return_code_ = RESULT_ERROR;
+    return false;
+  }
   if (delta_encoding_length_ !=
           (delta_encoding_header_length +
            *add_and_run_data_length +

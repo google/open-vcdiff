@@ -155,7 +155,7 @@ TEST_F(VCDiffAddressCacheTest, SameCacheSizeIsTooBig) {
 TEST_F(VCDiffAddressCacheTest, CombinedSizesAreTooBig) {
   VCDiffAddressCache cache1((VCD_MAX_MODES / 2), (VCD_MAX_MODES / 2) - 1);
   EXPECT_FALSE(cache1.Init());
-  VCDiffAddressCache cache2(VCD_MAX_MODES - 1, VCD_MAX_MODES - 1);
+  VCDiffAddressCache cache2(VCD_MAX_MODES - 1, VCD_MAX_MODES- 1);
   EXPECT_FALSE(cache2.Init());
 }
 

@@ -212,10 +212,9 @@ void VCDiffCodeTableWriter::EncodeInstruction(VCDiffInstructionType inst,
   }
   OpcodeOrNone opcode = kNoOpcode;
   if (size <= UCHAR_MAX) {
-    opcode =
-        instruction_map_->LookupFirstOpcode(
-            static_cast<unsigned char>(inst), static_cast<unsigned char>(size),
-            mode);
+    opcode = instruction_map_->LookupFirstOpcode(
+        static_cast<unsigned char>(inst), static_cast<unsigned char>(size),
+        mode);
     if (opcode != kNoOpcode) {
       instructions_and_sizes_.push_back(static_cast<char>(opcode));
       last_opcode_index_ = static_cast<int>(instructions_and_sizes_.size() - 1);
