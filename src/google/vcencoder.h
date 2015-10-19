@@ -23,6 +23,7 @@ namespace open_vcdiff {
 
 class VCDiffEngine;
 class VCDiffStreamingEncoderImpl;
+class CodeTableWriterInterface;
 
 // A HashedDictionary must be constructed from the dictionary data
 // in order to use VCDiffStreamingEncoder.  If the same dictionary will
@@ -103,6 +104,10 @@ class VCDiffStreamingEncoder {
   VCDiffStreamingEncoder(const HashedDictionary* dictionary,
                          VCDiffFormatExtensionFlags format_extensions,
                          bool look_for_target_matches);
+  VCDiffStreamingEncoder(const HashedDictionary* dictionary,
+                         VCDiffFormatExtensionFlags format_extensions,
+                         bool look_for_target_matches,
+                         CodeTableWriterInterface* writer);
   ~VCDiffStreamingEncoder();
 
   // The client should use these routines as follows:
