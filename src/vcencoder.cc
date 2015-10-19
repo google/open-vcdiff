@@ -28,10 +28,10 @@
 
 #include <config.h>
 #include "checksum.h"
-#include "encodetable.h"
+#include "google/encodetable.h"
 #include "google/output_string.h"
 #include "google/vcencoder.h"
-#include "jsonwriter.h"
+#include "google/jsonwriter.h"
 #include "logging.h"
 #include "unique_ptr.h" // auto_ptr, unique_ptr
 #include "vcdiffengine.h"
