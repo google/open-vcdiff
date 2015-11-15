@@ -101,6 +101,10 @@ class VCDiffStreamingEncoder {
   // look_for_target_matches) because the cost of checking for matches
   // across the source-target boundary would not justify its benefits.
   //
+  // Second version of constructor uses provided CodeTableInterfaceWriter
+  // pointer instead of constructing one based on format_extenstions and will
+  // take ownership of it. It's useful when you want to gather some statistics
+  // for ADD/COPY/RUN instructions and archived compression ratio.
   VCDiffStreamingEncoder(const HashedDictionary* dictionary,
                          VCDiffFormatExtensionFlags format_extensions,
                          bool look_for_target_matches);
