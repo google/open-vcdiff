@@ -21,6 +21,14 @@
 #include "varint_bigendian.h"
 #include "vcdiff_defs.h"
 
+#ifndef SIZE_MAX
+  #ifdef __SIZE_MAX__
+    #define SIZE_MAX __SIZE_MAX__
+  #else
+    #define SIZE_MAX std::numeric_limits<size_t>::max()
+  #endif
+#endif
+
 namespace {
 
 bool SumWouldOverflow2(size_t a, size_t b) {
