@@ -69,6 +69,10 @@ TARGET_LINK_LIBRARIES(vcdenc vcdcom)
 ADD_EXECUTABLE(vcdiff "src/vcdiff_main.cc")
 TARGET_LINK_LIBRARIES(vcdiff vcddec vcdenc gflags)
 
+INSTALL(DIRECTORY src/google DESTINATION include)
+INSTALL(TARGETS vcdcom vcdenc vcddec DESTINATION lib)
+INSTALL(TARGETS vcdiff DESTINATION bin)
+
 
 ENABLE_TESTING()
 
