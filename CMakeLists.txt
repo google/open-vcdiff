@@ -3,8 +3,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.13)
 # Add subprojects first so we won't interfere with config.h.in
 SET(GFLAGS_BUILD_gflags_LIB OFF)
 SET(GFLAGS_BUILD_gflags_nothreads_LIB ON)
+SET(GFLAGS_INSTALL_HEADERS OFF)
+SET(GFLAGS_INSTALL_SHARED_LIBS OFF)
+SET(GFLAGS_INSTALL_STATIC_LIBS OFF)
 ADD_SUBDIRECTORY(gflags)
 
+SET(gtest_install OFF CACHE BOOL "Don't install gtest" FORCE)
 ADD_SUBDIRECTORY(googletest/googletest)
 
 PROJECT(open-vcdiff)
