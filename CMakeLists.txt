@@ -46,6 +46,8 @@ SET(VCDCOM_SRC
   "src/varint_bigendian.cc"
 )
 ADD_LIBRARY(vcdcom "" ${VCDCOM_SRC})
+ADD_LIBRARY(vcdcom_shared "SHARED" ${VCDCOM_SRC})
+SET_TARGET_PROPERTIES(vcdcom_shared PROPERTIES OUTPUT_NAME vcdcom)
 
 SET(VCDDEC_SRC
   "src/decodetable.cc"
@@ -54,6 +56,9 @@ SET(VCDDEC_SRC
 )
 ADD_LIBRARY(vcddec "" ${VCDDEC_SRC})
 TARGET_LINK_LIBRARIES(vcddec vcdcom)
+ADD_LIBRARY(vcddec_shared "SHARED" ${VCDDEC_SRC})
+SET_TARGET_PROPERTIES(vcddec_shared PROPERTIES OUTPUT_NAME vcddec)
+TARGET_LINK_LIBRARIES(vcddec_shared vcdcom_shared)
 
 SET(VCDENC_SRC
   "src/blockhash.cc"
@@ -65,12 +70,16 @@ SET(VCDENC_SRC
 )
 ADD_LIBRARY(vcdenc "" ${VCDENC_SRC})
 TARGET_LINK_LIBRARIES(vcdenc vcdcom)
+ADD_LIBRARY(vcdenc_shared "SHARED" ${VCDENC_SRC})
+SET_TARGET_PROPERTIES(vcdenc_shared PROPERTIES OUTPUT_NAME vcdenc)
+TARGET_LINK_LIBRARIES(vcdenc_shared vcdcom_shared)
 
 ADD_EXECUTABLE(vcdiff "src/vcdiff_main.cc")
 TARGET_LINK_LIBRARIES(vcdiff vcddec vcdenc gflags)
 
 INSTALL(DIRECTORY src/google DESTINATION include)
 INSTALL(TARGETS vcdcom vcdenc vcddec DESTINATION lib)
+INSTALL(TARGETS vcdcom_shared vcdenc_shared vcddec_shared DESTINATION lib)
 INSTALL(TARGETS vcdiff DESTINATION bin)
 
 
