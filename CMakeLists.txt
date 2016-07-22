@@ -35,7 +35,6 @@ check_include_files (windows.h HAVE_WINDOWS_H)
 
 include (CheckFunctionExists)
 check_function_exists (gettimeofday HAVE_GETTIMEOFDAY)
-check_function_exists (QueryPerformanceCounter HAVE_QUERYPERFORMANCECOUNTER)
 check_function_exists (memalign HAVE_MEMALIGN)
 check_function_exists (posix_memalign HAVE_POSIX_MEMALIGN)
 check_function_exists (mprotect HAVE_MPROTECT)
