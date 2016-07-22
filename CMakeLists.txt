@@ -21,9 +21,8 @@ if (vcdiff_build_tests)
 endif ()
 
 project (open-vcdiff CXX C)
-set (PROJECT_VERSION 1.0)
-set (PROJECT_SOVERSION 1)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2")
+set (PROJECT_VERSION 0.8.4)
+set (PROJECT_SOVERSION 0)
 
 include (CheckIncludeFiles)
 check_include_files (ext/rope HAVE_EXT_ROPE)
