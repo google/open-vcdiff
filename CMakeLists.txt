@@ -22,6 +22,8 @@ endif ()
 
 project (open-vcdiff CXX C)
 set (PROJECT_VERSION 0.8.4)
+# For config.h.in to avoid generic define
+set (OPEN_VCDIFF_VERSION ${PROJECT_VERSION})
 set (PROJECT_SOVERSION 0)
 
 include (CheckIncludeFiles)
