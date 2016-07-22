@@ -1,15 +1,24 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.13)
 
-# Add subprojects first so we won't interfere with config.h.in
-SET(GFLAGS_BUILD_gflags_LIB OFF)
-SET(GFLAGS_BUILD_gflags_nothreads_LIB ON)
-SET(GFLAGS_INSTALL_HEADERS OFF)
-SET(GFLAGS_INSTALL_SHARED_LIBS OFF)
-SET(GFLAGS_INSTALL_STATIC_LIBS OFF)
-ADD_SUBDIRECTORY(gflags)
+# Configuration options
+option(vcdiff_build_tests "Build all of vcdiff tests." ON)
+option(vcdiff_build_exec "Build vcdiff exectuable" ON)
 
-SET(gtest_install OFF CACHE BOOL "Don't install gtest" FORCE)
-ADD_SUBDIRECTORY(googletest/googletest)
+# Add subprojects first so we won't interfere with config.h.in
+
+IF (vcdiff_build_exec)
+  SET(GFLAGS_BUILD_gflags_LIB OFF)
+  SET(GFLAGS_BUILD_gflags_nothreads_LIB ON)
+  SET(GFLAGS_INSTALL_HEADERS OFF)
+  SET(GFLAGS_INSTALL_SHARED_LIBS OFF)
+  SET(GFLAGS_INSTALL_STATIC_LIBS OFF)
+  ADD_SUBDIRECTORY(gflags)
+ENDIF()
+
+IF (vcdiff_build_tests)
+  SET(gtest_install OFF CACHE BOOL "Don't install gtest" FORCE)
+  ADD_SUBDIRECTORY(googletest/googletest)
+ENDIF()
 
 PROJECT(open-vcdiff)
 SET(PROJECT_VERSION 1.0)
@@ -34,6 +43,8 @@ CHECK_FUNCTION_EXISTS(mprotect HAVE_MPROTECT)
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/src/config.h.in ${PROJECT_BINARY_DIR}/config.h)
 INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
 
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/zlib)
 
 SET(VCDCOM_SRC
   "src/google/format_extension_flags.h"
@@ -91,91 +102,95 @@ SET_TARGET_PROPERTIES(vcdenc_shared PROPERTIES
   SOVERSION ${PROJECT_SOVERSION})
 TARGET_LINK_LIBRARIES(vcdenc_shared vcdcom_shared)
 
-ADD_EXECUTABLE(vcdiff "src/vcdiff_main.cc")
-TARGET_LINK_LIBRARIES(vcdiff vcddec vcdenc gflags)
 
 INSTALL(DIRECTORY src/google DESTINATION include)
 INSTALL(TARGETS vcdcom vcdenc vcddec DESTINATION lib)
 INSTALL(TARGETS vcdcom_shared vcdenc_shared vcddec_shared DESTINATION lib)
-INSTALL(TARGETS vcdiff DESTINATION bin)
+
+IF (vcdiff_build_exec)
+  ADD_EXECUTABLE(vcdiff "src/vcdiff_main.cc")
+  TARGET_LINK_LIBRARIES(vcdiff vcddec vcdenc gflags)
+  INSTALL(TARGETS vcdiff DESTINATION bin)
+ENDIF()
+
+if (vcdiff_build_tests)
+  ENABLE_TESTING()
+
+  ADD_LIBRARY(vcdecoder_test_common
+    "src/vcdecoder_test.cc"
+  )
+  TARGET_LINK_LIBRARIES(vcdecoder_test_common vcddec gtest_main)
 
 
-ENABLE_TESTING()
+  ADD_EXECUTABLE(addrcache_test src/addrcache_test.cc)
+  TARGET_LINK_LIBRARIES(addrcache_test vcdcom gtest_main)
+  ADD_TEST(addrcache_test addrcache_test)
 
-ADD_LIBRARY(vcdecoder_test_common
-  "src/vcdecoder_test.cc"
-)
-TARGET_LINK_LIBRARIES(vcdecoder_test_common vcddec gtest_main)
+  ADD_EXECUTABLE(blockhash_test src/blockhash_test.cc)
+  TARGET_LINK_LIBRARIES(blockhash_test vcdenc gtest_main)
+  ADD_TEST(blockhash_test blockhash_test)
 
+  ADD_EXECUTABLE(codetable_test src/codetable_test.cc)
+  TARGET_LINK_LIBRARIES(codetable_test vcdcom gtest_main)
+  ADD_TEST(codetable_test codetable_test)
 
-ADD_EXECUTABLE(addrcache_test src/addrcache_test.cc)
-TARGET_LINK_LIBRARIES(addrcache_test vcdcom gtest_main)
-ADD_TEST(addrcache_test addrcache_test)
+  ADD_EXECUTABLE(decodetable_test src/decodetable_test.cc)
+  TARGET_LINK_LIBRARIES(decodetable_test vcddec vcdcom gtest_main)
+  ADD_TEST(decodetable_test decodetable_test)
 
-ADD_EXECUTABLE(blockhash_test src/blockhash_test.cc)
-TARGET_LINK_LIBRARIES(blockhash_test vcdenc gtest_main)
-ADD_TEST(blockhash_test blockhash_test)
+  ADD_EXECUTABLE(encodetable_test src/encodetable_test.cc)
+  TARGET_LINK_LIBRARIES(encodetable_test vcdenc vcdcom gtest_main)
+  ADD_TEST(encodetable_test encodetable_test)
 
-ADD_EXECUTABLE(codetable_test src/codetable_test.cc)
-TARGET_LINK_LIBRARIES(codetable_test vcdcom gtest_main)
-ADD_TEST(codetable_test codetable_test)
+  ADD_EXECUTABLE(headerparser_test src/headerparser_test.cc)
+  TARGET_LINK_LIBRARIES(headerparser_test vcddec vcdcom gtest_main)
+  ADD_TEST(headerparser_test headerparser_test)
 
-ADD_EXECUTABLE(decodetable_test src/decodetable_test.cc)
-TARGET_LINK_LIBRARIES(decodetable_test vcddec vcdcom gtest_main)
-ADD_TEST(decodetable_test decodetable_test)
+  ADD_EXECUTABLE(instruction_map_test src/instruction_map_test.cc)
+  TARGET_LINK_LIBRARIES(instruction_map_test vcdenc vcdcom gtest_main)
+  ADD_TEST(instruction_map_test instruction_map_test)
 
-ADD_EXECUTABLE(encodetable_test src/encodetable_test.cc)
-TARGET_LINK_LIBRARIES(encodetable_test vcdenc vcdcom gtest_main)
-ADD_TEST(encodetable_test encodetable_test)
+  ADD_EXECUTABLE(output_string_test src/output_string_test.cc)
+  TARGET_LINK_LIBRARIES(output_string_test gtest_main)
+  ADD_TEST(output_string_test output_string_test)
 
-ADD_EXECUTABLE(headerparser_test src/headerparser_test.cc)
-TARGET_LINK_LIBRARIES(headerparser_test vcddec vcdcom gtest_main)
-ADD_TEST(headerparser_test headerparser_test)
+  ADD_EXECUTABLE(rolling_hash_test src/rolling_hash_test.cc)
+  TARGET_LINK_LIBRARIES(rolling_hash_test vcdcom gtest_main)
+  ADD_TEST(rolling_hash_test rolling_hash_test)
 
-ADD_EXECUTABLE(instruction_map_test src/instruction_map_test.cc)
-TARGET_LINK_LIBRARIES(instruction_map_test vcdenc vcdcom gtest_main)
-ADD_TEST(instruction_map_test instruction_map_test)
+  ADD_EXECUTABLE(varint_bigendian_test src/varint_bigendian_test.cc)
+  TARGET_LINK_LIBRARIES(varint_bigendian_test vcdcom gtest_main)
+  ADD_TEST(varint_bigendian_test varint_bigendian_test)
 
-ADD_EXECUTABLE(output_string_test src/output_string_test.cc)
-TARGET_LINK_LIBRARIES(output_string_test gtest_main)
-ADD_TEST(output_string_test output_string_test)
+  ADD_EXECUTABLE(vcdecoder1_test src/vcdecoder1_test.cc)
+  TARGET_LINK_LIBRARIES(vcdecoder1_test vcdecoder_test_common)
+  ADD_TEST(vcdecoder1_test vcdecoder1_test)
 
-ADD_EXECUTABLE(rolling_hash_test src/rolling_hash_test.cc)
-TARGET_LINK_LIBRARIES(rolling_hash_test vcdcom gtest_main)
-ADD_TEST(rolling_hash_test rolling_hash_test)
+  ADD_EXECUTABLE(vcdecoder2_test src/vcdecoder2_test.cc)
+  TARGET_LINK_LIBRARIES(vcdecoder2_test vcdecoder_test_common)
+  ADD_TEST(vcdecoder2_test vcdecoder2_test)
 
-ADD_EXECUTABLE(varint_bigendian_test src/varint_bigendian_test.cc)
-TARGET_LINK_LIBRARIES(varint_bigendian_test vcdcom gtest_main)
-ADD_TEST(varint_bigendian_test varint_bigendian_test)
+  ADD_EXECUTABLE(vcdecoder3_test src/vcdecoder3_test.cc)
+  TARGET_LINK_LIBRARIES(vcdecoder3_test vcdecoder_test_common)
+  ADD_TEST(vcdecoder3_test vcdecoder3_test)
 
-ADD_EXECUTABLE(vcdecoder1_test src/vcdecoder1_test.cc)
-TARGET_LINK_LIBRARIES(vcdecoder1_test vcdecoder_test_common)
-ADD_TEST(vcdecoder1_test vcdecoder1_test)
+  ADD_EXECUTABLE(vcdecoder4_test src/vcdecoder4_test.cc)
+  TARGET_LINK_LIBRARIES(vcdecoder4_test vcdecoder_test_common)
+  ADD_TEST(vcdecoder4_test vcdecoder4_test)
 
-ADD_EXECUTABLE(vcdecoder2_test src/vcdecoder2_test.cc)
-TARGET_LINK_LIBRARIES(vcdecoder2_test vcdecoder_test_common)
-ADD_TEST(vcdecoder2_test vcdecoder2_test)
+  ADD_EXECUTABLE(vcdecoder5_test src/vcdecoder5_test.cc)
+  TARGET_LINK_LIBRARIES(vcdecoder5_test vcdecoder_test_common)
+  ADD_TEST(vcdecoder5_test vcdecoder5_test)
 
-ADD_EXECUTABLE(vcdecoder3_test src/vcdecoder3_test.cc)
-TARGET_LINK_LIBRARIES(vcdecoder3_test vcdecoder_test_common)
-ADD_TEST(vcdecoder3_test vcdecoder3_test)
+  ADD_EXECUTABLE(vcdiffengine_test src/vcdiffengine_test.cc)
+  TARGET_LINK_LIBRARIES(vcdiffengine_test vcdenc vcdcom gtest_main)
+  ADD_TEST(vcdiffengine_test vcdiffengine_test)
 
-ADD_EXECUTABLE(vcdecoder4_test src/vcdecoder4_test.cc)
-TARGET_LINK_LIBRARIES(vcdecoder4_test vcdecoder_test_common)
-ADD_TEST(vcdecoder4_test vcdecoder4_test)
+  ADD_EXECUTABLE(vcencoder_test src/vcencoder_test.cc)
+  TARGET_LINK_LIBRARIES(vcencoder_test vcddec vcdenc vcdcom gtest_main)
+  ADD_TEST(vcencoder_test vcencoder_test)
 
-ADD_EXECUTABLE(vcdecoder5_test src/vcdecoder5_test.cc)
-TARGET_LINK_LIBRARIES(vcdecoder5_test vcdecoder_test_common)
-ADD_TEST(vcdecoder5_test vcdecoder5_test)
-
-ADD_EXECUTABLE(vcdiffengine_test src/vcdiffengine_test.cc)
-TARGET_LINK_LIBRARIES(vcdiffengine_test vcdenc vcdcom gtest_main)
-ADD_TEST(vcdiffengine_test vcdiffengine_test)
-
-ADD_EXECUTABLE(vcencoder_test src/vcencoder_test.cc)
-TARGET_LINK_LIBRARIES(vcencoder_test vcddec vcdenc vcdcom gtest_main)
-ADD_TEST(vcencoder_test vcencoder_test)
-
-ADD_EXECUTABLE(jsonwriter_test src/jsonwriter_test.cc)
-TARGET_LINK_LIBRARIES(jsonwriter_test vcdenc vcdcom gtest_main)
-ADD_TEST(jsonwriter_test jsonwriter_test)
+  ADD_EXECUTABLE(jsonwriter_test src/jsonwriter_test.cc)
+  TARGET_LINK_LIBRARIES(jsonwriter_test vcdenc vcdcom gtest_main)
+  ADD_TEST(jsonwriter_test jsonwriter_test)
+ENDIF()  # vcdiff_build_tests
