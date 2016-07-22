@@ -20,9 +20,10 @@ IF (vcdiff_build_tests)
   ADD_SUBDIRECTORY(googletest/googletest)
 ENDIF()
 
-PROJECT(open-vcdiff)
+PROJECT(open-vcdiff CXX C)
 SET(PROJECT_VERSION 1.0)
 SET(PROJECT_SOVERSION 1)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2")
 
 INCLUDE(CheckIncludeFiles)
 CHECK_INCLUDE_FILES(ext/rope HAVE_EXT_ROPE)
