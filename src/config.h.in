@@ -1,3 +1,6 @@
+/* Defined to PROJECT_VERSION from CMakeLists.txt */
+#cmakedefine OPEN_VCDIFF_VERSION "${OPEN_VCDIFF_VERSION}"
+
 /* Define to 1 if you have the <ext/rope> header file. */
 #cmakedefine HAVE_EXT_ROPE
 

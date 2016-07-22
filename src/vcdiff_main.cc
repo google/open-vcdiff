@@ -36,6 +36,7 @@ using std::string;
 #endif  // !HAS_GLOBAL_STRING
 using google::GetCommandLineFlagInfoOrDie;
 using google::ShowUsageWithFlagsRestrict;
+using google::SetVersionString;
 
 static const size_t kDefaultMaxTargetSize = 1 << 26;      // 64 MB
 
@@ -581,6 +582,7 @@ bool VCDiffFileBasedCoder::DecodeAndCompare() {
 int main(int argc, char** argv) {
   const char* const command_name = argv[0];
   google::SetUsageMessage(kUsageString);
+  google::SetVersionString(OPEN_VCDIFF_VERSION);
   google::ParseCommandLineFlags(&argc, &argv, true);
   if (argc != 2) {
     std::cerr << command_name << ": Must specify exactly one command option"
