@@ -7,6 +7,14 @@ that can apply the encoder and decoder to source, target, and delta files.
 For further details, please refer to:
 https://github.com/google/open-vcdiff/wiki/How-to-use-openvcdiff
 
+You will need to first synchronize gflags and gtest by running
+
+    git submodule update --init --recursive
+
+Or if you have system installed gflags and/or gtest libraries you can provide
+-Dvcdiff_use_system_gflags=ON and -Dvcdiff_use_system_gtest=ON` for cmake
+invokation in the build step.
+
 open-vcdiff comes with a CMake build script CMakeLists.txt that can be used on
 a wide range of platforms ("C" stands for cross-platform.). If you don't have
 CMake installed already, you can download it for free from

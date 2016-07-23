@@ -5,7 +5,10 @@ open-vcdiff is an encoder and decoder for the VCDIFF format, as described in
 and Compression Data Format.
 
 You will need to first synchronize gflags and gtest by running
-`git submodule update --init --recursive`.
+`git submodule update --init --recursive`. Or if you have system installed
+gflags and/or gtest libraries you can provide ```-Dvcdiff_use_system_gflags=ON```
+and ```-Dvcdiff_use_system_gtest=ON``` for ```cmake``` invokation in the build
+step.
 
 A library with a simple API is included, as well as a command-line executable
 that can apply the encoder and decoder to source, target, and delta files.
