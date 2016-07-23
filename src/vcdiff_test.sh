@@ -16,7 +16,7 @@
 #
 # This script tests the correctness of the vcdiff command-line executable.
 # If you add a new test here, please add the same test to the Windows script
-# vsprojects/vcdiff_test.bat.
+# src/vcdiff_test.bat.
 #
 # The caller should pass path to PROJECT_SOURCE_DIR to this script. CTest
 # automatically pass it from ```make test```
