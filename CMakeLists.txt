@@ -1,8 +1,17 @@
 cmake_minimum_required (VERSION 2.8.12)
 
+project (open-vcdiff CXX C)
+set (VERSION 0.8.4)
+# For config.h.in to avoid generic define
+set (OPEN_VCDIFF_VERSION ${VERSION})
+set (PROJECT_SOVERSION 0)
+
+
 # Configuration options
 option(vcdiff_build_tests "Build all of vcdiff tests." ON)
 option(vcdiff_build_exec "Build vcdiff exectuable" ON)
+option(vcdiff_use_system_gflags "Use system wide installed gflags" OFF)
+option(vcdiff_use_system_gtest "Use system wide installed gtest" OFF)
 
 # Add subprojects first so we won't interfere with config.h.in
 
@@ -12,19 +21,12 @@ if (vcdiff_build_exec)
   set (GFLAGS_INSTALL_HEADERS OFF)
   set (GFLAGS_INSTALL_SHARED_LIBS OFF)
   set (GFLAGS_INSTALL_STATIC_LIBS OFF)
-  add_subdirectory (third_party/gflags)
+  if (${vcdiff_use_system_gflags})
+    find_library(gflags gflags)
+  else()
+    add_subdirectory (third_party/gflags)
+  endif()
 endif ()
-
-if (vcdiff_build_tests)
-  set (gtest_install OFF CACHE BOOL "Don't install gtest" FORCE)
-  add_subdirectory (third_party/googletest/googletest)
-endif ()
-
-project (open-vcdiff CXX C)
-set (PROJECT_VERSION 0.8.4)
-# For config.h.in to avoid generic define
-set (OPEN_VCDIFF_VERSION ${PROJECT_VERSION})
-set (PROJECT_SOVERSION 0)
 
 include (CheckIncludeFiles)
 check_include_files (ext/rope HAVE_EXT_ROPE)
@@ -123,6 +125,20 @@ endif ()
 
 if (vcdiff_build_tests)
   enable_testing ()
+  if (${vcdiff_use_system_gtest})
+    find_package (GTest)
+    if (${GTEST_FOUND})
+      set (gtest_main ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBARY})
+      include_directories(${GTEST_INCLUDE_DIRS})
+    else()
+      # On Debian it doens't install libgtest.a. Instead it provides sources in
+      # /usr/src/gtest
+      add_subdirectory (/usr/src/gtest gtest)
+    endif()
+  else()
+    set (gtest_install OFF CACHE BOOL "Don't install gtest" FORCE)
+    add_subdirectory (third_party/googletest/googletest)
+  endif()
 
   add_library (vcdecoder_test_common
     "src/vcdecoder_test.cc"
