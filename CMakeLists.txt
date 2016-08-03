@@ -201,4 +201,15 @@ if (vcdiff_build_tests)
   add_executable (jsonwriter_test src/jsonwriter_test.cc)
   target_link_libraries (jsonwriter_test vcdenc vcdcom gtest_main)
   add_test (jsonwriter_test jsonwriter_test)
+
+  if (${UNIX})
+    add_test (
+      NAME vcdiff_test
+      COMMAND ${PROJECT_SOURCE_DIR}/src/vcdiff_test.sh ${PROJECT_SOURCE_DIR})
+  elseif (${WINDOWS})
+    add_test (
+      NAME vcdiff_test
+      COMMAND ${PROJECT_SOURCE_DIR}/src/vcdiff_test.bat vcdiff)
+  endif()
+
 endif ()  # vcdiff_build_tests
