@@ -85,7 +85,7 @@ class VCDiffDecoderTest : public testing::Test {
 
   // Assuming the length of the given string can be expressed as a one-byte
   // VarintBE, this function returns that byte value.
-  static char StringLengthAsByte(const char* s) {
+  static uint8_t StringLengthAsByte(const char* s) {
     return GetByteFromStringLength(s, 0);
   }
 
