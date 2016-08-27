@@ -14,6 +14,7 @@
 
 #include <config.h>
 #include "vcdecoder_test.h"
+#include <stdint.h>  // utf8_t
 #include <string.h>  // strlen
 #include "checksum.h"
 #include "codetable.h"
@@ -101,10 +102,10 @@ void VCDiffDecoderTest::ComputeAndAddChecksum() {
 // (0x7FFFFFFF) at the given offset in the delta window.
 void VCDiffDecoderTest::WriteMaxVarintAtOffset(int offset,
                                                int bytes_to_replace) {
-  static const char kMaxVarint[] = { 0x87, 0xFF, 0xFF, 0xFF, 0x7F };
+  static const uint8_t kMaxVarint[] = { 0x87, 0xFF, 0xFF, 0xFF, 0x7F };
   delta_file_.replace(delta_file_header_.size() + offset,
                       bytes_to_replace,
-                      kMaxVarint,
+                      reinterpret_cast<const char*>(kMaxVarint),
                       sizeof(kMaxVarint));
 }
 
@@ -112,10 +113,10 @@ void VCDiffDecoderTest::WriteMaxVarintAtOffset(int offset,
 // in the delta window.
 void VCDiffDecoderTest::WriteNegativeVarintAtOffset(int offset,
                                                     int bytes_to_replace) {
-  static const char kNegativeVarint[] = { 0x88, 0x80, 0x80, 0x80, 0x00 };
+  static const uint8_t kNegativeVarint[] = { 0x88, 0x80, 0x80, 0x80, 0x00 };
   delta_file_.replace(delta_file_header_.size() + offset,
                       bytes_to_replace,
-                      kNegativeVarint,
+                      reinterpret_cast<const char*>(kNegativeVarint),
                       sizeof(kNegativeVarint));
 }
 
@@ -123,18 +124,18 @@ void VCDiffDecoderTest::WriteNegativeVarintAtOffset(int offset,
 // at the given offset in the delta window.
 void VCDiffDecoderTest::WriteInvalidVarintAtOffset(int offset,
                                                    int bytes_to_replace) {
-  static const char kInvalidVarint[] = { 0x87, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F };
+  static const uint8_t kInvalidVarint[] = { 0x87, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F };
   delta_file_.replace(delta_file_header_.size() + offset,
                       bytes_to_replace,
-                      kInvalidVarint,
+                      reinterpret_cast<const char*>(kInvalidVarint),
                       sizeof(kInvalidVarint));
 }
 
 bool VCDiffDecoderTest::FuzzOneByteInDeltaFile() {
   static const struct Fuzzer {
-    char _and;
-    char _or;
-    char _xor;
+    uint8_t _and;
+    uint8_t _or;
+    uint8_t _xor;
   } fuzzers[] = {
     { 0xff, 0x80, 0x00 },
     { 0xff, 0xff, 0x00 },
