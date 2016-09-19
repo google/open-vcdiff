@@ -131,27 +131,27 @@ const char VCDiffStandardWindowDecoderTest::kWindowBody[] = {
     VCD_SOURCE,  // Win_Indicator: take source from dictionary
     FirstByteOfStringLength(kDictionary),  // Source segment size
     SecondByteOfStringLength(kDictionary),
-    0x00,  // Source segment position: start of dictionary
-    0x08,  // Length of the delta encoding
-    0x1C,  // Size of the target window (28)
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x02,  // length of instructions section
-    0x01,  // length of addresses for COPYs
+    '\x00',  // Source segment position: start of dictionary
+    '\x08',  // Length of the delta encoding
+    '\x1C',  // Size of the target window (28)
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x02',  // length of instructions section
+    '\x01',  // length of addresses for COPYs
     // No data for ADDs and RUNs
     // Instructions and sizes (length 2)
-    0x13,  // VCD_COPY mode VCD_SELF, size 0
-    0x1C,  // Size of COPY (28)
+    '\x13',  // VCD_COPY mode VCD_SELF, size 0
+    '\x1C',  // Size of COPY (28)
     // Addresses for COPYs (length 1)
-    0x00,  // Start of dictionary
+    '\x00',  // Start of dictionary
 // Window 2:
-    0x00,  // Win_Indicator: No source segment (ADD only)
-    0x44,  // Length of the delta encoding
+    '\x00',  // Win_Indicator: No source segment (ADD only)
+    '\x44',  // Length of the delta encoding
     static_cast<char>(kWindow2Size),  // Size of the target window (61)
-    0x00,  // Delta_indicator (no compression)
-    0x3D,  // length of data for ADDs and RUNs
-    0x02,  // length of instructions section
-    0x00,  // length of addresses for COPYs
+    '\x00',  // Delta_indicator (no compression)
+    '\x3D',  // length of data for ADDs and RUNs
+    '\x02',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
     // Data for ADD (length 61)
     ' ', 'I', ' ', 'h', 'a', 'v', 'e', ' ', 's', 'a', 'i', 'd', ' ',
     'i', 't', ' ', 't', 'w', 'i', 'c', 'e', ':', '\n',
@@ -160,83 +160,83 @@ const char VCDiffStandardWindowDecoderTest::kWindowBody[] = {
     'e', 'n', 'c', 'o', 'u', 'r', 'a', 'g', 'e', ' ',
     't', 'h', 'e', ' ', 'c', 'r', 'e', 'w', '.', '\n',
     // Instructions and sizes (length 2)
-    0x01,  // VCD_ADD size 0
-    0x3D,  // Size of ADD (61)
+    '\x01',  // VCD_ADD size 0
+    '\x3D',  // Size of ADD (61)
     // No addresses for COPYs
 // Window 3:
     VCD_TARGET,  // Win_Indicator: take source from decoded data
-    0x59,  // Source segment size: length of data decoded so far
-    0x00,  // Source segment position: start of decoded data
-    0x08,  // Length of the delta encoding
-    0x2C,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x02,  // length of instructions section
-    0x01,  // length of addresses for COPYs
+    '\x59',  // Source segment size: length of data decoded so far
+    '\x00',  // Source segment position: start of decoded data
+    '\x08',  // Length of the delta encoding
+    '\x2C',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x02',  // length of instructions section
+    '\x01',  // length of addresses for COPYs
     // No data for ADDs and RUNs
     // Instructions and sizes (length 2)
-    0x23,  // VCD_COPY mode VCD_HERE, size 0
-    0x2C,  // Size of COPY (44)
+    '\x23',  // VCD_COPY mode VCD_HERE, size 0
+    '\x2C',  // Size of COPY (44)
     // Addresses for COPYs (length 1)
-    0x58,  // HERE mode address (27+61 back from here_address)
+    '\x58',  // HERE mode address (27+61 back from here_address)
 // Window 4:
     VCD_TARGET,  // Win_Indicator: take source from decoded data
-    0x05,  // Source segment size: only 5 bytes needed for this COPY
-    0x2E,  // Source segment position: offset for COPY
-    0x09,  // Length of the delta encoding
-    0x07,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x02,  // length of data for ADDs and RUNs
-    0x01,  // length of instructions section
-    0x01,  // length of addresses for COPYs
+    '\x05',  // Source segment size: only 5 bytes needed for this COPY
+    '\x2E',  // Source segment position: offset for COPY
+    '\x09',  // Length of the delta encoding
+    '\x07',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x02',  // length of data for ADDs and RUNs
+    '\x01',  // length of instructions section
+    '\x01',  // length of addresses for COPYs
     // Data for ADD (length 2)
     'h', 'r',
     // Instructions and sizes (length 1)
-    0xA7,  // VCD_ADD size 2 + VCD_COPY mode SELF size 5
+    '\xA7',  // VCD_ADD size 2 + VCD_COPY mode SELF size 5
     // Addresses for COPYs (length 1)
-    0x00,  // SELF mode address (start of source segment)
+    '\x00',  // SELF mode address (start of source segment)
 // Window 5:
-    0x00,  // Win_Indicator: No source segment (ADD only)
-    0x0F,  // Length of the delta encoding
-    0x09,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x09,  // length of data for ADDs and RUNs
-    0x01,  // length of instructions section
-    0x00,  // length of addresses for COPYs
+    '\x00',  // Win_Indicator: No source segment (ADD only)
+    '\x0F',  // Length of the delta encoding
+    '\x09',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x09',  // length of data for ADDs and RUNs
+    '\x01',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
     // Data for ADD (length 9)
     'W', 'h', 'a', 't', ' ', 'I', ' ', 't', 'e',
     // Instructions and sizes (length 1)
-    0x0A,       // VCD_ADD size 9
+    '\x0A',       // VCD_ADD size 9
     // No addresses for COPYs
 // Window 6:
-    0x00,  // Win_Indicator: No source segment (RUN only)
-    0x08,  // Length of the delta encoding
-    0x02,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x01,  // length of data for ADDs and RUNs
-    0x02,  // length of instructions section
-    0x00,  // length of addresses for COPYs
+    '\x00',  // Win_Indicator: No source segment (RUN only)
+    '\x08',  // Length of the delta encoding
+    '\x02',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x01',  // length of data for ADDs and RUNs
+    '\x02',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
     // Data for RUN (length 1)
     'l',
     // Instructions and sizes (length 2)
-    0x00,  // VCD_RUN size 0
-    0x02,  // Size of RUN (2)
+    '\x00',  // VCD_RUN size 0
+    '\x02',  // Size of RUN (2)
     // No addresses for COPYs
 // Window 7:
-    0x00,  // Win_Indicator: No source segment (ADD only)
-    0x22,  // Length of the delta encoding
-    0x1B,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x1B,  // length of data for ADDs and RUNs
-    0x02,  // length of instructions section
-    0x00,  // length of addresses for COPYs
+    '\x00',  // Win_Indicator: No source segment (ADD only)
+    '\x22',  // Length of the delta encoding
+    '\x1B',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x1B',  // length of data for ADDs and RUNs
+    '\x02',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
     // Data for ADD: 4th section (length 27)
     ' ', 'y', 'o', 'u', ' ',
     't', 'h', 'r', 'e', 'e', ' ', 't', 'i', 'm', 'e', 's', ' ', 'i', 's', ' ',
     't', 'r', 'u', 'e', '.', '\"', '\n',
     // Instructions and sizes (length 2)
-    0x01,  // VCD_ADD size 0
-    0x1B,  // Size of ADD (27)
+    '\x01',  // VCD_ADD size 0
+    '\x1B',  // Size of ADD (27)
     // No addresses for COPYs
   };
 
@@ -430,26 +430,26 @@ const char VCDiffInterleavedWindowDecoderTest::kWindowBody[] = {
     VCD_SOURCE,  // Win_Indicator: take source from dictionary
     FirstByteOfStringLength(kDictionary),  // Source segment size
     SecondByteOfStringLength(kDictionary),
-    0x00,  // Source segment position: start of dictionary
-    0x08,  // Length of the delta encoding
-    0x1C,  // Size of the target window (28)
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x03,  // length of instructions section
-    0x00,  // length of addresses for COPYs
-    0x13,  // VCD_COPY mode VCD_SELF, size 0
-    0x1C,  // Size of COPY (28)
-    0x00,  // Start of dictionary
+    '\x00',  // Source segment position: start of dictionary
+    '\x08',  // Length of the delta encoding
+    '\x1C',  // Size of the target window (28)
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x03',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
+    '\x13',  // VCD_COPY mode VCD_SELF, size 0
+    '\x1C',  // Size of COPY (28)
+    '\x00',  // Start of dictionary
 // Window 2:
-    0x00,  // Win_Indicator: No source segment (ADD only)
-    0x44,  // Length of the delta encoding
-    0x3D,  // Size of the target window (61)
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x3F,  // length of instructions section
-    0x00,  // length of addresses for COPYs
-    0x01,  // VCD_ADD size 0
-    0x3D,  // Size of ADD (61)
+    '\x00',  // Win_Indicator: No source segment (ADD only)
+    '\x44',  // Length of the delta encoding
+    '\x3D',  // Size of the target window (61)
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x3F',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
+    '\x01',  // VCD_ADD size 0
+    '\x3D',  // Size of ADD (61)
     ' ', 'I', ' ', 'h', 'a', 'v', 'e', ' ', 's', 'a', 'i', 'd', ' ',
     'i', 't', ' ', 't', 'w', 'i', 'c', 'e', ':', '\n',
     'T', 'h', 'a', 't', ' ',
@@ -458,61 +458,61 @@ const char VCDiffInterleavedWindowDecoderTest::kWindowBody[] = {
     't', 'h', 'e', ' ', 'c', 'r', 'e', 'w', '.', '\n',
 // Window 3:
     VCD_TARGET,  // Win_Indicator: take source from decoded data
-    0x59,  // Source segment size: length of data decoded so far
-    0x00,  // Source segment position: start of decoded data
-    0x08,  // Length of the delta encoding
-    0x2C,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x03,  // length of instructions section
-    0x00,  // length of addresses for COPYs
-    0x23,  // VCD_COPY mode VCD_HERE, size 0
-    0x2C,  // Size of COPY (44)
-    0x58,  // HERE mode address (27+61 back from here_address)
+    '\x59',  // Source segment size: length of data decoded so far
+    '\x00',  // Source segment position: start of decoded data
+    '\x08',  // Length of the delta encoding
+    '\x2C',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x03',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
+    '\x23',  // VCD_COPY mode VCD_HERE, size 0
+    '\x2C',  // Size of COPY (44)
+    '\x58',  // HERE mode address (27+61 back from here_address)
 // Window 4:
     VCD_TARGET,  // Win_Indicator: take source from decoded data
-    0x05,  // Source segment size: only 5 bytes needed for this COPY
-    0x2E,  // Source segment position: offset for COPY
-    0x09,  // Length of the delta encoding
-    0x07,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x04,  // length of instructions section
-    0x00,  // length of addresses for COPYs
-    0xA7,  // VCD_ADD size 2 + VCD_COPY mode SELF, size 5
+    '\x05',  // Source segment size: only 5 bytes needed for this COPY
+    '\x2E',  // Source segment position: offset for COPY
+    '\x09',  // Length of the delta encoding
+    '\x07',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x04',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
+    '\xA7',  // VCD_ADD size 2 + VCD_COPY mode SELF, size 5
     'h', 'r',
-    0x00,  // SELF mode address (start of source segment)
+    '\x00',  // SELF mode address (start of source segment)
 // Window 5:
-    0x00,  // Win_Indicator: No source segment (ADD only)
-    0x0F,  // Length of the delta encoding
-    0x09,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x0A,  // length of instructions section
-    0x00,  // length of addresses for COPYs
-    0x0A,       // VCD_ADD size 9
+    '\x00',  // Win_Indicator: No source segment (ADD only)
+    '\x0F',  // Length of the delta encoding
+    '\x09',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x0A',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
+    '\x0A',       // VCD_ADD size 9
     'W', 'h', 'a', 't', ' ', 'I', ' ', 't', 'e',
 // Window 6:
-    0x00,  // Win_Indicator: No source segment (RUN only)
-    0x08,  // Length of the delta encoding
-    0x02,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x03,  // length of instructions section
-    0x00,  // length of addresses for COPYs
-    0x00,  // VCD_RUN size 0
-    0x02,  // Size of RUN (2)
+    '\x00',  // Win_Indicator: No source segment (RUN only)
+    '\x08',  // Length of the delta encoding
+    '\x02',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x03',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
+    '\x00',  // VCD_RUN size 0
+    '\x02',  // Size of RUN (2)
     'l',
 // Window 7:
-    0x00,  // Win_Indicator: No source segment (ADD only)
-    0x22,  // Length of the delta encoding
-    0x1B,  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x1D,  // length of instructions section
-    0x00,  // length of addresses for COPYs
-    0x01,  // VCD_ADD size 0
-    0x1B,  // Size of ADD (27)
+    '\x00',  // Win_Indicator: No source segment (ADD only)
+    '\x22',  // Length of the delta encoding
+    '\x1B',  // Size of the target window
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x1D',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
+    '\x01',  // VCD_ADD size 0
+    '\x1B',  // Size of ADD (27)
     ' ', 'y', 'o', 'u', ' ',
     't', 'h', 'r', 'e', 'e', ' ', 't', 'i', 'm', 'e', 's', ' ', 'i', 's', ' ',
     't', 'r', 'u', 'e', '.', '\"', '\n',
@@ -647,29 +647,29 @@ const char VCDiffStandardCrossDecoderTest::kWindowHeader[] = {
     VCD_SOURCE,  // Win_Indicator: take source from dictionary
     FirstByteOfStringLength(kDictionary),  // Source segment size
     SecondByteOfStringLength(kDictionary),
-    0x00,  // Source segment position: start of dictionary
-    0x15,  // Length of the delta encoding
+    '\x00',  // Source segment position: start of dictionary
+    '\x15',  // Length of the delta encoding
     StringLengthAsByte(kExpectedTarget),  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x07,  // length of data for ADDs and RUNs
-    0x06,  // length of instructions section
-    0x03   // length of addresses for COPYs
+    '\x00',  // Delta_indicator (no compression)
+    '\x07',  // length of data for ADDs and RUNs
+    '\x06',  // length of instructions section
+    '\x03'   // length of addresses for COPYs
   };
 
 const char VCDiffStandardCrossDecoderTest::kWindowBody[] = {
     // Data for ADD (length 7)
     'S', 'p', 'i', 'd', 'e', 'r', 's',
     // Instructions and sizes (length 6)
-    0x01,  // VCD_ADD size 0
-    0x07,  // Size of ADD (7)
-    0x23,  // VCD_COPY mode VCD_HERE, size 0
-    0x19,  // Size of COPY (25)
-    0x14,  // VCD_COPY mode VCD_SELF, size 4
-    0x25,  // VCD_COPY mode VCD_HERE, size 5
+    '\x01',  // VCD_ADD size 0
+    '\x07',  // Size of ADD (7)
+    '\x23',  // VCD_COPY mode VCD_HERE, size 0
+    '\x19',  // Size of COPY (25)
+    '\x14',  // VCD_COPY mode VCD_SELF, size 4
+    '\x25',  // VCD_COPY mode VCD_HERE, size 5
     // Addresses for COPYs (length 3)
-    0x15,  // HERE mode address for 1st copy (21 back from here_address)
-    0x06,  // SELF mode address for 2nd copy
-    0x14   // HERE mode address for 3rd copy
+    '\x15',  // HERE mode address for 1st copy (21 back from here_address)
+    '\x06',  // SELF mode address for 2nd copy
+    '\x14'   // HERE mode address for 3rd copy
   };
 
 const char VCDiffStandardCrossDecoderTest::kExpectedTarget[] =
@@ -721,27 +721,27 @@ const char VCDiffInterleavedCrossDecoderTest::kWindowHeader[] = {
     VCD_SOURCE,  // Win_Indicator: take source from dictionary
     FirstByteOfStringLength(kDictionary),  // Source segment size
     SecondByteOfStringLength(kDictionary),
-    0x00,  // Source segment position: start of dictionary
-    0x15,  // Length of the delta encoding
+    '\x00',  // Source segment position: start of dictionary
+    '\x15',  // Length of the delta encoding
     StringLengthAsByte(kExpectedTarget),  // Size of the target window
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x10,  // length of instructions section
-    0x00,  // length of addresses for COPYs
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x10',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
   };
 
 const char VCDiffInterleavedCrossDecoderTest::kWindowBody[] = {
-    0x01,  // VCD_ADD size 0
-    0x07,  // Size of ADD (7)
+    '\x01',  // VCD_ADD size 0
+    '\x07',  // Size of ADD (7)
     // Data for ADD (length 7)
     'S', 'p', 'i', 'd', 'e', 'r', 's',
-    0x23,  // VCD_COPY mode VCD_HERE, size 0
-    0x19,  // Size of COPY (25)
-    0x15,  // HERE mode address for 1st copy (21 back from here_address)
-    0x14,  // VCD_COPY mode VCD_SELF, size 4
-    0x06,  // SELF mode address for 2nd copy
-    0x25,  // VCD_COPY mode VCD_HERE, size 5
-    0x14   // HERE mode address for 3rd copy
+    '\x23',  // VCD_COPY mode VCD_HERE, size 0
+    '\x19',  // Size of COPY (25)
+    '\x15',  // HERE mode address for 1st copy (21 back from here_address)
+    '\x14',  // VCD_COPY mode VCD_SELF, size 4
+    '\x06',  // SELF mode address for 2nd copy
+    '\x25',  // VCD_COPY mode VCD_HERE, size 5
+    '\x14'   // HERE mode address for 3rd copy
   };
 
 VCDiffInterleavedCrossDecoderTest::VCDiffInterleavedCrossDecoderTest() {
@@ -807,11 +807,11 @@ class VCDiffCustomCodeTableDecoderTest : public VCDiffInterleavedDecoderTest {
 };
 
 const char VCDiffCustomCodeTableDecoderTest::kFileHeader[] = {
-    0xD6,  // 'V' | 0x80
-    0xC3,  // 'C' | 0x80
-    0xC4,  // 'D' | 0x80
+    '\xD6',  // 'V' | '\x80'
+    '\xC3',  // 'C' | '\x80'
+    '\xC4',  // 'D' | '\x80'
     'S',   // SDCH version code
-    0x02   // Hdr_Indicator: Use custom code table
+    '\x02'   // Hdr_Indicator: Use custom code table
   };
 
 // Make a custom code table that includes exactly the instructions we need
@@ -829,47 +829,47 @@ const char VCDiffCustomCodeTableDecoderTest::kFileHeader[] = {
 // COPY mode 1 size 18 (opcode 50) => COPY mode 1 size 44 (size1[50] = 44)
 //
 const char VCDiffCustomCodeTableDecoderTest::kEncodedCustomCodeTable[] = {
-    0xD6,  // 'V' | 0x80
-    0xC3,  // 'C' | 0x80
-    0xC4,  // 'D' | 0x80
+    '\xD6',  // 'V' | '\x80'
+    '\xC3',  // 'C' | '\x80'
+    '\xC4',  // 'D' | '\x80'
     'S',   // SDCH version code
-    0x00,  // Hdr_Indicator: no custom code table, no compression
+    '\x00',  // Hdr_Indicator: no custom code table, no compression
     VCD_SOURCE,  // Win_Indicator: take source from dictionary
-    (sizeof(VCDiffCodeTableData) >> 7) | 0x80,  // First byte of table length
+    static_cast<const char>((sizeof(VCDiffCodeTableData) >> 7) | 0x80),  // First byte of table length
     sizeof(VCDiffCodeTableData) & 0x7F,  // Second byte of table length
-    0x00,  // Source segment position: start of default code table
-    0x1F,  // Length of the delta encoding
-    (sizeof(VCDiffCodeTableData) >> 7) | 0x80,  // First byte of table length
+    '\x00',  // Source segment position: start of default code table
+    '\x1F',  // Length of the delta encoding
+    static_cast<const char>((sizeof(VCDiffCodeTableData) >> 7) | 0x80),  // First byte of table length
     sizeof(VCDiffCodeTableData) & 0x7F,  // Second byte of table length
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs (unused)
-    0x19,  // length of interleaved section
-    0x00,  // length of addresses for COPYs (unused)
-    0x05,  // VCD_ADD size 4
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs (unused)
+    '\x19',  // length of interleaved section
+    '\x00',  // length of addresses for COPYs (unused)
+    '\x05',  // VCD_ADD size 4
     // Data for ADD (length 4)
     VCD_RUN, VCD_ADD, VCD_ADD, VCD_RUN,
-    0x13,  // VCD_COPY mode VCD_SELF size 0
-    0x84,  // Size of copy: upper bits (512 - 4 + 17 = 525)
-    0x0D,  // Size of copy: lower bits
-    0x04,  // Address of COPY
-    0x03,  // VCD_ADD size 2
+    '\x13',  // VCD_COPY mode VCD_SELF size 0
+    '\x84',  // Size of copy: upper bits (512 - 4 + 17 = 525)
+    '\x0D',  // Size of copy: lower bits
+    '\x04',  // Address of COPY
+    '\x03',  // VCD_ADD size 2
     // Data for ADD (length 2)
-    0x1B, 0x3D,
-    0x3F,  // VCD_COPY mode VCD_NEAR(0) size 15
-    0x84,  // Address of copy: upper bits (525 + 2 = 527)
-    0x0F,  // Address of copy: lower bits
-    0x02,  // VCD_ADD size 1
+    '\x1B', '\x3D',
+    '\x3F',  // VCD_COPY mode VCD_NEAR(0) size 15
+    '\x84',  // Address of copy: upper bits (525 + 2 = 527)
+    '\x0F',  // Address of copy: lower bits
+    '\x02',  // VCD_ADD size 1
     // Data for ADD (length 1)
-    0x1C,
-    0x4F,  // VCD_COPY mode VCD_NEAR(1) size 15
-    0x10,  // Address of copy
-    0x02,  // VCD_ADD size 1
+    '\x1C',
+    '\x4F',  // VCD_COPY mode VCD_NEAR(1) size 15
+    '\x10',  // Address of copy
+    '\x02',  // VCD_ADD size 1
     // Data for ADD (length 1)
-    0x2C,
-    0x53,  // VCD_COPY mode VCD_NEAR(2) size 0
-    0x87,  // Size of copy: upper bits (256 * 4 - 51 = 973)
-    0x4D,  // Size of copy: lower bits
-    0x10   // Address of copy
+    '\x2C',
+    '\x53',  // VCD_COPY mode VCD_NEAR(2) size 0
+    '\x87',  // Size of copy: upper bits (256 * 4 - 51 = 973)
+    '\x4D',  // Size of copy: lower bits
+    '\x10'   // Address of copy
   };
 
 // This is similar to VCDiffInterleavedDecoderTest, but uses the custom code
@@ -883,20 +883,20 @@ const char VCDiffCustomCodeTableDecoderTest::kWindowHeader[] = {
     VCD_SOURCE,  // Win_Indicator: take source from dictionary
     FirstByteOfStringLength(kDictionary),  // Source segment size
     SecondByteOfStringLength(kDictionary),
-    0x00,  // Source segment position: start of dictionary
-    0x74,  // Length of the delta encoding
+    '\x00',  // Source segment position: start of dictionary
+    '\x74',  // Length of the delta encoding
     FirstByteOfStringLength(kExpectedTarget),  // Size of the target window
     SecondByteOfStringLength(kExpectedTarget),
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs (unused)
-    0x6E,  // length of interleaved section
-    0x00   // length of addresses for COPYs (unused)
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs (unused)
+    '\x6E',  // length of interleaved section
+    '\x00'   // length of addresses for COPYs (unused)
   };
 
 const char VCDiffCustomCodeTableDecoderTest::kWindowBody[] = {
-    0x22,  // VCD_COPY mode VCD_SELF, size 28
-    0x00,  // Address of COPY: Start of dictionary
-    0x12,  // VCD_ADD size 61
+    '\x22',  // VCD_COPY mode VCD_SELF, size 28
+    '\x00',  // Address of COPY: Start of dictionary
+    '\x12',  // VCD_ADD size 61
     // Data for ADD (length 61)
     ' ', 'I', ' ', 'h', 'a', 'v', 'e', ' ', 's', 'a', 'i', 'd', ' ',
     'i', 't', ' ', 't', 'w', 'i', 'c', 'e', ':', '\n',
@@ -904,20 +904,20 @@ const char VCDiffCustomCodeTableDecoderTest::kWindowBody[] = {
     'a', 'l', 'o', 'n', 'e', ' ', 's', 'h', 'o', 'u', 'l', 'd', ' ',
     'e', 'n', 'c', 'o', 'u', 'r', 'a', 'g', 'e', ' ',
     't', 'h', 'e', ' ', 'c', 'r', 'e', 'w', '.', '\n',
-    0x32,  // VCD_COPY mode VCD_HERE, size 44
-    0x58,  // HERE mode address (27+61 back from here_address)
-    0xBF,  // VCD_ADD size 2 + VCD_COPY mode NEAR(0), size 5
+    '\x32',  // VCD_COPY mode VCD_HERE, size 44
+    '\x58',  // HERE mode address (27+61 back from here_address)
+    '\xBF',  // VCD_ADD size 2 + VCD_COPY mode NEAR(0), size 5
     // Data for ADDs: 2nd section (length 2)
     'h', 'r',
-    0x2D,  // NEAR(0) mode address (45 after prior address)
-    0x0A,  // VCD_ADD size 9
+    '\x2D',  // NEAR(0) mode address (45 after prior address)
+    '\x0A',  // VCD_ADD size 9
     // Data for ADDs: 3rd section (length 9)
     'W', 'h', 'a', 't', ' ',
     'I', ' ', 't', 'e',
-    0x03,  // VCD_RUN size 2
+    '\x03',  // VCD_RUN size 2
     // Data for RUN: 4th section (length 1)
     'l',
-    0x11,  // VCD_ADD size 27
+    '\x11',  // VCD_ADD size 27
     // Data for ADD: 4th section (length 27)
     ' ', 'y', 'o', 'u', ' ',
     't', 'h', 'r', 'e', 'e', ' ', 't', 'i', 'm', 'e', 's', ' ', 'i', 's', ' ',
@@ -926,8 +926,8 @@ const char VCDiffCustomCodeTableDecoderTest::kWindowBody[] = {
 
 VCDiffCustomCodeTableDecoderTest::VCDiffCustomCodeTableDecoderTest() {
   delta_file_header_.assign(kFileHeader, sizeof(kFileHeader));
-  delta_file_header_.push_back(0x01);  // NEAR cache size (custom)
-  delta_file_header_.push_back(0x06);  // SAME cache size (custom)
+  delta_file_header_.push_back('\x01');  // NEAR cache size (custom)
+  delta_file_header_.push_back('\x06');  // SAME cache size (custom)
   delta_file_header_.append(kEncodedCustomCodeTable,
                             sizeof(kEncodedCustomCodeTable));
   delta_window_header_.assign(kWindowHeader, sizeof(kWindowHeader));

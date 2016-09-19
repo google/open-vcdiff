@@ -33,23 +33,23 @@ class VCDiffLargeTargetTest : public VCDiffDecoderTest {
 };
 
 const char VCDiffLargeTargetTest::kLargeRunWindow[] = {
-    0x00,  // Win_Indicator: no source segment
-    0x0E,  // Length of the delta encoding
-    0xA0,  // Size of the target window (0x4000000)
-    0x80,  // Size of the target window cont'd
-    0x80,  // Size of the target window cont'd
-    0x00,  // Size of the target window cont'd
-    0x00,  // Delta_indicator (no compression)
-    0x00,  // length of data for ADDs and RUNs
-    0x06,  // length of instructions section
-    0x00,  // length of addresses for COPYs
+    '\x00',  // Win_Indicator: no source segment
+    '\x0E',  // Length of the delta encoding
+    '\xA0',  // Size of the target window (0x4000000)
+    '\x80',  // Size of the target window cont'd
+    '\x80',  // Size of the target window cont'd
+    '\x00',  // Size of the target window cont'd
+    '\x00',  // Delta_indicator (no compression)
+    '\x00',  // length of data for ADDs and RUNs
+    '\x06',  // length of instructions section
+    '\x00',  // length of addresses for COPYs
     // Interleaved segment
-    0x00,  // VCD_RUN size 0
-    0xA0,  // Size of RUN (0x4000000)
-    0x80,  // Size of RUN cont'd
-    0x80,  // Size of RUN cont'd
-    0x00,  // Size of RUN cont'd
-    0xBE,  // Data for RUN
+    '\x00',  // VCD_RUN size 0
+    '\xA0',  // Size of RUN (0x4000000)
+    '\x80',  // Size of RUN cont'd
+    '\x80',  // Size of RUN cont'd
+    '\x00',  // Size of RUN cont'd
+    '\xBE',  // Data for RUN
 };
 
 VCDiffLargeTargetTest::VCDiffLargeTargetTest() {

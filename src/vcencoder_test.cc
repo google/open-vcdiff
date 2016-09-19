@@ -162,7 +162,7 @@ const char VCDiffEncoderTest::kJSONDiff[] =
     "\"hrice:\\nWhat I tell you three times is true.\\\"\\n\"]";
 
 // NonASCII string "foo\x128".
-const char VCDiffEncoderTest::kNonAscii[] = {102, 111, 111, 128, 0};
+const char VCDiffEncoderTest::kNonAscii[] = {'f', 'o', 'o', '\x80', '\0'};
 
 VCDiffEncoderTest::VCDiffEncoderTest()
     : hashed_dictionary_(kDictionary, sizeof(kDictionary)),
@@ -553,9 +553,9 @@ TEST_F(VCDiffEncoderTest, DictionaryBufferOverwritten) {
 // any other byte of data.
 TEST_F(VCDiffEncoderTest, DictionaryHasEmbeddedNULLs) {
   const char embedded_null_dictionary_text[] =
-      { 0x00, 0xFF, 0xFE, 0xFD, 0x00, 0xFD, 0xFE, 0xFF, 0x00, 0x03 };
+      { '\x00', '\xFF', '\xFE', '\xFD', '\x00', '\xFD', '\xFE', '\xFF', '\x00', '\x03' };
   const char embedded_null_target[] =
-      { 0xFD, 0x00, 0xFD, 0xFE, 0x03, 0x00, 0x01, 0x00 };
+      { '\xFD', '\x00', '\xFD', '\xFE', '\x03', '\x00', '\x01', '\x00' };
   CHECK_EQ(10, sizeof(embedded_null_dictionary_text));
   CHECK_EQ(8, sizeof(embedded_null_target));
   HashedDictionary embedded_null_dictionary(embedded_null_dictionary_text,
@@ -585,9 +585,9 @@ TEST_F(VCDiffEncoderTest, DictionaryHasEmbeddedNULLs) {
 // any other byte of data.  No text-processing of the data should occur.
 TEST_F(VCDiffEncoderTest, DictionaryHasEmbeddedNewlines) {
   const char embedded_null_dictionary_text[] =
-      { 0x0C, 0xFF, 0xFE, 0x0C, 0x00, 0x0A, 0xFE, 0xFF, 0x00, 0x0A };
+      { '\x0C', '\xFF', '\xFE', '\x0C', '\x00', '\x0A', '\xFE', '\xFF', '\x00', '\x0A' };
   const char embedded_null_target[] =
-      { 0x0C, 0x00, 0x0A, 0xFE, 0x03, 0x00, 0x0A, 0x00 };
+      { '\x0C', '\x00', '\x0A', '\xFE', '\x03', '\x00', '\x0A', '\x00' };
   CHECK_EQ(10, sizeof(embedded_null_dictionary_text));
   CHECK_EQ(8, sizeof(embedded_null_target));
   HashedDictionary embedded_null_dictionary(embedded_null_dictionary_text,
