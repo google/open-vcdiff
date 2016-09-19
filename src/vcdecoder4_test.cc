@@ -835,11 +835,11 @@ const char VCDiffCustomCodeTableDecoderTest::kEncodedCustomCodeTable[] = {
     'S',   // SDCH version code
     '\x00',  // Hdr_Indicator: no custom code table, no compression
     VCD_SOURCE,  // Win_Indicator: take source from dictionary
-    (sizeof(VCDiffCodeTableData) >> 7) | 0x80,  // First byte of table length
+    static_cast<const char>((sizeof(VCDiffCodeTableData) >> 7) | 0x80),  // First byte of table length
     sizeof(VCDiffCodeTableData) & 0x7F,  // Second byte of table length
     '\x00',  // Source segment position: start of default code table
     '\x1F',  // Length of the delta encoding
-    (sizeof(VCDiffCodeTableData) >> 7) | 0x80,  // First byte of table length
+    static_cast<const char>((sizeof(VCDiffCodeTableData) >> 7) | 0x80),  // First byte of table length
     sizeof(VCDiffCodeTableData) & 0x7F,  // Second byte of table length
     '\x00',  // Delta_indicator (no compression)
     '\x00',  // length of data for ADDs and RUNs (unused)
