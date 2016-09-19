@@ -106,10 +106,10 @@ typedef VarintBEInt64Test VarintBEInt64DeathTest;
 #endif  // GTEST_HAS_DEATH_TEST
 
 const char VarintBETestCommon::parse_data_all_FFs[] =
-    { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+    { '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF' };
 
 const char VarintBETestCommon::parse_data_CADA1[] =
-    { 0xCA, 0xDA, 0x01 };
+    { '\xCA', '\xDA', '\x01' };
 
 // A macro to allow defining tests once and having them run against
 // both VarintBE<int32_t> and VarintBE<int64_t>.
@@ -135,33 +135,33 @@ TEMPLATE_TEST_F(DeathTest, DISABLED_EncodeNegative) {
 
 TEMPLATE_TEST_F(Test, EncodeZero) {
   StartEncodingTest(/* value */ 0x00, /* expected length */ 1);
-  ExpectEncodedByte(0x00);
+  ExpectEncodedByte('\x00');
   EXPECT_EQ(verify_expected_length_, verify_encoded_byte_index_);
 }
 
 TEMPLATE_TEST_F(Test, EncodeEightBits) {
   StartEncodingTest(/* value */ 0xFF, /* expected length */ 2);
-  ExpectEncodedByte(0x81);
-  ExpectEncodedByte(0x7F);
+  ExpectEncodedByte('\x81');
+  ExpectEncodedByte('\x7F');
   EXPECT_EQ(verify_expected_length_, verify_encoded_byte_index_);
 }
 
 TEMPLATE_TEST_F(Test, EncodeCADAD1A) {
   StartEncodingTest(/* value */ 0x0CADAD1A, /* expected length */ 4);
-  ExpectEncodedByte(0xE5);
-  ExpectEncodedByte(0xB6);
-  ExpectEncodedByte(0xDA);
-  ExpectEncodedByte(0x1A);
+  ExpectEncodedByte('\xE5');
+  ExpectEncodedByte('\xB6');
+  ExpectEncodedByte('\xDA');
+  ExpectEncodedByte('\x1A');
   EXPECT_EQ(verify_expected_length_, verify_encoded_byte_index_);
 }
 
 TEMPLATE_TEST_F(Test, Encode32BitMaxInt) {
   StartEncodingTest(/* value */ 0x7FFFFFFF, /* expected length */ 5);
-  ExpectEncodedByte(0x87);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0x7F);
+  ExpectEncodedByte('\x87');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\x7F');
   EXPECT_EQ(verify_expected_length_, verify_encoded_byte_index_);
 }
 
@@ -174,25 +174,25 @@ TEST_F(VarintBEInt32DeathTest, DISABLED_Encode32BitsTooBig) {
 
 TEST_F(VarintBEInt64Test, Encode32Bits) {
   StartEncodingTest(/* value */ 0x80000000, /* expected length */ 5);
-  ExpectEncodedByte(0x88);
-  ExpectEncodedByte(0x80);
-  ExpectEncodedByte(0x80);
-  ExpectEncodedByte(0x80);
-  ExpectEncodedByte(0x00);
+  ExpectEncodedByte('\x88');
+  ExpectEncodedByte('\x80');
+  ExpectEncodedByte('\x80');
+  ExpectEncodedByte('\x80');
+  ExpectEncodedByte('\x00');
   EXPECT_EQ(verify_expected_length_, verify_encoded_byte_index_);
 }
 
 TEST_F(VarintBEInt64Test, Encode63Bits) {
   StartEncodingTest(/* value */ 0x7FFFFFFFFFFFFFFFULL, /* expected length */ 9);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0xFF);
-  ExpectEncodedByte(0x7F);
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\xFF');
+  ExpectEncodedByte('\x7F');
   EXPECT_EQ(verify_expected_length_, verify_encoded_byte_index_);
 }
 
@@ -241,7 +241,7 @@ TEST_F(VarintBEInt64Test, ParseEightFFs) {
 }
 
 TEMPLATE_TEST_F(Test, ParseZero) {
-  const char zero_data[] = { 0x00 };
+  const char zero_data[] = { '\x00' };
   parse_data_ptr_ = zero_data;
   EXPECT_EQ(0x00, VarintType::Parse(parse_data_ptr_ + 1, &parse_data_ptr_));
   EXPECT_EQ(zero_data + 1, parse_data_ptr_);
@@ -275,7 +275,7 @@ TEMPLATE_TEST_F(Test, ParseEmpty) {
 
 // This example is taken from the Varint description in RFC 3284, section 2.
 TEMPLATE_TEST_F(Test, Parse123456789) {
-  const char parse_data_123456789[] = { 0x80 + 58, 0x80 + 111, 0x80 + 26, 21 };
+  const char parse_data_123456789[] = { '\x80' + 58, '\x80' + 111, '\x80' + 26, 21 };
   parse_data_ptr_ = parse_data_123456789;
   EXPECT_EQ(123456789, VarintType::Parse(parse_data_123456789
                                              + sizeof(parse_data_123456789),
@@ -283,7 +283,7 @@ TEMPLATE_TEST_F(Test, Parse123456789) {
 }
 
 TEMPLATE_TEST_F(Test, Decode31Bits) {
-  const char parse_data_31_bits[] = { 0x87, 0xFF, 0xFF, 0xFF, 0x7F };
+  const char parse_data_31_bits[] = { '\x87', '\xFF', '\xFF', '\xFF', '\x7F' };
   parse_data_ptr_ = parse_data_31_bits;
   EXPECT_EQ(0x7FFFFFFF,
             VarintType::Parse(parse_data_31_bits + sizeof(parse_data_31_bits),
@@ -291,7 +291,7 @@ TEMPLATE_TEST_F(Test, Decode31Bits) {
 }
 
 TEST_F(VarintBEInt32Test, Decode32Bits) {
-  const char parse_data_32_bits[] = { 0x88, 0x80, 0x80, 0x80, 0x00 };
+  const char parse_data_32_bits[] = { '\x88', '\x80', '\x80', '\x80', '\x00' };
   parse_data_ptr_ = parse_data_32_bits;
   EXPECT_EQ(RESULT_ERROR,
             VarintType::Parse(parse_data_32_bits + sizeof(parse_data_32_bits),
@@ -299,7 +299,7 @@ TEST_F(VarintBEInt32Test, Decode32Bits) {
 }
 
 TEST_F(VarintBEInt64Test, Decode32Bits) {
-  const char parse_data_32_bits[] = { 0x88, 0x80, 0x80, 0x80, 0x00 };
+  const char parse_data_32_bits[] = { '\x88', '\x80', '\x80', '\x80', '\x00' };
   parse_data_ptr_ = parse_data_32_bits;
   EXPECT_EQ(0x80000000,
             VarintType::Parse(parse_data_32_bits + sizeof(parse_data_32_bits),
@@ -338,9 +338,9 @@ TEMPLATE_TEST_F(Test, EncodeDecodeRandom) {
 // bytes, but they should not cause us to read past the end of available input.
 TEMPLATE_TEST_F(Test, ContinuationBytesPastEndOfInput) {
   const char parse_data_20_continuations[] =
-    { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-      0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-      0x00 };
+    { '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80',
+      '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80', '\x80',
+      '\x00' };
   parse_data_ptr_ = parse_data_20_continuations;
   EXPECT_EQ(RESULT_END_OF_DATA,
             VarintType::Parse(parse_data_20_continuations + 10,
