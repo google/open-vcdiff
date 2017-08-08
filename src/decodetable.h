@@ -18,9 +18,9 @@
 #include <config.h>
 #include <stddef.h>     // NULL
 #include <stdint.h>     // int32_t
-#include "unique_ptr.h" // auto_ptr, unique_ptr
 #include "codetable.h"  // VCDiffInstructi...
 #include "logging.h"
+#include "unique_ptr.h" // auto_ptr, unique_ptr
 
 namespace open_vcdiff {
 
