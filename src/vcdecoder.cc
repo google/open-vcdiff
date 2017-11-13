@@ -344,7 +344,8 @@ class VCDiffStreamingDecoderImpl {
   // These functions are identical to their counterparts
   // in VCDiffStreamingDecoder.
   //
-  void StartDecoding(const char* dictionary_ptr, size_t dictionary_size);
+  void StartDecoding(const char* dictionary_ptr, size_t dictionary_size,
+                     char *output_ptr = NULL, size_t output_size = 0);
 
   bool DecodeChunk(const char* data,
                    size_t len,
@@ -474,8 +475,6 @@ class VCDiffStreamingDecoderImpl {
 
   VCDiffAddressCache* addr_cache() { return addr_cache_.get(); }
 
-  string* decoded_target() { return &decoded_target_; }
-
   bool allow_vcd_target() const { return allow_vcd_target_; }
 
   void SetAllowVcdTarget(bool allow_vcd_target) {
@@ -485,6 +484,59 @@ class VCDiffStreamingDecoderImpl {
       return;
     }
     allow_vcd_target_ = allow_vcd_target;
+  }
+
+  const char* decoded_target_ptr() const {
+    return output_ptr_ ?: decoded_target_.data();
+  }
+
+  void decoded_target_copy_bytes(const char* data, size_t size) {
+    if (output_ptr_) {
+      if (decoded_target_output_position_ + size > output_size_ ||
+          decoded_target_output_position_ + size < decoded_target_output_position_) {
+        VCD_DFATAL << "Buffer overflow in decoded_target_copy_bytes()"
+                   << VCD_ENDL;
+        return;
+      }
+      memcpy(output_ptr_ + decoded_target_output_position_, data, size);
+      decoded_target_output_position_ += size;
+    } else {
+      decoded_target_.append(data, size);
+    }
+  }
+
+  void decoded_target_run_byte(unsigned char byte, size_t size) {
+    if (output_ptr_) {
+      if (decoded_target_output_position_ + size > output_size_ ||
+          decoded_target_output_position_ + size < decoded_target_output_position_) {
+        VCD_DFATAL << "Buffer overflow in decoded_target_run_byte()"
+                   << VCD_ENDL;
+        return;
+      }
+      memset(output_ptr_ + decoded_target_output_position_, byte, size);
+      decoded_target_output_position_ += size;
+    } else {
+      decoded_target_.append(size, byte);
+    }
+  }
+
+  size_t decoded_target_write_position() {
+    if (output_ptr_) {
+      return decoded_target_output_position_;
+    } else {
+      return decoded_target_.size();
+    }
+  }
+
+  bool ensure_output_capacity(size_t wanted_capacity) {
+    if (output_ptr_) {
+      return (wanted_capacity <= output_size_);
+    } else {
+      if (decoded_target_.capacity() < wanted_capacity) {
+        decoded_target_.reserve(wanted_capacity);
+        return true;
+      }
+    }
   }
 
  private:
@@ -539,6 +591,10 @@ class VCDiffStreamingDecoderImpl {
   // Contents and length of the source (dictionary) data.
   const char* dictionary_ptr_;
   size_t dictionary_size_;
+
+  // buffer-based output
+  char* output_ptr_;
+  size_t output_size_;
 
   // This string will be used to store any unparsed bytes left over when
   // DecodeChunk() reaches the end of its input and returns RESULT_END_OF_DATA.
@@ -638,6 +694,8 @@ void VCDiffStreamingDecoderImpl::Reset() {
   start_decoding_was_called_ = false;
   dictionary_ptr_ = NULL;
   dictionary_size_ = 0;
+  output_ptr_ = NULL;
+  output_size_ = 0;
   vcdiff_version_code_ = '\0';
   planned_target_file_size_ = kUnlimitedBytes;
   total_of_target_window_sizes_ = 0;
@@ -649,7 +707,9 @@ void VCDiffStreamingDecoderImpl::Reset() {
 }
 
 void VCDiffStreamingDecoderImpl::StartDecoding(const char* dictionary_ptr,
-                                               size_t dictionary_size) {
+                                               size_t dictionary_size,
+                                               char* output_ptr,
+                                               size_t output_size) {
   if (start_decoding_was_called_) {
     VCD_DFATAL << "StartDecoding() called twice without FinishDecoding()"
                << VCD_ENDL;
@@ -660,6 +720,8 @@ void VCDiffStreamingDecoderImpl::StartDecoding(const char* dictionary_ptr,
   Reset();
   dictionary_ptr_ = dictionary_ptr;
   dictionary_size_ = dictionary_size;
+  output_ptr_ = output_ptr;
+  output_size_ = output_size;
   start_decoding_was_called_ = true;
 }
 
@@ -906,7 +968,7 @@ bool VCDiffStreamingDecoderImpl::DecodeChunk(
         // Found exactly the length we expected.  Stop decoding.
         break;
       }
-      if (!allow_vcd_target()) {
+      if (!allow_vcd_target() && output_string) {
         // VCD_TARGET will never be used to reference target data before the
         // start of the current window, so flush and clear the contents of
         // decoded_target_.
@@ -920,7 +982,9 @@ bool VCDiffStreamingDecoderImpl::DecodeChunk(
   }
   unparsed_bytes_.assign(parseable_chunk.UnparsedData(),
                          parseable_chunk.UnparsedSize());
-  AppendNewOutputText(output_string);
+  if (output_string) {
+    AppendNewOutputText(output_string);
+  }
   return true;
 }
 
@@ -989,7 +1053,7 @@ void VCDiffDeltaFileWindow::Reset() {
   found_header_ = false;
 
   // Mark the start of the current target window.
-  target_window_start_pos_ = parent_ ? parent_->decoded_target()->size() : 0U;
+  target_window_start_pos_ = parent_ ? parent_->decoded_target_write_position() : 0U;
   target_window_length_ = 0;
 
   source_segment_ptr_ = NULL;
@@ -1072,14 +1136,13 @@ VCDiffResult VCDiffDeltaFileWindow::SetUpWindowSections(
 //
 VCDiffResult VCDiffDeltaFileWindow::ReadHeader(
     ParseableChunk* parseable_chunk) {
-  std::string* decoded_target = parent_->decoded_target();
   VCDiffHeaderParser header_parser(parseable_chunk->UnparsedData(),
                                    parseable_chunk->End());
   size_t source_segment_position = 0;
   unsigned char win_indicator = 0;
   if (!header_parser.ParseWinIndicatorAndSourceSegment(
           parent_->dictionary_size(),
-          decoded_target->size(),
+          parent_->decoded_target_write_position(),
           parent_->allow_vcd_target(),
           &win_indicator,
           &source_segment_length_,
@@ -1102,17 +1165,17 @@ VCDiffResult VCDiffDeltaFileWindow::ReadHeader(
   // Reserve enough space in the output string for the current target window.
   const size_t wanted_capacity =
       target_window_start_pos_ + target_window_length_;
-  if (decoded_target->capacity() < wanted_capacity) {
-    decoded_target->reserve(wanted_capacity);
+  if (!parent_->ensure_output_capacity(wanted_capacity)) {
+    return RESULT_ERROR;
   }
   // Get a pointer to the start of the source segment.
   if (win_indicator & VCD_SOURCE) {
     source_segment_ptr_ = parent_->dictionary_ptr() + source_segment_position;
   } else if (win_indicator & VCD_TARGET) {
     // This assignment must happen after the reserve().
-    // decoded_target should not be resized again while processing this window,
+    // the output buffer should not be resized again while processing this window,
     // so source_segment_ptr_ should remain valid.
-    source_segment_ptr_ = decoded_target->data() + source_segment_position;
+    source_segment_ptr_ = parent_->decoded_target_ptr() + source_segment_position;
   }
   // The whole window header was found and parsed successfully.
   found_header_ = true;
@@ -1132,7 +1195,7 @@ void VCDiffDeltaFileWindow::UpdateInstructionPointer(
 }
 
 inline size_t VCDiffDeltaFileWindow::TargetBytesDecoded() {
-  return parent_->decoded_target()->size() - target_window_start_pos_;
+  return parent_->decoded_target_write_position() - target_window_start_pos_;
 }
 
 size_t VCDiffDeltaFileWindow::TargetBytesRemaining() {
@@ -1145,11 +1208,11 @@ size_t VCDiffDeltaFileWindow::TargetBytesRemaining() {
 }
 
 inline void VCDiffDeltaFileWindow::CopyBytes(const char* data, size_t size) {
-  parent_->decoded_target()->append(data, size);
+  parent_->decoded_target_copy_bytes(data, size);
 }
 
 inline void VCDiffDeltaFileWindow::RunByte(unsigned char byte, size_t size) {
-  parent_->decoded_target()->append(size, byte);
+  parent_->decoded_target_run_byte(byte, size);
 }
 
 VCDiffResult VCDiffDeltaFileWindow::DecodeAdd(size_t size) {
@@ -1216,7 +1279,7 @@ VCDiffResult VCDiffDeltaFileWindow::DecodeCopy(size_t size,
   }
   address -= source_segment_length_;
   // address is now based at start of target window
-  const char* const target_segment_ptr = parent_->decoded_target()->data() +
+  const char* const target_segment_ptr = parent_->decoded_target_ptr() +
                                          target_window_start_pos_;
   while (size > (target_bytes_decoded - address)) {
     // Recursive copy that extends into the yet-to-be-copied target data
@@ -1300,7 +1363,7 @@ int VCDiffDeltaFileWindow::DecodeBody(ParseableChunk* parseable_chunk) {
     return RESULT_ERROR;
   }
   const char* const target_window_start =
-      parent_->decoded_target()->data() + target_window_start_pos_;
+      parent_->decoded_target_ptr() + target_window_start_pos_;
   if (has_checksum_ &&
       (ComputeAdler32(target_window_start, target_window_length_)
            != expected_checksum_)) {
@@ -1396,8 +1459,9 @@ VCDiffStreamingDecoder::VCDiffStreamingDecoder()
 
 VCDiffStreamingDecoder::~VCDiffStreamingDecoder() { delete impl_; }
 
-void VCDiffStreamingDecoder::StartDecoding(const char* source, size_t len) {
-  impl_->StartDecoding(source, len);
+void VCDiffStreamingDecoder::StartDecoding(const char* source, size_t len,
+                                           char *output_ptr, size_t output_size) {
+  impl_->StartDecoding(source, len, output_ptr, output_size);
 }
 
 bool VCDiffStreamingDecoder::DecodeChunkToInterface(

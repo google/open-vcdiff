@@ -60,7 +60,8 @@ class VCDiffStreamingDecoder {
   // contents are not copied, and the client is responsible for ensuring that
   // dictionary_ptr is valid until FinishDecoding is called.
   //
-  void StartDecoding(const char* dictionary_ptr, size_t dictionary_size);
+  void StartDecoding(const char* dictionary_ptr, size_t dictionary_size,
+                     char *output_ptr = NULL, size_t output_size = 0);
 
   // Accepts "data[0,len-1]" as additional data received in the
   // compressed stream.  If any chunks of data can be fully decoded,
@@ -78,13 +79,17 @@ class VCDiffStreamingDecoder {
   // of the number of calls to DecodeChunk().
   //
   template<class OutputType>
-  bool DecodeChunk(const char* data, size_t len, OutputType* output) {
-    OutputString<OutputType> output_string(output);
-    return DecodeChunkToInterface(data, len, &output_string);
+  bool DecodeChunk(const char* data, size_t len, OutputType* output = NULL) {
+    if (output) {
+      OutputString<OutputType> output_string(output);
+      return DecodeChunkToInterface(data, len, &output_string);
+    } else {
+      return DecodeChunkToInterface(data, len);
+    }
   }
 
   bool DecodeChunkToInterface(const char* data, size_t len,
-                              OutputStringInterface* output_string);
+                              OutputStringInterface* output_string = NULL);
 
   // Finishes decoding after all data has been received.  Returns true
   // if decoding of the entire stream was successful.  FinishDecoding()
