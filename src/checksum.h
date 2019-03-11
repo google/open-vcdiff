@@ -21,6 +21,10 @@
 #include <config.h>
 #include "zlib.h"
 
+#ifdef __MINGW32__
+#include <stddef.h>
+#endif
+
 namespace open_vcdiff {
 
 typedef uLong VCDChecksum;
