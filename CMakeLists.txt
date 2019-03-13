@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 2.8.12)
+http://www.apache.org/licenses/
 
 project (open-vcdiff CXX C)
 set (VERSION 0.8.4)
@@ -24,8 +25,9 @@ endif ()
 # Copy value. We'll override BUILD_TESTING for subprojects
 set (vcdiff_build_tests ${BUILD_TESTING})
 
-if (vcdiff_build_exec)
-  set (GFLAGS_BUILD_gflags_LIB OFF)
+if (vcdiff_build_exec ON
+)
+  set (GFLAGS_BUILD_gflags_LIB ON)
   set (GFLAGS_BUILD_gflags_nothreads_LIB ON)
   set (GFLAGS_INSTALL_HEADERS OFF)
   set (GFLAGS_INSTALL_SHARED_LIBS OFF)
