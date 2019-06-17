@@ -4,12 +4,6 @@ open-vcdiff is an encoder and decoder for the VCDIFF format, as described in
 [RFC 3284](http://www.ietf.org/rfc/rfc3284.txt): The VCDIFF Generic Differencing
 and Compression Data Format.
 
-You will need to first synchronize gflags and gtest by running
-`git submodule update --init --recursive`. Or if you have system installed
-gflags and/or gtest libraries you can provide ```-Dvcdiff_use_system_gflags=ON```
-and ```-Dvcdiff_use_system_gtest=ON``` for ```cmake``` invokation in the build
-step.
-
 A library with a simple API is included, as well as a command-line executable
 that can apply the encoder and decoder to source, target, and delta files.
 For further details, please refer to
@@ -28,13 +22,29 @@ mkdir mybuild       # Create a directory to hold the build output.
 cd mybuild
 cmake ${OPEN_VCDIFF_DIR}  # Generate native build scripts.
 ```
-If you want to disable build of build tests and/or executable and build
-libraries only replace last command with
+
+By default, CMake will generate a Makefile to build the static libraries
+`libvcdcom.a` (common), `libvcddec.a` (decoder) and `libvcdenc.a` (encoder), as
+well as the `vcdiff` binary. To also build unit tests, run `cmake` as follows:
+
 ```bash
-cmake -Dvcdiff_build_test=OFF -Dvcdiff_build_exec=OFF ${OPEN_VCDIFF_DIR}
+cmake -DBUILD_TESTING=ON ${OPEN_VCDIFF_DIR}
 ```
-If you are on a \*nix system, you should now see a Makefile in the
-current directory.  Just type 'make' to build gtest.
+
+The git repository contains two submodules: gflags (used by the `vcdiff` binary)
+and gtest (used by the unit tests). There are a few ways to handle these:
+
+  1. To include the source code of these submodules, clone the open-vcdiff
+     repository with  `git clone --recurse-submodules`. If you have already
+     cloned the repository, you can initialize submodules after the fact by
+     running: `git submodule update --init --recursive`.
+  2. If your system has the gflags and/or gtest libraries installed, you can opt
+     to use these instead, by passing `-Dvcdiff_use_system_gflags=ON` and/or
+     `-Dvcdiff_use_system_gtest=ON` to `cmake`.
+  3. Finally, if you only want to build the vcdiff libraries, you won't need
+     the gflags and gtest libraries. Pass `-Dvcdiff_build_exec=OFF` to `cmake`
+     to disable building the `vcdiff` binary. Note that tests are already
+     disabled by default.
 
 If you use Windows and have Visual Studio installed, a `gtest.sln` file
 and several `.vcproj` files will be created.  You can then build them
@@ -82,7 +92,7 @@ options `-lvcdcom` and `-lvcdenc`; when using the decoder, it must be linked
 with `-lvcdcom` and `-lvcddec`.
 
 To verify that the package works on your system, especially after making
-modifications to the source code, please run the unit tests using `make check`.
+modifications to the source code, please run the unit tests using `make test`.
 
 For further details, please refer to
 [this link](https://github.com/google/open-vcdiff/wiki/How-to-use-openvcdiff).
