@@ -1223,7 +1223,6 @@ VCDiffResult VCDiffDeltaFileWindow::DecodeCopy(size_t size,
     const size_t partial_copy_size = target_bytes_decoded - address;
     CopyBytes(&target_segment_ptr[address], partial_copy_size);
     target_bytes_decoded += partial_copy_size;
-    address += partial_copy_size;
     size -= partial_copy_size;
   }
   CopyBytes(&target_segment_ptr[address], size);
