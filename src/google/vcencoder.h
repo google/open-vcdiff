@@ -38,7 +38,8 @@ class CodeTableWriterInterface;
 class HashedDictionary {
  public:
   HashedDictionary(const char* dictionary_contents,
-                   size_t dictionary_size);
+                   size_t dictionary_size,
+                   bool copy = true);
   ~HashedDictionary();
 
   // Init() must be called before using the HashedDictionary as an argument

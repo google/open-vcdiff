@@ -57,8 +57,9 @@ CodeTableWriterInterface* create_writer(
 }  // namespace
 
 HashedDictionary::HashedDictionary(const char* dictionary_contents,
-                                   size_t dictionary_size)
-    : engine_(new VCDiffEngine(dictionary_contents, dictionary_size)) { }
+                                   size_t dictionary_size,
+                                   bool copy)
+    : engine_(new VCDiffEngine(dictionary_contents, dictionary_size, copy)) { }
 
 HashedDictionary::~HashedDictionary() { delete engine_; }
 
