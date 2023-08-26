@@ -37,7 +37,7 @@ class VCDiffEngine {
   // aligned on block boundaries in the dictionary text.
   static const size_t kMinimumMatchSize = 32;
 
-  VCDiffEngine(const char* dictionary, size_t dictionary_size);
+  VCDiffEngine(const char* dictionary, size_t dictionary_size, bool copy = true);
 
   ~VCDiffEngine();
 
@@ -106,6 +106,8 @@ class VCDiffEngine {
                              CodeTableWriterInterface* coder) const;
 
   const char* dictionary_;  // A copy of the dictionary contents
+
+  bool owns_dictionary_;
 
   const size_t dictionary_size_;
 

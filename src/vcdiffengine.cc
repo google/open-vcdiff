@@ -23,20 +23,21 @@
 
 namespace open_vcdiff {
 
-VCDiffEngine::VCDiffEngine(const char* dictionary, size_t dictionary_size)
+VCDiffEngine::VCDiffEngine(const char* dictionary, size_t dictionary_size, bool copy)
     // If dictionary_size == 0, then dictionary could be NULL.  Guard against
     // using a NULL value.
-    : dictionary_((dictionary_size > 0) ? new char[dictionary_size] : ""),
+    : dictionary_((dictionary_size > 0) ? (copy ? new char[dictionary_size] : dictionary) : ""),
+      owns_dictionary_(copy),
       dictionary_size_(dictionary_size),
       hashed_dictionary_(NULL) {
-  if (dictionary_size > 0) {
+  if (dictionary_size > 0 && copy) {
     memcpy(const_cast<char*>(dictionary_), dictionary, dictionary_size);
   }
 }
 
 VCDiffEngine::~VCDiffEngine() {
   delete hashed_dictionary_;
-  if (dictionary_size_ > 0) {
+  if (dictionary_size_ > 0 && owns_dictionary_) {
     delete[] dictionary_;
   }
 }
